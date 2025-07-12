@@ -29,6 +29,7 @@ export default function VolunteerDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [user] = useAuthState(auth);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [posting, setPosting] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
@@ -118,6 +119,7 @@ export default function VolunteerDetailPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
     

@@ -1,16 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Heart, Users, MapPin, Clock, Calendar, Building, Phone, Mail, FileText, CheckCircle } from 'lucide-react';
+import { Heart, Users, Building, CheckCircle, FileText, ArrowLeft } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { volunteerService } from '@/lib/firebase-services';
 
 export default function VolunteerPostingsPage() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({

@@ -9,7 +9,9 @@ import Footer from '@/components/Footer';
 import { volunteerService } from '@/lib/firebase-services';
 
 export default function VolunteerListingsPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [volunteerPostings, setVolunteerPostings] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [filteredPostings, setFilteredPostings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,20 +80,7 @@ export default function VolunteerListingsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentPostings = filteredPostings.slice(startIndex, startIndex + itemsPerPage);
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return '';
-    
-    let date;
-    if (timestamp.toDate) {
-      date = timestamp.toDate();
-    } else if (timestamp instanceof Date) {
-      date = timestamp;
-    } else {
-      date = new Date(timestamp);
-    }
-    
-    return date.toLocaleDateString('ko-KR');
-  };
+
 
   const getOrganizationTypeColor = (type: string) => {
     const colors = {

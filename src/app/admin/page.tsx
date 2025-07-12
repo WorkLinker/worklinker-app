@@ -965,8 +965,6 @@ export default function AdminPage() {
   // 봉사자 관리 관련 상태
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pendingVolunteerPostings, setPendingVolunteerPostings] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedVolunteerPosting, setSelectedVolunteerPosting] = useState<any>(null);
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState('');
   const [volunteerLoading, setVolunteerLoading] = useState(false);
   const [volunteerUpdating, setVolunteerUpdating] = useState<string | null>(null);
@@ -986,15 +984,7 @@ export default function AdminPage() {
     }
   };
 
-  const loadVolunteerApplications = async (postingId: string) => {
-    try {
-      const applications = await volunteerService.getApplicationsByVolunteerPosting(postingId);
-      return applications;
-    } catch (error) {
-      console.error('❌ 봉사 지원자 목록 로드 오류:', error);
-      return [];
-    }
-  };
+
 
   const handleVolunteerPostingApprove = async (postingId: string) => {
     try {
