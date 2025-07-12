@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// import { NextResponse } from 'next/server'; // 사용하지 않음
 
 // 환경변수에서 값 가져오기
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';

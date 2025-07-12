@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { sendTestEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service';
+// import { sendTestEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 
 export default function EmailTest() {
   const [testEmail, setTestEmail] = useState('');
@@ -18,8 +18,12 @@ export default function EmailTest() {
     setResult(null);
 
     try {
-      const response = await sendTestEmail(testEmail);
-      setResult(response);
+      // const response = await sendTestEmail(testEmail); // 임시 비활성화
+      setResult({
+        success: false,
+        message: '이메일 시스템이 임시 비활성화되었습니다.',
+        error: '환경변수 설정 후 활성화 예정'
+      });
     } catch (error) {
       setResult({
         success: false,
@@ -41,8 +45,12 @@ export default function EmailTest() {
     setResult(null);
 
     try {
-      const response = await sendApprovalEmail(testEmail, '테스트 사용자');
-      setResult(response);
+      // const response = await sendApprovalEmail(testEmail, '테스트 사용자'); // 임시 비활성화
+      setResult({
+        success: false,
+        message: '이메일 시스템이 임시 비활성화되었습니다.',
+        error: '환경변수 설정 후 활성화 예정'
+      });
     } catch (error) {
       setResult({
         success: false,
@@ -64,8 +72,12 @@ export default function EmailTest() {
     setResult(null);
 
     try {
-      const response = await sendRejectionEmail(testEmail, '테스트 사용자', '테스트 거절 사유입니다.');
-      setResult(response);
+      // const response = await sendRejectionEmail(testEmail, '테스트 사용자', '테스트 거절 사유입니다.'); // 임시 비활성화
+      setResult({
+        success: false,
+        message: '이메일 시스템이 임시 비활성화되었습니다.',
+        error: '환경변수 설정 후 활성화 예정'
+      });
     } catch (error) {
       setResult({
         success: false,

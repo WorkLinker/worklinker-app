@@ -33,7 +33,7 @@ import Footer from '@/components/Footer';
 import EmailTest from '@/components/EmailTest';
 import { authService } from '@/lib/auth-service';
 import { jobSeekerService, eventService, contentService, logService } from '@/lib/firebase-services';
-import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service';
+// import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 import { User as FirebaseUser, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -1065,19 +1065,19 @@ export default function AdminPage() {
           });
         }
         
-        // 승인 이메일 전송
-        if (applicant?.email && applicant?.name) {
-          try {
-            const emailResult = await sendApprovalEmail(applicant.email, applicant.name);
-            if (emailResult.success) {
-              console.log('✅ 승인 이메일 전송 성공:', emailResult.messageId);
-            } else {
-              console.error('❌ 승인 이메일 전송 실패:', emailResult.error);
-            }
-          } catch (emailError) {
-            console.error('❌ 승인 이메일 전송 중 오류:', emailError);
-          }
-        }
+        // 승인 이메일 전송 (현재 비활성화)
+        // if (applicant?.email && applicant?.name) {
+        //   try {
+        //     const emailResult = await sendApprovalEmail(applicant.email, applicant.name);
+        //     if (emailResult.success) {
+        //       console.log('✅ 승인 이메일 전송 성공:', emailResult.messageId);
+        //     } else {
+        //       console.error('❌ 승인 이메일 전송 실패:', emailResult.error);
+        //     }
+        //   } catch (emailError) {
+        //     console.error('❌ 승인 이메일 전송 중 오류:', emailError);
+        //   }
+        // }
         
         alert('구직 신청이 승인되었습니다! 승인 이메일이 발송되었습니다.');
         await loadPendingApplications(); // 목록 새로고침
@@ -1114,19 +1114,19 @@ export default function AdminPage() {
           });
         }
         
-        // 거절 이메일 전송
-        if (applicant?.email && applicant?.name) {
-          try {
-            const emailResult = await sendRejectionEmail(applicant.email, applicant.name, reason || undefined);
-            if (emailResult.success) {
-              console.log('✅ 거절 이메일 전송 성공:', emailResult.messageId);
-            } else {
-              console.error('❌ 거절 이메일 전송 실패:', emailResult.error);
-            }
-          } catch (emailError) {
-            console.error('❌ 거절 이메일 전송 중 오류:', emailError);
-          }
-        }
+        // 거절 이메일 전송 (현재 비활성화)
+        // if (applicant?.email && applicant?.name) {
+        //   try {
+        //     const emailResult = await sendRejectionEmail(applicant.email, applicant.name, reason || undefined);
+        //     if (emailResult.success) {
+        //       console.log('✅ 거절 이메일 전송 성공:', emailResult.messageId);
+        //     } else {
+        //       console.error('❌ 거절 이메일 전송 실패:', emailResult.error);
+        //     }
+        //   } catch (emailError) {
+        //     console.error('❌ 거절 이메일 전송 중 오류:', emailError);
+        //   }
+        // }
         
         alert('구직 신청이 거절되었습니다. 거절 이메일이 발송되었습니다.');
         await loadPendingApplications(); // 목록 새로고침
