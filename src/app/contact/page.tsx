@@ -73,48 +73,50 @@ export default function ContactPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/메인홈2.jpg"
+            src="/images/2번.jpg"
             alt="문의하기"
             fill
             sizes="100vw"
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-black/30"></div>
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            문의하기
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-            궁금한 점이나 도움이 필요한 사항이 있으시면 언제든지 연락주세요. 
-            성실히 답변해드리겠습니다.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => {
-                const contactSection = document.getElementById('contact-section');
-                if (contactSection) {
-                  contactSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg"
-            >
-              문의 보내기
-            </button>
-            <button
-              onClick={() => {
-                const infoSection = document.getElementById('info-section');
-                if (infoSection) {
-                  infoSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors backdrop-blur-sm"
-            >
-              연락처 정보
-            </button>
+        {/* Hero Content - 하단 오버레이 */}
+        <div className="absolute inset-0 flex items-end pb-24">
+          <div className="container mx-auto px-6 text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              문의하기
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+              궁금한 점이나 도움이 필요한 사항이 있으시면 언제든지 연락주세요. 
+              성실히 답변해드리겠습니다.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => {
+                  const contactSection = document.getElementById('contact-section');
+                  if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg"
+              >
+                문의 보내기
+              </button>
+              <button
+                onClick={() => {
+                  const infoSection = document.getElementById('info-section');
+                  if (infoSection) {
+                    infoSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors backdrop-blur-sm"
+              >
+                연락처 정보
+              </button>
+            </div>
           </div>
         </div>
       </section>
