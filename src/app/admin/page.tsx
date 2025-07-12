@@ -26,20 +26,23 @@ import {
   EyeOff,
   Shield,
   Key,
-  AlertCircle
+  AlertCircle,
+  Heart,
+  Building,
+  MapPin
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import EmailTest from '@/components/EmailTest';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 import { User as FirebaseUser, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'content-edit' | 'activity-log' | 'log-export' | 'admin-settings';
+type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'log-export' | 'admin-settings';
 
 // 비밀번호 변경 모달 컴포넌트
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -958,7 +961,71 @@ export default function AdminPage() {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentSaving, setContentSaving] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  
+  // 봉사자 관리 관련 상태
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pendingVolunteerPostings, setPendingVolunteerPostings] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedVolunteerPosting, setSelectedVolunteerPosting] = useState<any>(null);
+  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState('');
+  const [volunteerLoading, setVolunteerLoading] = useState(false);
+  const [volunteerUpdating, setVolunteerUpdating] = useState<string | null>(null);
+  
   const router = useRouter();
+
+  // 봉사자 데이터 로딩 함수들
+  const loadPendingVolunteerPostings = async () => {
+    try {
+      setVolunteerLoading(true);
+      const postings = await volunteerService.getPendingVolunteerPostings();
+      setPendingVolunteerPostings(postings);
+    } catch (error) {
+      console.error('❌ 봉사자 모집 공고 로드 오류:', error);
+    } finally {
+      setVolunteerLoading(false);
+    }
+  };
+
+  const loadVolunteerApplications = async (postingId: string) => {
+    try {
+      const applications = await volunteerService.getApplicationsByVolunteerPosting(postingId);
+      return applications;
+    } catch (error) {
+      console.error('❌ 봉사 지원자 목록 로드 오류:', error);
+      return [];
+    }
+  };
+
+  const handleVolunteerPostingApprove = async (postingId: string) => {
+    try {
+      setVolunteerUpdating(postingId);
+      await volunteerService.approveVolunteerPosting(postingId);
+      await loadPendingVolunteerPostings();
+      alert('✅ 봉사자 모집 공고가 승인되었습니다.');
+    } catch (error) {
+      console.error('❌ 봉사자 모집 공고 승인 오류:', error);
+      alert('❌ 승인 처리 중 오류가 발생했습니다.');
+    } finally {
+      setVolunteerUpdating(null);
+    }
+  };
+
+  const handleVolunteerPostingReject = async (postingId: string) => {
+    const reason = prompt('거절 사유를 입력해주세요:');
+    if (!reason) return;
+
+    try {
+      setVolunteerUpdating(postingId);
+      await volunteerService.rejectVolunteerPosting(postingId, reason);
+      await loadPendingVolunteerPostings();
+      alert('✅ 봉사자 모집 공고가 거절되었습니다.');
+    } catch (error) {
+      console.error('❌ 봉사자 모집 공고 거절 오류:', error);
+      alert('❌ 거절 처리 중 오류가 발생했습니다.');
+    } finally {
+      setVolunteerUpdating(null);
+    }
+  };
 
   // 관리자 권한 확인 및 데이터 로드
   useEffect(() => {
@@ -972,8 +1039,11 @@ export default function AdminPage() {
         }
 
         setUser(currentUser);
-        await loadPendingApplications();
-        await loadSiteContent();
+        await Promise.all([
+          loadPendingApplications(),
+          loadSiteContent(),
+          loadPendingVolunteerPostings()
+        ]);
       } else {
         router.push('/');
       }
@@ -1177,6 +1247,12 @@ export default function AdminPage() {
       description: '구직 신청 검토 및 승인/거절'
     },
     {
+      id: 'volunteer-management' as TabType,
+      name: '봉사자 관리',
+      icon: Heart,
+      description: '봉사자 모집 공고 승인/거절'
+    },
+    {
       id: 'content-edit' as TabType,
       name: '콘텐츠 수정',
       icon: Edit,
@@ -1343,6 +1419,159 @@ export default function AdminPage() {
                   </h3>
                   <p className="text-gray-600 text-lg font-medium">
                     {searchTerm ? '검색 결과가 없습니다.' : '모든 신청서가 처리되었습니다!'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'volunteer-management':
+        return (
+          <div className="space-y-6">
+            {/* 통계 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <Clock size={28} className="text-orange-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">승인 대기</p>
+                    <p className="text-3xl font-bold text-gray-900">{pendingVolunteerPostings.length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <CheckCircle size={28} className="text-green-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">승인 완료</p>
+                    <p className="text-3xl font-bold text-gray-900">-</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <Heart size={28} className="text-pink-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">총 지원자</p>
+                    <p className="text-3xl font-bold text-gray-900">-</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 검색 */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="기관명, 봉사 제목으로 검색..."
+                    value={volunteerSearchTerm}
+                    onChange={(e) => setVolunteerSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 봉사자 모집 공고 목록 */}
+            <div className="bg-white rounded-xl shadow-xl">
+              <div className="p-6 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  ❤️ 승인 대기 중인 봉사자 모집 ({pendingVolunteerPostings.filter(posting => 
+                    posting.title?.toLowerCase().includes(volunteerSearchTerm.toLowerCase()) ||
+                    posting.organizationName?.toLowerCase().includes(volunteerSearchTerm.toLowerCase())
+                  ).length}개)
+                </h2>
+              </div>
+
+              {volunteerLoading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">봉사자 모집 공고를 불러오는 중...</p>
+                </div>
+              ) : pendingVolunteerPostings.filter(posting => 
+                posting.title?.toLowerCase().includes(volunteerSearchTerm.toLowerCase()) ||
+                posting.organizationName?.toLowerCase().includes(volunteerSearchTerm.toLowerCase())
+              ).length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                  {pendingVolunteerPostings.filter(posting => 
+                    posting.title?.toLowerCase().includes(volunteerSearchTerm.toLowerCase()) ||
+                    posting.organizationName?.toLowerCase().includes(volunteerSearchTerm.toLowerCase())
+                  ).map((posting) => (
+                    <div key={posting.id} className="p-6 bg-white hover:bg-gray-50 transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                              {posting.title}
+                            </h3>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              <Clock size={12} className="mr-1" />
+                              검토 중
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center">
+                              <Building size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.organizationName}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.location}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.timeCommitment}</span>
+                            </div>
+                            <div className="col-span-full text-gray-600">
+                              <strong className="text-gray-800">설명:</strong> <span className="font-medium">{posting.description}</span>
+                            </div>
+                            <div className="col-span-full text-xs text-gray-500 font-medium">
+                              등록일: {formatDate(posting.createdAt)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex space-x-3 ml-4">
+                          <button
+                            onClick={() => handleVolunteerPostingApprove(posting.id)}
+                            disabled={volunteerUpdating === posting.id}
+                            className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
+                          >
+                            {volunteerUpdating === posting.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            ) : (
+                              <CheckCircle size={18} className="mr-2" />
+                            )}
+                            <span className="font-semibold">승인</span>
+                          </button>
+                          <button
+                            onClick={() => handleVolunteerPostingReject(posting.id)}
+                            disabled={volunteerUpdating === posting.id}
+                            className="flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
+                          >
+                            <XCircle size={18} className="mr-2" />
+                            <span className="font-semibold">거절</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <Heart size={64} className="text-gray-400 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    🎉 승인 대기 중인 봉사자 모집 공고가 없습니다
+                  </h3>
+                  <p className="text-gray-600 text-lg font-medium">
+                    {volunteerSearchTerm ? '검색 결과가 없습니다.' : '모든 봉사자 모집 공고가 처리되었습니다!'}
                   </p>
                 </div>
               )}

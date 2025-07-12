@@ -1403,3 +1403,303 @@ export const logService = {
     });
   }
 }; 
+
+// 🤝 봉사자 서비스
+export const volunteerService = {
+  // 봉사자 모집 등록
+  async submitVolunteerPosting(data: any) {
+    try {
+      console.log('🤝 봉사자 모집 등록 시작:', data);
+      
+      const docRef = await addDoc(collection(db, 'volunteerPostings'), {
+        ...data,
+        approved: false,
+        views: 0,
+        applicantCount: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('✅ 봉사자 모집 등록 성공:', docRef.id);
+      return { success: true, id: docRef.id };
+    } catch (error) {
+      console.error('❌ 봉사자 모집 등록 오류:', error);
+      throw error;
+    }
+  },
+
+  // 승인된 봉사 기회 목록 조회
+  async getApprovedVolunteerPostings() {
+    try {
+      const q = query(
+        collection(db, 'volunteerPostings'), 
+        where('approved', '==', true)
+      );
+      const querySnapshot = await getDocs(q);
+      const volunteerPostings = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      volunteerPostings.sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      console.log('✅ 승인된 봉사 기회 목록 조회 성공:', volunteerPostings.length, '개');
+      return volunteerPostings;
+    } catch (error) {
+      console.error('❌ 봉사 기회 목록 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 승인 대기 중인 봉사자 모집 목록 조회 (관리자용)
+  async getPendingVolunteerPostings() {
+    try {
+      const q = query(
+        collection(db, 'volunteerPostings'), 
+        where('approved', '==', false)
+      );
+      const querySnapshot = await getDocs(q);
+      const pendingPostings = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      pendingPostings.sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      console.log('✅ 승인 대기 봉사자 모집 목록 조회 성공:', pendingPostings.length, '개');
+      return pendingPostings;
+    } catch (error) {
+      console.error('❌ 승인 대기 봉사자 모집 목록 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 봉사자 모집 승인 (관리자용)
+  async approveVolunteerPosting(postingId: string) {
+    try {
+      console.log('✅ 봉사자 모집 승인 시작:', postingId);
+      
+      const docRef = doc(db, 'volunteerPostings', postingId);
+      await updateDoc(docRef, {
+        approved: true,
+        approvedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('✅ 봉사자 모집 승인 완료:', postingId);
+      return { success: true, id: postingId };
+    } catch (error) {
+      console.error('❌ 봉사자 모집 승인 오류:', error);
+      throw error;
+    }
+  },
+
+  // 봉사자 모집 거절 (관리자용)
+  async rejectVolunteerPosting(postingId: string, reason?: string) {
+    try {
+      console.log('❌ 봉사자 모집 거절 시작:', postingId, '사유:', reason);
+      
+      const docRef = doc(db, 'volunteerPostings', postingId);
+      await updateDoc(docRef, {
+        approved: false,
+        rejected: true,
+        rejectedAt: serverTimestamp(),
+        rejectionReason: reason || '사유 없음',
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('❌ 봉사자 모집 거절 완료:', postingId);
+      return { success: true, id: postingId };
+    } catch (error) {
+      console.error('❌ 봉사자 모집 거절 오류:', error);
+      throw error;
+    }
+  },
+
+  // 봉사 기회 조회수 증가
+  async incrementVolunteerViews(postingId: string) {
+    try {
+      const docRef = doc(db, 'volunteerPostings', postingId);
+      await updateDoc(docRef, {
+        views: (await getDocs(query(collection(db, 'volunteerPostings'), where('__name__', '==', postingId)))).docs[0]?.data()?.views + 1 || 1,
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('👁️ 봉사 기회 조회수 증가:', postingId);
+    } catch (error) {
+      console.error('❌ 조회수 증가 오류:', error);
+      // 조회수는 중요하지 않으므로 에러를 throw하지 않음
+    }
+  },
+
+  // 봉사 지원하기
+  async submitVolunteerApplication(postingId: string, applicationData: any) {
+    try {
+      console.log('🤝 봉사 지원 시작:', postingId, applicationData);
+      
+      const docRef = await addDoc(collection(db, 'volunteerApplications'), {
+        postingId,
+        ...applicationData,
+        status: 'pending',
+        appliedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // 봉사 기회의 지원자 수 증가
+      const postingRef = doc(db, 'volunteerPostings', postingId);
+      const postingSnapshot = await getDocs(query(collection(db, 'volunteerPostings'), where('__name__', '==', postingId)));
+      const currentCount = postingSnapshot.docs[0]?.data()?.applicantCount || 0;
+      
+      await updateDoc(postingRef, {
+        applicantCount: currentCount + 1,
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('✅ 봉사 지원 성공:', docRef.id);
+      return { success: true, id: docRef.id };
+    } catch (error) {
+      console.error('❌ 봉사 지원 오류:', error);
+      throw error;
+    }
+  },
+
+  // 특정 봉사 기회의 지원자 목록 조회 (관리자용)
+  async getApplicationsByVolunteerPosting(postingId: string) {
+    try {
+      const q = query(
+        collection(db, 'volunteerApplications'),
+        where('postingId', '==', postingId),
+        orderBy('appliedAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const applications = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('✅ 봉사 지원자 목록 조회 성공:', applications.length, '명');
+      return applications;
+    } catch (error) {
+      console.error('❌ 봉사 지원자 목록 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 사용자별 봉사 지원 내역 조회
+  async getApplicationsByUser(userEmail: string) {
+    try {
+      const q = query(
+        collection(db, 'volunteerApplications'),
+        where('email', '==', userEmail),
+        orderBy('appliedAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const applications = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('✅ 사용자 봉사 지원 내역 조회 성공:', applications.length, '개');
+      return applications;
+    } catch (error) {
+      console.error('❌ 사용자 봉사 지원 내역 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 테스트용 봉사 기회 데이터 추가
+  async addSampleVolunteerPostings() {
+    try {
+      const samplePostings = [
+        {
+          organizationName: "프레더릭턴 공공도서관",
+          organizationType: "도서관",
+          contactPerson: "Sarah Johnson",
+          email: "volunteer@fredlib.ca",
+          phone: "(506) 460-2020",
+          title: "아동 독서 프로그램 보조",
+          description: "매주 토요일 오전에 진행되는 아동 독서 프로그램에서 아이들의 독서 활동을 도와주실 봉사자를 모집합니다. 책 읽기, 활동 보조, 정리 정돈 등의 업무를 담당하게 됩니다.",
+          location: "프레데릭턴, NB",
+          startDate: "2024-02-01",
+          endDate: "2024-06-30",
+          timeCommitment: "매주 토요일 오전 9시-12시",
+          requiredSkills: "아이들과의 소통 능력, 기본적인 영어 실력, 책 읽기를 좋아하는 마음",
+          benefits: "봉사 확인서 발급, 도서관 이용 혜택, 추천서 작성 가능",
+          additionalInfo: "14세 이상 고등학생 지원 가능, 부모님 동의서 필요",
+          approved: true,
+          views: 15,
+          applicantCount: 3,
+          approvedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          organizationName: "선셋 요양원",
+          organizationType: "요양원/요양소",
+          contactPerson: "Michael Park",
+          email: "volunteer@sunset-care.ca",
+          phone: "(506) 455-1234",
+          title: "어르신 말벗 및 활동 도우미",
+          description: "요양원 어르신들과 함께 시간을 보내며 대화 상대가 되어주고, 간단한 레크리에이션 활동을 도와주실 봉사자를 찾습니다. 따뜻한 마음과 인내심이 필요합니다.",
+          location: "프레데릭턴, NB",
+          startDate: "2024-01-15",
+          endDate: "2024-12-31",
+          timeCommitment: "주 1-2회, 각 2시간",
+          requiredSkills: "어르신들과의 소통 능력, 인내심, 기본적인 영어 또는 한국어",
+          benefits: "봉사 확인서, 간식 제공, 의미 있는 경험",
+          additionalInfo: "16세 이상, 건강검진서 제출 필요",
+          approved: true,
+          views: 22,
+          applicantCount: 5,
+          approvedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          organizationName: "뉴브런즈윅 푸드뱅크",
+          organizationType: "푸드뱅크/급식소",
+          contactPerson: "Jennifer Lee",
+          email: "volunteer@nbfoodbank.org",
+          phone: "(506) 458-9555",
+          title: "식품 분류 및 배포 도우미",
+          description: "지역사회의 도움이 필요한 가정들을 위해 기부받은 식품을 분류하고 포장하는 일을 도와주실 봉사자를 모집합니다. 체력을 요하는 작업이 포함될 수 있습니다.",
+          location: "프레데릭턴, NB",
+          startDate: "2024-01-20",
+          endDate: "2024-05-31",
+          timeCommitment: "주말 중 하루, 4시간",
+          requiredSkills: "체력, 팀워크, 기본적인 위생 관념",
+          benefits: "봉사 확인서, 중식 제공, 지역사회 기여 경험",
+          additionalInfo: "15세 이상, 안전교육 이수 필수",
+          approved: true,
+          views: 18,
+          applicantCount: 7,
+          approvedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }
+      ];
+
+      const promises = samplePostings.map(posting => addDoc(collection(db, 'volunteerPostings'), posting));
+      await Promise.all(promises);
+      
+      console.log('✅ 샘플 봉사 기회 데이터 추가 완료:', samplePostings.length, '개');
+      return { success: true, count: samplePostings.length };
+    } catch (error) {
+      console.error('❌ 샘플 봉사 기회 데이터 추가 오류:', error);
+      throw error;
+    }
+  }
+}; 

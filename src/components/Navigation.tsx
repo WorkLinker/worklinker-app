@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Home, Users, FileText, Calendar, Mail, MessageSquare, LogIn, LogOut, User, ChevronDown, UserCircle, Settings, Building } from 'lucide-react';
+import { Menu, X, Home, Users, FileText, Calendar, Mail, MessageSquare, LogIn, LogOut, User, ChevronDown, UserCircle, Settings, Building, Heart } from 'lucide-react';
 import { authService } from '@/lib/auth-service';
 import { eventService } from '@/lib/firebase-services';
 import { User as FirebaseUser } from 'firebase/auth';
@@ -178,6 +178,17 @@ export default function Navigation() {
             >
               <FileText size={20} />
               <span>추천서</span>
+            </Link>
+            <Link
+              href="/volunteer-listings"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-lg font-semibold whitespace-nowrap ${
+                isActive('/volunteer-listings') || isActive('/volunteer-postings')
+                  ? 'bg-white/30 text-white shadow-md' 
+                  : 'text-white hover:bg-white/20 hover:text-white'
+              }`}
+            >
+              <Heart size={20} />
+              <span>봉사활동</span>
             </Link>
             <Link
               href="/community"
@@ -355,6 +366,18 @@ export default function Navigation() {
               >
                 <FileText size={22} />
                 <span>추천서</span>
+              </Link>
+              <Link
+                href="/volunteer-listings"
+                className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 text-lg font-semibold ${
+                  isActive('/volunteer-listings') || isActive('/volunteer-postings')
+                    ? 'bg-white/30 text-white shadow-md' 
+                    : 'text-white hover:bg-white/20 hover:text-white'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                <Heart size={22} />
+                <span>봉사활동</span>
               </Link>
               <Link
                 href="/community"
