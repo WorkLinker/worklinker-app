@@ -90,14 +90,10 @@ export default function StudentProfilesPage() {
     const unsubscribe = authService.onAuthStateChange((currentUser: FirebaseUser | null) => {
       setUser(currentUser);
       setAuthLoading(false);
-      
-      // 로그인한 사용자만 학생 목록 로드
-      if (currentUser) {
-        loadApprovedStudents();
-      } else {
-        setLoading(false);
-      }
     });
+
+    // 학생 목록은 항상 로드 (인증 불필요)
+    loadApprovedStudents();
 
     return () => unsubscribe();
   }, []);
@@ -259,41 +255,19 @@ export default function StudentProfilesPage() {
     }
   };
 
+  const handleJobSeekerFormOpen = () => {
+    if (!user) {
+      alert('구직 신청을 위해서는 로그인이 필요합니다. 상단의 로그인 버튼을 클릭해주세요.');
+      return;
+    }
+    setShowJobSeekerForm(true);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">로그인 상태를 확인하는 중입니다...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* 네비게이션은 여전히 표시 */}
-        <div className="absolute inset-x-0 top-0 z-50">
-          <Navigation />
-        </div>
-        
-        {/* 로그인 요구 메시지 */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center px-6">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <User size={40} className="text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">로그인이 필요합니다</h2>
-            <p className="text-gray-600 mb-6">
-              학생 프로필을 보시려면 로그인이 필요합니다.<br/>
-              상단의 로그인 버튼을 클릭해주세요.
-            </p>
-            <div className="bg-sky-50 rounded-lg p-4">
-              <p className="text-sky-700 text-sm">
-                💡 이 기능은 채용 담당자를 위한 서비스입니다
-              </p>
-            </div>
-          </div>
-        </div>
+        <p className="text-gray-600">페이지를 불러오는 중입니다...</p>
       </div>
     );
   }
@@ -346,7 +320,7 @@ export default function StudentProfilesPage() {
 
                     {/* 구직 신청하기 버튼 */}
                     <button
-                      onClick={() => setShowJobSeekerForm(true)}
+                      onClick={handleJobSeekerFormOpen}
                       className="group bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3"
                     >
                       <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -402,7 +376,7 @@ export default function StudentProfilesPage() {
 
                     {/* 구직 신청하기 버튼 */}
                     <button
-                      onClick={() => setShowJobSeekerForm(true)}
+                      onClick={handleJobSeekerFormOpen}
                       className="group bg-gradient-to-r from-sky-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-sky-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3"
                     >
                       <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -519,7 +493,7 @@ export default function StudentProfilesPage() {
 
               {/* 구직 신청 버튼 */}
               <button
-                onClick={() => setShowJobSeekerForm(true)}
+                onClick={handleJobSeekerFormOpen}
                 className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center space-x-2 whitespace-nowrap"
               >
                 <Plus size={20} />

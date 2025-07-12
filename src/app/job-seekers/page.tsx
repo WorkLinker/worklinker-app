@@ -137,13 +137,43 @@ export default function JobSeekersPage() {
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
 
-
-
-
+        {/* Hero Content */}
+        <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            캐나다 학생 구직 신청
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+            뉴브런즈윅 주 고등학생을 위한 전문 구직 서비스
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => {
+                const formSection = document.getElementById('application-form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg"
+            >
+              지금 신청하기
+            </button>
+            <button
+              onClick={() => {
+                const infoSection = document.getElementById('info-section');
+                if (infoSection) {
+                  infoSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors backdrop-blur-sm"
+            >
+              자세히 보기
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* Description Section */}
-      <section className="py-16 bg-white">
+      <section id="info-section" className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
             학생 구직 신청
@@ -156,7 +186,7 @@ export default function JobSeekersPage() {
       </section>
 
       {/* Form Section */}
-      <section className="py-16 bg-gray-50">
+      <section id="application-form" className="py-16 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
