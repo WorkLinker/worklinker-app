@@ -1,0 +1,600 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { MessageSquare, Plus, Search, User, Clock, Heart, MessageCircle, Eye, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { communityService } from '@/lib/firebase-services';
+import { authService } from '@/lib/auth-service';
+import { User as FirebaseUser } from 'firebase/auth';
+
+const PostSchema = z.object({
+  title: z.string().min(5, '제목은 5글자 이상이어야 합니다'),
+  content: z.string().min(20, '내용은 20글자 이상이어야 합니다'),
+  author: z.string().min(2, '작성자명을 입력해주세요'),
+  category: z.enum(['general', 'job', 'study', 'life']),
+});
+
+type PostForm = z.infer<typeof PostSchema>;
+
+// 샘플 게시물 데이터
+const samplePosts = [
+  {
+    id: 1,
+    title: '신입 바리스타 일자리 후기 공유합니다',
+    content: '처음 바리스타로 일하게 되어 걱정이 많았는데, 생각보다 재미있고 배울 점이 많아요! 고등학생도 충분히 할 수 있는 일이라고 생각합니다.',
+    author: '커피러버',
+    category: 'job',
+    createdAt: '2025-01-10',
+    views: 156,
+    likes: 23,
+    comments: 8
+  },
+  {
+    id: 2,
+    title: '졸업 후 진로 고민 중입니다',
+    content: '내년에 졸업인데 대학 진학할지 취업할지 고민이 많아요. 같은 고민하는 분들 있나요? 조언도 구하고 싶습니다.',
+    author: '고민이많은학생',
+    category: 'life',
+    createdAt: '2025-01-09',
+    views: 234,
+    likes: 45,
+    comments: 15
+  },
+  {
+    id: 3,
+    title: '면접 준비 팁 공유해요!',
+    content: '최근에 몇 군데 면접을 보면서 배운 점들을 공유해보려고 합니다. 특히 고등학생 대상 면접에서 자주 나오는 질문들 정리해봤어요.',
+    author: '면접마스터',
+    category: 'study',
+    createdAt: '2025-01-08',
+    views: 389,
+    likes: 67,
+    comments: 22
+  },
+  {
+    id: 4,
+    title: '뉴브런즈윅 학생들 모여요!',
+    content: '같은 지역 학생들끼리 정보 공유하고 네트워킹했으면 좋겠어요. 프레더릭턴 지역 학생분들 있으신가요?',
+    author: '뉴브런즈윅토박이',
+    category: 'general',
+    createdAt: '2025-01-07',
+    views: 178,
+    likes: 34,
+    comments: 12
+  },
+  // 더 많은 샘플 데이터 추가
+  {
+    id: 5,
+    title: '여름 방학 인턴십 경험 후기',
+    content: '이번 여름에 로컬 회사에서 인턴십을 했는데 정말 좋은 경험이었어요. 실무 경험을 쌓을 수 있어서 뿌듯했습니다.',
+    author: '인턴십경험자',
+    category: 'job',
+    createdAt: '2025-01-06',
+    views: 298,
+    likes: 52,
+    comments: 18
+  },
+  {
+    id: 6,
+    title: '영어 실력 향상 방법 공유',
+    content: '캐나다에서 살면서 영어 실력을 늘리는 제 나름의 방법들을 공유해보려고 해요. 도움이 되었으면 좋겠습니다.',
+    author: '영어마스터',
+    category: 'study',
+    createdAt: '2025-01-05',
+    views: 412,
+    likes: 89,
+    comments: 31
+  },
+  {
+    id: 7,
+    title: '캐나다 생활 적응 팁',
+    content: '처음 캐나다에 와서 힘들었던 점들과 어떻게 극복했는지 공유해보려고 합니다.',
+    author: '캐나다신입',
+    category: 'life',
+    createdAt: '2025-01-04',
+    views: 267,
+    likes: 43,
+    comments: 16
+  },
+  {
+    id: 8,
+    title: '코딩 공부 시작하는 분들께',
+    content: '프로그래밍에 관심 있는 고등학생들을 위한 조언을 드리고 싶어요. 무료 리소스들도 많이 공유할게요.',
+    author: '코딩초보',
+    category: 'study',
+    createdAt: '2025-01-03',
+    views: 345,
+    likes: 76,
+    comments: 25
+  },
+  {
+    id: 9,
+    title: '학교 생활과 아르바이트 병행하기',
+    content: '학업과 일을 동시에 하면서 시간 관리하는 방법에 대해 이야기해보고 싶어요.',
+    author: '시간관리왕',
+    category: 'general',
+    createdAt: '2025-01-02',
+    views: 189,
+    likes: 38,
+    comments: 14
+  },
+  {
+    id: 10,
+    title: '대학 지원서 작성 팁',
+    content: '대학 지원서를 작성하면서 알게 된 유용한 팁들을 공유해드릴게요.',
+    author: '대학지원생',
+    category: 'study',
+    createdAt: '2025-01-01',
+    views: 423,
+    likes: 95,
+    comments: 37
+  }
+];
+
+export default function CommunityPage() {
+  const router = useRouter();
+  const [posts, setPosts] = useState(samplePosts);
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('latest');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8); // 페이지당 8개씩 표시
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<PostForm>({
+    resolver: zodResolver(PostSchema)
+  });
+
+  // 현재 로그인한 사용자 정보 가져오기
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChange((currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const onSubmit = async (data: PostForm) => {
+    setIsSubmitting(true);
+    
+    try {
+      console.log('💬 게시물 작성 시작...');
+      
+      // 작성자 이메일 추가
+      const postDataWithEmail = {
+        ...data,
+        authorEmail: user?.email || data.author // 마이페이지 조회용 이메일
+      };
+
+      // 실제 Firebase에 데이터 저장
+      const result = await communityService.createPost(postDataWithEmail);
+      
+      if (result.success) {
+        console.log('🎉 게시물이 성공적으로 작성되었습니다!');
+        
+        // 임시로 로컬 상태에도 추가 (실시간 업데이트 전까지)
+        const newPost = {
+          id: posts.length + 1, // 로컬 표시용 임시 ID
+          ...data,
+          createdAt: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
+          views: 0,
+          likes: 0,
+          comments: 0
+        };
+        setPosts([newPost, ...posts]);
+        
+        setSubmitted(true);
+        reset();
+        setShowForm(false);
+        setCurrentPage(1); // 새 글 작성 후 첫 페이지로
+        
+        // 3초 후 성공 메시지 제거
+        setTimeout(() => {
+          setSubmitted(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('❌ 게시물 작성 오류:', error);
+      alert('게시물 등록 중 오류가 발생했습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'general': return '일반';
+      case 'job': return '취업';
+      case 'study': return '학습';
+      case 'life': return '일상';
+      default: return category;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'general': return 'bg-gray-100 text-gray-800';
+      case 'job': return 'bg-sky-100 text-sky-800';
+      case 'study': return 'bg-sky-100 text-sky-800';
+      case 'life': return 'bg-sky-100 text-sky-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.author.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = categoryFilter === 'all' || post.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    switch (sortBy) {
+      case 'popular':
+        return (b.likes + b.comments) - (a.likes + a.comments);
+      case 'views':
+        return b.views - a.views;
+      case 'latest':
+      default:
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
+
+  // 페이지네이션 관련 계산
+  const totalPages = Math.ceil(sortedPosts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentPosts = sortedPosts.slice(startIndex, startIndex + itemsPerPage);
+
+  // 검색이나 필터가 변경될 때 첫 페이지로 이동
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, sortBy]);
+
+  return (
+    <div className="min-h-screen bg-blue-50">
+      {/* Hero Section */}
+      <section className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
+        {/* Navigation overlay */}
+        <div className="absolute top-0 left-0 right-0 z-50">
+          <Navigation />
+        </div>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/6번.png"
+            alt="자유게시판"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/30"></div>
+        </div>
+
+        {/* Hero Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                                      <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
+              모두의 소통 공간입니다
+            </h1>
+        </div>
+      </section>
+
+      {/* Description Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+            자유게시판
+          </h1>
+          <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+            캐나다 학생들이 자유롭게 소통하는 공간입니다.
+            <br />
+            취업 정보, 학습 팁, 일상 이야기 등을 자유롭게 나누어보세요.
+          </p>
+          <p className="text-lg text-sky-600 font-semibold mb-8">
+            함께 성장하는 학생 커뮤니티
+          </p>
+          
+          {submitted && (
+            <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle size={20} className="text-green-600" />
+                <span className="text-green-800 font-medium">게시물이 성공적으로 등록되었습니다!</span>
+              </div>
+            </div>
+          )}
+          
+          <button
+            onClick={() => {
+              if (!user) {
+                alert('게시글 작성을 위해 로그인이 필요합니다.');
+                return;
+              }
+              setShowForm(true);
+            }}
+            className="bg-sky-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-sky-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 mx-auto"
+          >
+            <Plus size={20} />
+            <span>새 게시물 작성</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Search and Filter */}
+      <section className="py-8 bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search size={20} className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="게시물 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-4">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              >
+                <option value="all">모든 카테고리</option>
+                <option value="general">일반</option>
+                <option value="job">취업</option>
+                <option value="study">학습</option>
+                <option value="life">일상</option>
+              </select>
+              
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              >
+                <option value="latest">최신순</option>
+                <option value="popular">인기순</option>
+                <option value="views">조회수순</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Posts List */}
+      <section className="py-12 bg-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-4">
+            {currentPosts.map((post) => (
+              <div 
+                key={post.id} 
+                className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-sky-300 transition-all cursor-pointer"
+                onClick={() => router.push(`/community/${post.id}`)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
+                        {getCategoryLabel(post.category)}
+                      </span>
+                      <span className="text-gray-500 text-xs">#{post.id}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-sky-600 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-600 line-clamp-2 mb-3 text-sm">
+                      {post.content}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <User size={14} />
+                      <span>{post.author}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Clock size={14} />
+                      <span>{post.createdAt}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1 hover:text-gray-700 transition-colors">
+                      <Eye size={14} />
+                      <span>{post.views}</span>
+                    </div>
+                    <div className="flex items-center space-x-1 hover:text-red-600 transition-colors">
+                      <Heart size={14} />
+                      <span>{post.likes}</span>
+                    </div>
+                    <div className="flex items-center space-x-1 hover:text-sky-600 transition-colors">
+                      <MessageCircle size={14} />
+                      <span>{post.comments}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {currentPosts.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-lg">
+              <MessageSquare size={48} className="text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">검색 결과가 없습니다.</p>
+            </div>
+          )}
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {sortedPosts.length}개 중 {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedPosts.length)}개 표시
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  <div className="flex space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-sky-500 text-white'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Post Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">새 게시물 작성</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  카테고리 *
+                </label>
+                <select
+                  {...register('category')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                >
+                  <option value="">카테고리를 선택하세요</option>
+                  <option value="general">일반</option>
+                  <option value="job">취업</option>
+                  <option value="study">학습</option>
+                  <option value="life">일상</option>
+                </select>
+                {errors.category && (
+                  <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  제목 *
+                </label>
+                <input
+                  type="text"
+                  {...register('title')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  placeholder="게시물 제목을 입력하세요"
+                />
+                {errors.title && (
+                  <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  작성자 *
+                </label>
+                <input
+                  type="text"
+                  {...register('author')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  placeholder="닉네임을 입력하세요"
+                  defaultValue={user?.displayName || user?.email?.split('@')[0] || ''}
+                />
+                {errors.author && (
+                  <p className="mt-1 text-sm text-red-600">{errors.author.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  내용 *
+                </label>
+                <textarea
+                  {...register('content')}
+                  rows={8}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  placeholder="게시물 내용을 입력하세요"
+                />
+                {errors.content && (
+                  <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+                )}
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting ? '등록 중...' : '게시물 등록'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  );
+} 
