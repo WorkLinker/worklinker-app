@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -15,8 +15,6 @@ import {
   Heart, 
   CheckCircle,
   User,
-  GraduationCap,
-  School,
   FileText
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -48,19 +46,7 @@ export default function VolunteerDetailPage() {
 
   const grades = ['9학년', '10학년', '11학년', '12학년'];
 
-  useEffect(() => {
-    if (params.id) {
-      loadPostingDetails(params.id as string);
-    }
-  }, [params.id]);
-
-  useEffect(() => {
-    if (user?.email) {
-      setApplicationData(prev => ({ ...prev, email: user.email || '' }));
-    }
-  }, [user]);
-
-  const loadPostingDetails = async (postingId: string) => {
+  const loadPostingDetails = useCallback(async (postingId: string) => {
     try {
       setLoading(true);
       // 실제로는 단일 게시물을 가져오는 API가 필요하지만, 
@@ -82,7 +68,19 @@ export default function VolunteerDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (params.id) {
+      loadPostingDetails(params.id as string);
+    }
+  }, [params.id, loadPostingDetails]);
+
+  useEffect(() => {
+    if (user?.email) {
+      setApplicationData(prev => ({ ...prev, email: user.email || '' }));
+    }
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
