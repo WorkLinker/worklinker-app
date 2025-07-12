@@ -1,215 +1,250 @@
-// 이메일 전송 서비스 유틸리티
+import { NextResponse } from 'next/server';
 
-export interface EmailOptions {
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
+// 환경변수에서 값 가져오기
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';
+const CONTACT_PHONE = process.env.CONTACT_PHONE || '506-429-6148';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nbhighschooljobs@gmail.com';
+
+export interface EmailData {
+  name: string;
+  email: string;
+  phone: string;
+  grade: string;
+  school: string;
+  experience: string;
+  motivation: string;
+  availability: string;
+  questions?: string;
+  jobTitle?: string;
+  companyName?: string;
+  resumeFileName?: string;
+  resumeSize?: number;
 }
 
-export interface EmailResponse {
-  success: boolean;
+export interface ContactFormData {
+  name: string;
+  email: string;
+  phone: string;
   message: string;
-  messageId?: string;
-  error?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details?: any;
 }
 
-/**
- * 기본 이메일 전송 함수
- */
-export async function sendEmail(options: EmailOptions): Promise<EmailResponse> {
+export interface JobPostingData {
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  description: string;
+  requirements: string;
+  benefits: string;
+  contactEmail: string;
+  contactPhone: string;
+  submitterName: string;
+  submitterEmail: string;
+}
+
+export async function sendJobApplicationEmail(data: EmailData): Promise<{ success: boolean; message: string }> {
   try {
     const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(options),
+      body: JSON.stringify({
+        type: 'job_application',
+        data
+      })
     });
 
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data.error || '이메일 전송 실패');
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return data;
-  } catch (error: unknown) {
-    console.error('이메일 전송 에러:', error);
-    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('❌ 이메일 전송 오류:', error);
     return {
       success: false,
-      message: '이메일 전송 중 오류가 발생했습니다.',
-      error: errorMessage,
+      message: '이메일 전송 중 오류가 발생했습니다. 다시 시도해주세요.'
     };
   }
 }
 
-/**
- * 사용자 승인 이메일 전송
- */
-export async function sendApprovalEmail(userEmail: string, userName: string): Promise<EmailResponse> {
-  const subject = '🎉 구직 신청이 승인되었습니다!';
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #0ea5e9;">축하드립니다! 구직 신청이 승인되었습니다</h2>
-      <p>안녕하세요, ${userName}님!</p>
+export function generateJobApplicationEmailHTML(data: EmailData): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
+        🎯 새로운 구직 신청서가 도착했습니다!
+      </h2>
       
-      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <p><strong>좋은 소식을 전해드립니다!</strong></p>
-        <p>귀하의 구직 신청이 승인되었습니다. 이제 저희 플랫폼을 통해 다양한 일자리 기회를 탐색하실 수 있습니다.</p>
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">📋 지원자 정보</h3>
+        <p><strong>이름:</strong> ${data.name}</p>
+        <p><strong>이메일:</strong> ${data.email}</p>
+        <p><strong>전화번호:</strong> ${data.phone}</p>
+        <p><strong>학년:</strong> ${data.grade}</p>
+        <p><strong>학교:</strong> ${data.school}</p>
       </div>
-      
-      <h3>다음 단계:</h3>
-      <ul>
-        <li>로그인하여 프로필을 완성하세요</li>
-        <li>관심 있는 일자리에 지원하세요</li>
-        <li>정기적으로 새로운 기회를 확인하세요</li>
-      </ul>
-      
-      <p>궁금한 점이 있으시면 언제든지 연락주세요!</p>
-      
-      <hr style="margin: 30px 0;">
-      <p style="color: #666; font-size: 12px;">
-        NB High School Jobs Platform<br>
-        nbhighschooljobs@gmail.com<br>
-        506-429-6148
-      </p>
+
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">💼 지원 정보</h3>
+        <p><strong>지원 직무:</strong> ${data.jobTitle || '직무 정보 없음'}</p>
+        <p><strong>회사명:</strong> ${data.companyName || '회사 정보 없음'}</p>
+        <p><strong>근무 가능 시간:</strong> ${data.availability}</p>
+      </div>
+
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">📝 지원자 메시지</h3>
+        <p><strong>경험 및 기술:</strong><br>${data.experience.replace(/\n/g, '<br>')}</p>
+        <p><strong>지원 동기:</strong><br>${data.motivation.replace(/\n/g, '<br>')}</p>
+        ${data.questions ? `<p><strong>질문사항:</strong><br>${data.questions.replace(/\n/g, '<br>')}</p>` : ''}
+      </div>
+
+      <div style="background-color: #fee2e2; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #dc2626; margin-top: 0;">📎 첨부 파일</h3>
+        ${data.resumeFileName ? 
+          `<p><strong>이력서:</strong> ${data.resumeFileName} (${Math.round((data.resumeSize || 0) / 1024)}KB)</p>` : 
+          '<p>첨부된 이력서가 없습니다.</p>'
+        }
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">
+          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
+          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
+          <strong>전화:</strong> ${CONTACT_PHONE}
+        </p>
+      </div>
     </div>
   `;
-
-  return await sendEmail({
-    to: userEmail,
-    subject,
-    html,
-  });
 }
 
-/**
- * 사용자 거절 이메일 전송
- */
-export async function sendRejectionEmail(userEmail: string, userName: string, reason?: string): Promise<EmailResponse> {
-  const subject = '구직 신청 결과 안내';
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #ef4444;">구직 신청 결과 안내</h2>
-      <p>안녕하세요, ${userName}님!</p>
+export function generateContactEmailHTML(data: ContactFormData): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
+        📧 새로운 문의사항이 도착했습니다!
+      </h2>
       
-      <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <p>안타깝게도 이번 구직 신청이 승인되지 않았습니다.</p>
-        ${reason ? `<p><strong>사유:</strong> ${reason}</p>` : ''}
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">👤 문의자 정보</h3>
+        <p><strong>이름:</strong> ${data.name}</p>
+        <p><strong>이메일:</strong> ${data.email}</p>
+        <p><strong>전화번호:</strong> ${data.phone}</p>
       </div>
-      
-      <h3>재신청 안내:</h3>
-      <ul>
-        <li>부족한 부분을 보완하신 후 재신청하실 수 있습니다</li>
-        <li>추가 질문이 있으시면 언제든지 문의해주세요</li>
-        <li>계속해서 새로운 기회를 찾아보세요</li>
-      </ul>
-      
-      <p>앞으로도 좋은 기회가 있을 것입니다. 포기하지 마세요!</p>
-      
-      <hr style="margin: 30px 0;">
-      <p style="color: #666; font-size: 12px;">
-        NB High School Jobs Platform<br>
-        nbhighschooljobs@gmail.com<br>
-        506-429-6148
-      </p>
+
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">💬 문의 내용</h3>
+        <p style="line-height: 1.6;">${data.message.replace(/\n/g, '<br>')}</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">
+          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
+          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
+          <strong>전화:</strong> ${CONTACT_PHONE}
+        </p>
+      </div>
     </div>
   `;
-
-  return await sendEmail({
-    to: userEmail,
-    subject,
-    html,
-  });
 }
 
-/**
- * 새로운 구직 신청 알림 이메일 (관리자용)
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function sendNewApplicationNotification(applicationData: any): Promise<EmailResponse> {
-  const adminEmail = 'nbhighschooljobs@gmail.com'; // 나중에 환경변수로 이동
-  const subject = '🔔 새로운 구직 신청이 있습니다';
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #0ea5e9;">새로운 구직 신청 알림</h2>
-      
-      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3>신청자 정보:</h3>
-        <p><strong>이름:</strong> ${applicationData.name}</p>
-        <p><strong>이메일:</strong> ${applicationData.email}</p>
-        <p><strong>학교:</strong> ${applicationData.school}</p>
-        <p><strong>학년:</strong> ${applicationData.grade}</p>
-        <p><strong>연락처:</strong> ${applicationData.phone}</p>
-        ${applicationData.resume ? `<p><strong>이력서:</strong> ${applicationData.resume}</p>` : ''}
-      </div>
-      
-      <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3>기술/경험:</h3>
-        <p>${applicationData.experience || '작성되지 않음'}</p>
-      </div>
-      
-      <p><strong>신청일:</strong> ${new Date().toLocaleDateString('ko-KR')}</p>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <p>관리자 페이지에서 승인/거절을 처리해주세요.</p>
-      </div>
-      
-      <hr style="margin: 30px 0;">
-      <p style="color: #666; font-size: 12px;">
-        이 메일은 자동으로 생성된 알림입니다.<br>
-        NB High School Jobs Platform 관리자 시스템
-      </p>
-    </div>
-  `;
+export async function sendContactEmail(data: ContactFormData): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'contact_form',
+        data
+      })
+    });
 
-  return await sendEmail({
-    to: adminEmail,
-    subject,
-    html,
-  });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('❌ 문의 이메일 전송 오류:', error);
+    return {
+      success: false,
+      message: '문의 이메일 전송 중 오류가 발생했습니다. 다시 시도해주세요.'
+    };
+  }
 }
 
-/**
- * 테스트 이메일 전송
- */
-export async function sendTestEmail(testEmail: string): Promise<EmailResponse> {
-  const subject = '🧪 이메일 시스템 테스트';
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #0ea5e9;">이메일 시스템 테스트</h2>
-      <p>안녕하세요!</p>
+export async function sendJobPostingNotification(data: JobPostingData): Promise<{ success: boolean; message: string }> {
+  try {
+    const adminEmail = ADMIN_EMAIL;
+    
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'job_posting_notification',
+        data,
+        adminEmail
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('❌ 구인공고 알림 이메일 전송 오류:', error);
+    return {
+      success: false,
+      message: '구인공고 알림 이메일 전송 중 오류가 발생했습니다. 다시 시도해주세요.'
+    };
+  }
+}
+
+export function generateJobPostingNotificationHTML(data: JobPostingData): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
+        🏢 새로운 구인공고가 등록되었습니다!
+      </h2>
       
-      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <p><strong>이메일 시스템이 정상적으로 작동하고 있습니다! ✅</strong></p>
-        <p>이 메일을 받으셨다면 SendGrid 연동이 성공적으로 완료되었습니다.</p>
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">📋 구인공고 정보</h3>
+        <p><strong>직무명:</strong> ${data.title}</p>
+        <p><strong>회사명:</strong> ${data.company}</p>
+        <p><strong>근무지:</strong> ${data.location}</p>
+        <p><strong>급여:</strong> ${data.salary}</p>
       </div>
-      
-      <h3>테스트 정보:</h3>
-      <ul>
-        <li><strong>전송 시간:</strong> ${new Date().toLocaleString('ko-KR')}</li>
-        <li><strong>플랫폼:</strong> NB High School Jobs Platform</li>
-        <li><strong>서비스:</strong> SendGrid Email Service</li>
-      </ul>
-      
-      <p>이메일 시스템 설정이 완료되었습니다!</p>
-      
-      <hr style="margin: 30px 0;">
-      <p style="color: #666; font-size: 12px;">
-        NB High School Jobs Platform<br>
-        nbhighschooljobs@gmail.com<br>
-        506-429-6148
-      </p>
+
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">📝 상세 정보</h3>
+        <p><strong>업무 설명:</strong><br>${data.description.replace(/\n/g, '<br>')}</p>
+        <p><strong>자격 요건:</strong><br>${data.requirements.replace(/\n/g, '<br>')}</p>
+        <p><strong>복리후생:</strong><br>${data.benefits.replace(/\n/g, '<br>')}</p>
+      </div>
+
+      <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #0369a1; margin-top: 0;">📞 연락처</h3>
+        <p><strong>담당자:</strong> ${data.submitterName}</p>
+        <p><strong>이메일:</strong> ${data.submitterEmail}</p>
+        <p><strong>회사 연락처:</strong> ${data.contactEmail}</p>
+        <p><strong>전화번호:</strong> ${data.contactPhone}</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">
+          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
+          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
+          <strong>전화:</strong> ${CONTACT_PHONE}
+        </p>
+      </div>
     </div>
   `;
-
-  return await sendEmail({
-    to: testEmail,
-    subject,
-    html,
-  });
 } 

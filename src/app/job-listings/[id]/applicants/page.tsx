@@ -24,16 +24,6 @@ import { jobPostingService, jobApplicationService } from '@/lib/firebase-service
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
-// generateStaticParams 함수 추가 (static export 지원)
-export async function generateStaticParams() {
-  // 샘플 구인공고 ID들 (실제 환경에서는 Firebase에서 데이터 가져옴)
-  const sampleJobIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  
-  return sampleJobIds.map((id) => ({
-    id: id,
-  }));
-}
-
 export default function JobApplicantsPage() {
   const router = useRouter();
   const params = useParams();

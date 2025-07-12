@@ -23,16 +23,6 @@ import { jobPostingService, jobApplicationService } from '@/lib/firebase-service
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
-// generateStaticParams 함수 추가 (static export 지원)
-export async function generateStaticParams() {
-  // 샘플 구인공고 ID들 (실제 환경에서는 Firebase에서 데이터 가져옴)
-  const sampleJobIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  
-  return sampleJobIds.map((id) => ({
-    id: id,
-  }));
-}
-
 const ApplicationSchema = z.object({
   name: z.string().min(2, '이름은 2글자 이상이어야 합니다'),
   email: z.string().email('올바른 이메일 주소를 입력해주세요'),

@@ -1,10 +1,15 @@
 [build]
-  publish = "out"
   command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_VERSION = "9"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# 동적 라우트 지원을 위한 리다이렉트 설정
 [[redirects]]
   from = "/*"
   to = "/index.html"

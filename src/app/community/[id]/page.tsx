@@ -1,19 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-// generateStaticParams 함수 추가 (static export 지원)
-export async function generateStaticParams() {
-  // 샘플 게시물 ID들 (실제 환경에서는 Firebase에서 데이터 가져옴)
-  const samplePostIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  
-  return samplePostIds.map((id) => ({
-    id: id,
-  }));
-}
-
-// Next.js App Router 동적 라우트 설정 제거 (static export와 충돌)
-// export const dynamic = 'force-dynamic';
 import { useParams, useRouter } from 'next/navigation';
 import { User as FirebaseUser } from 'firebase/auth';
 import { ArrowLeft, Heart, MessageCircle, Eye, User, Clock, Send, AlertCircle } from 'lucide-react';
