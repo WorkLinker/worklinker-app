@@ -1314,7 +1314,11 @@ export default function AdminPage() {
   };
 
   // 전체 미리보기 (새 탭에서 홈페이지 열기)
-  const handlePreviewDesign = () => {
+  const handlePreviewDesign = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     window.open('/', '_blank');
     alert('💡 새 탭에서 홈페이지를 확인하세요. 변경사항을 저장한 후 새로고침하면 반영됩니다.');
   };
@@ -2183,7 +2187,11 @@ export default function AdminPage() {
                             {isImageUploading === `heroSlides-slide${slideNum}` ? '업로드중...' : '변경'}
                           </button>
                           <button 
-                            onClick={() => window.open('/#hero-section', '_blank')}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.open('/#hero-section', '_blank');
+                            }}
                             className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
                           >
                             <Eye size={14} className="mr-1" />
@@ -2231,7 +2239,11 @@ export default function AdminPage() {
                             {isImageUploading === `featureCards-${card.key}` ? '업로드중...' : '변경'}
                           </button>
                           <button 
-                            onClick={() => window.open(`/#card-${card.key}`, '_blank')}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.open(`/#card-${card.key}`, '_blank');
+                            }}
                             className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
                           >
                             <Eye size={14} className="mr-1" />
@@ -2523,7 +2535,7 @@ export default function AdminPage() {
                   {isDesignSaving ? '저장 중...' : '모든 변경사항 저장'}
                 </button>
                 <button 
-                  onClick={handlePreviewDesign}
+                  onClick={(e) => handlePreviewDesign(e)}
                   className="flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
                 >
                   <Eye size={20} className="mr-3" />

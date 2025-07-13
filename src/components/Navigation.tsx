@@ -104,33 +104,41 @@ export default function Navigation() {
 
   return (
     <nav className="bg-transparent">
-      <div className="max-w-full mx-auto pl-2 pr-2 sm:pl-4 sm:pr-4 lg:pl-6 lg:pr-6">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-white/20">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 ring-2 ring-amber-300/50 p-1">
+          <div className="flex items-center flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-all duration-200 hover:bg-white/20">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 ring-2 ring-amber-300/50 p-1">
                 <Image
                   src="/favicon.ico"
                   alt="캐나다 학생 플랫폼 로고"
-                  width={40}
-                  height={40}
-                  className="drop-shadow-md object-contain"
+                  width={32}
+                  height={32}
+                  className="drop-shadow-md object-contain w-8 h-8 sm:w-10 sm:h-10"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-white">
+                {/* 모바일에서는 짧은 텍스트, 데스크톱에서는 전체 텍스트 */}
+                <span className="text-lg sm:text-2xl font-bold text-white hidden sm:block">
                   캐나다 학생 플랫폼
+                </span>
+                <span className="text-base font-bold text-white sm:hidden">
+                  학생플랫폼
                 </span>
               </div>
             </Link>
           </div>
 
           {/* Desktop Menu - Center */}
-          <div className="hidden md:flex items-center space-x-4 absolute left-1/2 transform -translate-x-1/2">
+          <div className="hidden md:flex items-center space-x-4 absolute left-1/2 transform -translate-x-1/2 max-w-fit">
             <Link
               href="/"
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-white hover:bg-white/20 hover:text-white text-lg font-semibold whitespace-nowrap"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-lg font-semibold whitespace-nowrap ${
+                isActive('/') 
+                  ? 'bg-white/30 text-white shadow-md' 
+                  : 'text-white hover:bg-white/20 hover:text-white'
+              }`}
             >
               <Home size={20} />
               <span>홈</span>
@@ -216,7 +224,7 @@ export default function Navigation() {
           </div>
 
           {/* Right side - Auth buttons + Mobile menu button */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {/* Desktop Auth buttons */}
             <div className="hidden md:flex items-center space-x-3">
               {user ? (
@@ -299,9 +307,9 @@ export default function Navigation() {
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition-all duration-200"
+                className="text-white hover:bg-white/20 p-2 rounded-lg transition-all duration-200 flex items-center justify-center"
               >
-                {isOpen ? <X size={26} /> : <Menu size={26} />}
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
           </div>
@@ -313,7 +321,11 @@ export default function Navigation() {
             <div className="pl-0 pr-2 pt-2 pb-3 space-y-1">
               <Link
                 href="/"
-                className="flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 text-white hover:bg-white/20 hover:text-white text-lg font-semibold"
+                className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 text-lg font-semibold ${
+                  isActive('/') 
+                    ? 'bg-white/30 text-white shadow-md' 
+                    : 'text-white hover:bg-white/20 hover:text-white'
+                }`}
                 onClick={() => setIsOpen(false)}
               >
                 <Home size={22} />

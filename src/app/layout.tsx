@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className="min-h-screen bg-gray-50">
+      <body className="min-h-screen bg-gray-50 dynamic-font-body">
         {children}
       </body>
     </html>

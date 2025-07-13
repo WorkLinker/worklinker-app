@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ArrowRight, Users, Briefcase, GraduationCap, BookOpen, TrendingUp, Trophy, Target, Sparkles, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { contentService } from '@/lib/firebase-services';
+import { contentService, designService } from '@/lib/firebase-services';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -14,7 +14,44 @@ export default function Home() {
   const [clickedElements, setClickedElements] = useState<{ [key: string]: boolean }>({});
   const [isLoading, setIsLoading] = useState<{ [key: string]: boolean }>({});
   const [siteContent, setSiteContent] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [designSettings, setDesignSettings] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  // CSS 변수 업데이트 함수
+  const updateCSSVariables = (settings: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (!settings) return;
+    
+    const root = document.documentElement;
+    
+    // 색상 테마 적용
+    if (settings.colors) {
+      root.style.setProperty('--color-primary', settings.colors.primary || '#0ea5e9');
+      root.style.setProperty('--color-secondary', settings.colors.secondary || '#7dd3fc');
+      root.style.setProperty('--color-accent', settings.colors.accent || '#0369a1');
+      root.style.setProperty('--color-background', settings.colors.background || '#dbeafe');
+    }
+    
+    // 폰트 설정 적용
+    if (settings.fonts) {
+      const fontFamilies = {
+        'inter': 'Inter, sans-serif',
+        'noto-sans-kr': '"Noto Sans KR", sans-serif',
+        'pretendard': 'Pretendard, sans-serif',
+        'malgun-gothic': '"Malgun Gothic", sans-serif',
+        'roboto': 'Roboto, sans-serif',
+        'playfair-display': '"Playfair Display", serif',
+        'montserrat': 'Montserrat, sans-serif'
+      };
+      
+      root.style.setProperty('--font-body', fontFamilies[settings.fonts.bodyFont as keyof typeof fontFamilies] || fontFamilies['pretendard']);
+      root.style.setProperty('--font-heading', fontFamilies[settings.fonts.headingFont as keyof typeof fontFamilies] || fontFamilies['pretendard']);
+      root.style.setProperty('--font-size-body', `${settings.fonts.bodySize || 16}px`);
+      root.style.setProperty('--font-size-heading', `${settings.fonts.headingSize || 32}px`);
+      root.style.setProperty('--line-height', settings.fonts.lineHeight?.toString() || '1.5');
+    }
+    
+    console.log('🎨 CSS 변수 업데이트 완료:', settings);
+  };
   
   // 기본 슬라이드 (Firestore 로딩 중 사용)
   const defaultSlides = [
@@ -65,14 +102,48 @@ export default function Home() {
     };
   }, []);
 
-  // 현재 사용할 슬라이드 (Firestore 콘텐츠 or 기본값)
+  // 디자인 설정 실시간 구독
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
+    const initializeDesignSettings = async () => {
+      try {
+        // 초기 디자인 설정 로드
+        const settings = await designService.getCurrentDesignSettings();
+        setDesignSettings(settings);
+        updateCSSVariables(settings);
+
+        // 실시간 구독 설정
+        unsubscribe = designService.subscribeToDesignSettings((updatedSettings) => {
+          setDesignSettings(updatedSettings);
+          updateCSSVariables(updatedSettings);
+          console.log('🎨 디자인 설정 실시간 업데이트됨');
+        });
+      } catch (error) {
+        console.error('❌ 디자인 설정 초기화 오류:', error);
+      }
+    };
+
+    initializeDesignSettings();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  // 현재 사용할 슬라이드 (디자인 설정 이미지 + Firestore 콘텐츠 or 기본값)
   const slides = siteContent?.heroSlides ? 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     siteContent.heroSlides.map((slide: any, index: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       ...slide,
-      image: defaultSlides[index]?.image || '/images/메인홈1.png'
+      image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || defaultSlides[index]?.image || '/images/메인홈1.png'
     })) : 
-    defaultSlides;
+    defaultSlides.map((slide, index) => ({
+      ...slide,
+      image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || slide.image
+    }));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -238,7 +309,7 @@ export default function Home() {
         {/* Dynamic Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="mb-8 sm:mb-12">
-            <h1 className="hero-title hero-title-default mb-4 sm:mb-6">
+            <h1 className="hero-title hero-title-default dynamic-font-heading mb-4 sm:mb-6">
               {slides[currentSlide].title}
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-sky-100 max-w-4xl mx-auto drop-shadow-md leading-relaxed">
@@ -253,7 +324,7 @@ export default function Home() {
                 createRipple(e);
                 handleClick('cta-student', '/job-seekers');
               }}
-              className={`group relative bg-gradient-to-r from-sky-400 to-sky-500 text-white px-8 sm:px-12 py-5 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:from-sky-500 hover:to-sky-600 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 overflow-hidden ${
+              className={`group relative dynamic-gradient-primary text-white px-8 sm:px-12 py-5 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 overflow-hidden ${
                 clickedElements['cta-student'] ? 'animate-pulse' : ''
               }`}
               disabled={isLoading['cta-student']}
@@ -275,7 +346,7 @@ export default function Home() {
                 createRipple(e);
                 handleClick('cta-company', '/job-postings');
               }}
-              className={`group relative bg-sky-600 text-white px-8 sm:px-12 py-5 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-sky-700 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl border border-sky-500 flex items-center justify-center space-x-3 sm:space-x-4 overflow-hidden ${
+              className={`group relative dynamic-bg-accent text-white px-8 sm:px-12 py-5 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl dynamic-border-accent border flex items-center justify-center space-x-3 sm:space-x-4 overflow-hidden ${
                 clickedElements['cta-company'] ? 'animate-pulse' : ''
               }`}
               disabled={isLoading['cta-company']}
@@ -295,23 +366,23 @@ export default function Home() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section id="features-section" className="py-32 bg-gradient-to-b from-sky-50 to-white relative">
+      <section id="features-section" className="py-32 bg-gradient-to-b dynamic-bg-background to-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center bg-sky-100 rounded-full px-6 py-2 mb-8">
-              <BookOpen size={20} className="mr-2 text-sky-600" />
-              <span className="text-sky-600 font-semibold">통합 진로 플랫폼</span>
+            <div className="inline-flex items-center dynamic-bg-background rounded-full px-6 py-2 mb-8">
+              <BookOpen size={20} className="mr-2 dynamic-text-primary" />
+              <span className="dynamic-text-primary font-semibold">통합 진로 플랫폼</span>
             </div>
             
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
               캐나다 학생들을 위한
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-sky-600 mt-2">
+              <span className="block text-transparent bg-clip-text dynamic-gradient-primary mt-2">
                 원스톱 진로 솔루션
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는 
-              <span className="font-bold text-sky-600">차세대 진로 지원 시스템</span>
+              <span className="font-bold dynamic-text-primary">차세대 진로 지원 시스템</span>
             </p>
           </div>
           
@@ -320,7 +391,7 @@ export default function Home() {
             <div 
               id="card-student" 
               data-animate
-              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-4 border border-sky-100 relative overflow-hidden h-full flex flex-col cursor-pointer ${
+              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-4 border dynamic-border-primary relative overflow-hidden h-full flex flex-col cursor-pointer ${
                 isVisible['card-student'] 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -330,25 +401,25 @@ export default function Home() {
                 handleClick('card-student', '/job-seekers');
               }}
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 to-sky-500"></div>
+              <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-primary"></div>
               {/* 이미지 추가 */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/7번.png"
+                  src={designSettings?.images?.featureCards?.student || "/images/7번.png"}
                   alt="학생 구직"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-400 to-sky-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
+              <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <GraduationCap size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900">학생 구직</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">학생 구직</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
                 스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다
               </p>
-              <div className="block w-full bg-gradient-to-r from-sky-400 to-sky-500 text-white text-center py-4 rounded-xl font-bold hover:from-sky-500 hover:to-sky-600 transition-all shadow-lg mt-auto">
+              <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-student'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
@@ -361,7 +432,7 @@ export default function Home() {
             <div 
               id="card-reference" 
               data-animate
-              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-200 transform hover:-translate-y-4 border border-sky-100 relative overflow-hidden h-full flex flex-col cursor-pointer ${
+              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-200 transform hover:-translate-y-4 border dynamic-border-secondary relative overflow-hidden h-full flex flex-col cursor-pointer ${
                 isVisible['card-reference'] 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -371,25 +442,25 @@ export default function Home() {
                 handleClick('card-reference', '/references');
               }}
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-300 to-sky-400"></div>
+              <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-accent"></div>
               {/* 이미지 추가 */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/4번.png"
+                  src={designSettings?.images?.featureCards?.reference || "/images/4번.png"}
                   alt="추천서 지원"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-300 to-sky-400 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
+              <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Award size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900">추천서 지원</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">추천서 지원</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
                 선생님들과 연결되는 디지털 추천서 생태계
               </p>
-              <div className="block w-full bg-gradient-to-r from-sky-300 to-sky-400 text-white text-center py-4 rounded-xl font-bold hover:from-sky-400 hover:to-sky-500 transition-all shadow-lg mt-auto">
+              <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-reference'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
@@ -402,7 +473,7 @@ export default function Home() {
             <div 
               id="card-company" 
               data-animate
-              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-500 transform hover:-translate-y-4 border border-sky-100 relative overflow-hidden h-full flex flex-col cursor-pointer ${
+              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-500 transform hover:-translate-y-4 border dynamic-border-accent relative overflow-hidden h-full flex flex-col cursor-pointer ${
                 isVisible['card-company'] 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -412,25 +483,25 @@ export default function Home() {
                 handleClick('card-company', '/job-postings');
               }}
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 to-sky-600"></div>
+              <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-accent"></div>
               {/* 이미지 추가 */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/3번.png"
+                  src={designSettings?.images?.featureCards?.company || "/images/3번.png"}
                   alt="기업 채용"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-500 to-sky-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
+              <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Trophy size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900">기업 채용</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">기업 채용</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
                 우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼
               </p>
-              <div className="block w-full bg-gradient-to-r from-sky-500 to-sky-600 text-white text-center py-4 rounded-xl font-bold hover:from-sky-600 hover:to-sky-700 transition-all shadow-lg mt-auto">
+              <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-company'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
@@ -443,7 +514,7 @@ export default function Home() {
             <div 
               id="card-events" 
               data-animate
-              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-700 transform hover:-translate-y-4 border border-sky-100 relative overflow-hidden h-full flex flex-col cursor-pointer ${
+              className={`group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 delay-700 transform hover:-translate-y-4 border dynamic-border-secondary relative overflow-hidden h-full flex flex-col cursor-pointer ${
                 isVisible['card-events'] 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -453,25 +524,25 @@ export default function Home() {
                 handleClick('card-events', '/events');
               }}
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-200 to-sky-300"></div>
+              <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-primary"></div>
               {/* 이미지 추가 */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/교육이벤트.png"
+                  src={designSettings?.images?.featureCards?.events || "/images/교육이벤트.png"}
                   alt="교육 이벤트"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-200 to-sky-300 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
+              <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Sparkles size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900">교육 이벤트</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">교육 이벤트</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
                 미래를 준비하는 실무 중심 교육 프로그램
               </p>
-              <div className="block w-full bg-gradient-to-r from-sky-200 to-sky-300 text-white text-center py-4 rounded-xl font-bold hover:from-sky-300 hover:to-sky-400 transition-all shadow-lg mt-auto">
+              <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-events'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
@@ -484,17 +555,17 @@ export default function Home() {
       </section>
 
       {/* Enhanced Mission Section */}
-      <section className="py-32 bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600 text-white relative overflow-hidden">
+      <section className="py-32 dynamic-gradient-accent text-white relative overflow-hidden">
 
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center bg-sky-700 rounded-full px-8 py-3 mb-8 border border-sky-600">
+            <div className="inline-flex items-center dynamic-bg-accent rounded-full px-8 py-3 mb-8 border dynamic-border-accent">
               <Trophy size={24} className="mr-3 text-yellow-300" />
               <span className="text-xl font-bold">우리의 목표</span>
             </div>
             
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 sm:mb-8 leading-tight">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 sm:mb-8 leading-tight dynamic-font-heading">
               모든 학생의 성공을 위한
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-sky-100 to-white mt-2">
                 혁신적인 플랫폼
@@ -516,10 +587,10 @@ export default function Home() {
                     : 'opacity-0 translate-y-12'
                 }`}
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-sky-300 to-sky-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
-                  <GraduationCap size={40} className="text-sky-600" />
+                <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
+                  <GraduationCap size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4">교육 기회 평등</h3>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">교육 기회 평등</h3>
                 <p className="text-sky-100 text-lg">모든 학생에게 동등한 성장 기회 제공</p>
               </div>
               <div 
@@ -531,10 +602,10 @@ export default function Home() {
                     : 'opacity-0 translate-y-12'
                 }`}
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-sky-300 to-sky-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
-                  <Users size={40} className="text-sky-600" />
+                <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
+                  <Users size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4">지역사회 연결</h3>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">지역사회 연결</h3>
                 <p className="text-sky-100 text-lg">학생과 기업을 잇는 든든한 다리 역할</p>
               </div>
               <div 
@@ -546,10 +617,10 @@ export default function Home() {
                     : 'opacity-0 translate-y-12'
                 }`}
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-sky-300 to-sky-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
-                  <Trophy size={40} className="text-sky-600" />
+                <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
+                  <Trophy size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4">미래 준비</h3>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">미래 준비</h3>
                 <p className="text-sky-100 text-lg">실무 경험과 전문적인 진로 지도</p>
               </div>
             </div>
@@ -561,27 +632,27 @@ export default function Home() {
       <section className="py-32 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center bg-gradient-to-r from-sky-100 to-sky-200 rounded-full px-6 py-2 mb-8">
-              <Target size={20} className="mr-2 text-sky-600" />
-              <span className="text-sky-600 font-semibold">간단한 시작</span>
+            <div className="inline-flex items-center dynamic-bg-background rounded-full px-6 py-2 mb-8">
+              <Target size={20} className="mr-2 dynamic-text-primary" />
+              <span className="dynamic-text-primary font-semibold">간단한 시작</span>
             </div>
             
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-sky-600">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
+              <span className="text-transparent bg-clip-text dynamic-gradient-primary">
                 3단계면 충분합니다
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto">
-              복잡한 절차 없이 <span className="font-bold text-sky-600">편리하고 똑똑한 시스템</span>
+              복잡한 절차 없이 <span className="font-bold dynamic-text-primary">편리하고 똑똑한 시스템</span>
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
             <div className="text-center relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-sky-400 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
+              <div className="w-32 h-32 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
                 <span className="text-white text-4xl font-bold">1</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">스마트 가입</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">스마트 가입</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
                 개인 맞춤형 프로필 생성으로 빠른 시작
               </p>
@@ -590,10 +661,10 @@ export default function Home() {
             </div>
             
             <div className="text-center relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-sky-300 to-sky-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
+              <div className="w-32 h-32 dynamic-gradient-accent rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
                 <span className="text-white text-4xl font-bold">2</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">똑똑한 매칭</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">똑똑한 매칭</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
                 정확한 알고리즘이 찾아주는 완벽한 기회들
               </p>
@@ -602,10 +673,10 @@ export default function Home() {
             </div>
             
             <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
+              <div className="w-32 h-32 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
                 <span className="text-white text-4xl font-bold">3</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">성공적인 연결</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">성공적인 연결</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
                 실시간 알림으로 놓치지 않는 기회들
               </p>
