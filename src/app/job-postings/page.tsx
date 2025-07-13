@@ -208,8 +208,8 @@ export default function JobPostingsPage() {
               </div>
               <div className="bg-purple-50 rounded-xl p-6">
                 <DollarSign size={32} className="text-purple-600 mx-auto mb-3" />
-                <h3 className="font-bold text-gray-900 mb-2">페이지네이션</h3>
-                <p className="text-gray-600 text-sm">많은 구인공고도 페이지별로 깔끔하게</p>
+                <h3 className="font-bold text-gray-900 mb-2">급여 정보</h3>
+                <p className="text-gray-600 text-sm">시급부터 연봉까지 투명한 급여 정보</p>
               </div>
             </div>
 

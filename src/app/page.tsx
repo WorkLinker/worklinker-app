@@ -176,7 +176,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-blue-50">
       {/* Full Screen Hero Section with Slideshow */}
-      <section className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
+      <section id="hero-section" className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
         {/* Navigation overlay */}
         <div className="absolute top-0 left-0 right-0 z-50">
           <Navigation />
@@ -295,7 +295,7 @@ export default function Home() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section className="py-32 bg-gradient-to-b from-sky-50 to-white relative">
+      <section id="features-section" className="py-32 bg-gradient-to-b from-sky-50 to-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
             <div className="inline-flex items-center bg-sky-100 rounded-full px-6 py-2 mb-8">

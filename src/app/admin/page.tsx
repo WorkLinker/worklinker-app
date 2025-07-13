@@ -29,20 +29,23 @@ import {
   AlertCircle,
   Heart,
   Building,
-  MapPin
+  MapPin,
+  Palette,
+  Image as ImageIcon,
+  Type,
+  Upload
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import EmailTest from '@/components/EmailTest';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService, volunteerService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService, designService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 import { User as FirebaseUser, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'log-export' | 'admin-settings';
+type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor';
 
 // 비밀번호 변경 모달 컴포넌트
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -523,98 +526,135 @@ function ActivityLogComponent() {
   };
 
   const exportToPDF = async () => {
-    const pdf = new jsPDF('l', 'mm', 'a4'); // 가로 방향
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    
     try {
-      const tableElement = document.getElementById('activity-log-table');
-      if (!tableElement) return;
+      console.log('🔄 PDF 내보내기 시작...');
+      
+      if (filteredLogs.length === 0) {
+        alert('내보낼 로그 데이터가 없습니다.');
+        return;
+      }
 
-      const canvas = await html2canvas(tableElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
+      const pdf = new jsPDF('l', 'mm', 'a4'); // 가로 방향
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // 한국어 폰트 설정을 위한 대체 방법 (기본 폰트 사용)
+      pdf.setFont('helvetica', 'normal');
+      
+      // 헤더 추가
+      pdf.setFontSize(16);
+      pdf.text('Activity Log Report', pageWidth / 2, 15, { align: 'center' });
+      pdf.setFontSize(10);
+      pdf.text(`Generated: ${new Date().toLocaleString('ko-KR')}`, pageWidth / 2, 25, { align: 'center' });
+      pdf.text(`Total Records: ${filteredLogs.length}`, pageWidth / 2, 35, { align: 'center' });
+      
+      // 테이블 헤더
+      const startY = 50;
+      let currentY = startY;
+      const rowHeight = 8;
+      const colWidths = [30, 50, 40, 60, 50, 60]; // 컬럼 너비
+      const headers = ['Time', 'Admin', 'Type', 'Action', 'Target', 'Details'];
+      
+      // 헤더 그리기
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      let currentX = 10;
+      headers.forEach((header, index) => {
+        pdf.text(header, currentX, currentY);
+        currentX += colWidths[index];
       });
       
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pageWidth - 20; // 여백
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      currentY += rowHeight;
+      pdf.line(10, currentY - 2, pageWidth - 10, currentY - 2); // 헤더 하단 라인
       
-      // 제목 추가
-      pdf.setFontSize(16);
-      pdf.text('활동 로그 보고서', pageWidth / 2, 15, { align: 'center' });
-      pdf.setFontSize(10);
-      pdf.text(`생성일: ${new Date().toLocaleString('ko-KR')}`, pageWidth / 2, 25, { align: 'center' });
+      // 데이터 행 추가
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
       
-      // 테이블 이미지 추가
-      let yPosition = 35;
-      if (imgHeight > pageHeight - 40) {
-        // 이미지가 페이지보다 클 경우 여러 페이지로 분할
-        const pageSize = pageHeight - 40;
-        let remainingHeight = imgHeight;
-        let currentY = 0;
-        
-        while (remainingHeight > 0) {
-          const canvasSlice = document.createElement('canvas');
-          canvasSlice.width = canvas.width;
-          canvasSlice.height = Math.min(canvas.height * pageSize / imgHeight, canvas.height - currentY);
-          
-          const ctx = canvasSlice.getContext('2d');
-          ctx?.drawImage(canvas, 0, currentY, canvas.width, canvasSlice.height, 0, 0, canvas.width, canvasSlice.height);
-          
-          const sliceData = canvasSlice.toDataURL('image/png');
-          pdf.addImage(sliceData, 'PNG', 10, yPosition, imgWidth, canvasSlice.height * imgWidth / canvas.width);
-          
-          remainingHeight -= pageSize;
-          currentY += canvasSlice.height;
-          
-          if (remainingHeight > 0) {
-            pdf.addPage();
-            yPosition = 10;
-          }
+      filteredLogs.forEach((log, index) => {
+        if (currentY > pageHeight - 20) {
+          pdf.addPage();
+          currentY = 20;
         }
-      } else {
-        pdf.addImage(imgData, 'PNG', 10, yPosition, imgWidth, imgHeight);
-      }
+        
+        currentX = 10;
+        const rowData = [
+          formatTimestamp(log.timestamp).substring(0, 16), // 시간 줄임
+          (log.adminEmail || 'System').substring(0, 20), // 관리자 이메일 줄임
+          getActionTypeText(log.type).substring(0, 15), // 타입 줄임
+          (log.action || log.description || '').substring(0, 25), // 액션 줄임
+          (log.targetUserEmail || log.contentId || '').substring(0, 20), // 대상 줄임
+          (log.reason || JSON.stringify(log.changes) || '').substring(0, 25) // 세부사항 줄임
+        ];
+        
+        rowData.forEach((data, colIndex) => {
+          pdf.text(data, currentX, currentY);
+          currentX += colWidths[colIndex];
+        });
+        
+        currentY += rowHeight;
+        
+        // 격자 라인 추가
+        if (index % 5 === 0) {
+          pdf.line(10, currentY - 2, pageWidth - 10, currentY - 2);
+        }
+      });
       
-      pdf.save(`활동로그_${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('PDF 내보내기가 완료되었습니다! 📄');
+      // 푸터 추가
+      pdf.setFontSize(8);
+      pdf.text(`Page ${pdf.getNumberOfPages()}`, pageWidth - 30, pageHeight - 10);
+      
+      pdf.save(`activity_log_${new Date().toISOString().split('T')[0]}.pdf`);
+      alert('✅ PDF 내보내기가 완료되었습니다! 📄');
+      
     } catch (error) {
-      console.error('PDF 내보내기 오류:', error);
-      alert('PDF 내보내기 중 오류가 발생했습니다.');
+      console.error('❌ PDF 내보내기 오류:', error);
+      alert('PDF 내보내기 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
   const exportToCSV = () => {
     try {
+      console.log('🔄 CSV 내보내기 시작...');
+      
+      if (filteredLogs.length === 0) {
+        alert('내보낼 로그 데이터가 없습니다.');
+        return;
+      }
+
       const csvData = filteredLogs.map(log => ({
         '작업시간': formatTimestamp(log.timestamp),
         '관리자 이메일': log.adminEmail || '시스템',
         '작업 유형': getActionTypeText(log.type),
         '작업 내용': log.action || log.description || '상세 정보 없음',
         '대상': log.targetUserEmail || log.contentId || '',
-        '사유/변경사항': log.reason || JSON.stringify(log.changes) || ''
+        '사유/변경사항': log.reason || (log.changes ? JSON.stringify(log.changes) : '') || '',
+        '세부정보': log.details ? JSON.stringify(log.details) : ''
       }));
 
-             const csv = Papa.unparse(csvData, {
-         header: true
-       });
+      const csv = Papa.unparse(csvData, {
+        header: true
+      });
 
+      // UTF-8 BOM 추가로 한글 인코딩 문제 해결
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `활동로그_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `activity_log_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      alert('CSV 내보내기가 완료되었습니다! 📊');
+      // URL 정리
+      URL.revokeObjectURL(url);
+      
+      alert('✅ CSV 내보내기가 완료되었습니다! 📊');
+      
     } catch (error) {
-      console.error('CSV 내보내기 오류:', error);
-      alert('CSV 내보내기 중 오류가 발생했습니다.');
+      console.error('❌ CSV 내보내기 오류:', error);
+      alert('CSV 내보내기 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -962,6 +1002,53 @@ export default function AdminPage() {
   const [contentSaving, setContentSaving] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   
+  // 디자인 편집 관련 상태
+  interface DesignSettings {
+    colors: {
+      primary: string;
+      secondary: string;
+      accent: string;
+      background: string;
+    };
+    fonts: {
+      bodyFont: string;
+      headingFont: string;
+      bodySize: number;
+      headingSize: number;
+      lineHeight: number;
+    };
+    images: {
+      heroSlides: {
+        slide1: string;
+        slide2: string;
+        slide3: string;
+      };
+      featureCards: {
+        student: string;
+        reference: string;
+        company: string;
+        events: string;
+      };
+    };
+  }
+  
+  const [, setDesignSettings] = useState<DesignSettings | null>(null);
+  const [isImageUploading, setIsImageUploading] = useState<string | null>(null);
+  const [isDesignSaving, setIsDesignSaving] = useState(false);
+  const [currentColors, setCurrentColors] = useState({
+    primary: '#0ea5e9',
+    secondary: '#7dd3fc', 
+    accent: '#0369a1',
+    background: '#dbeafe'
+  });
+  const [currentFonts, setCurrentFonts] = useState({
+    bodyFont: 'inter',
+    headingFont: 'inter',
+    bodySize: 16,
+    headingSize: 32,
+    lineHeight: 1.5
+  });
+  
   // 봉사자 관리 관련 상태
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pendingVolunteerPostings, setPendingVolunteerPostings] = useState<any[]>([]);
@@ -1032,7 +1119,8 @@ export default function AdminPage() {
         await Promise.all([
           loadPendingApplications(),
           loadSiteContent(),
-          loadPendingVolunteerPostings()
+          loadPendingVolunteerPostings(),
+          loadDesignSettings()
         ]);
       } else {
         router.push('/');
@@ -1087,6 +1175,168 @@ export default function AdminPage() {
     } finally {
       setContentSaving(false);
     }
+  };
+
+  // 디자인 설정 로드
+  const loadDesignSettings = async () => {
+    try {
+      console.log('🎨 디자인 설정 로드...');
+      const settings = await designService.getCurrentDesignSettings();
+      setDesignSettings(settings as DesignSettings);
+      
+      // 현재 색상과 폰트 설정 업데이트
+      if (settings.colors) {
+        setCurrentColors(settings.colors);
+      }
+      if (settings.fonts) {
+        setCurrentFonts(settings.fonts);
+      }
+      
+      console.log('✅ 디자인 설정 로드 완료');
+    } catch (error) {
+      console.error('❌ 디자인 설정 로드 오류:', error);
+    }
+  };
+
+  // 이미지 업로드 처리
+  const handleImageUpload = async (category: string, imageName: string) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      // 파일 크기 확인 (5MB 제한)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기는 5MB 이하여야 합니다.');
+        return;
+      }
+
+      try {
+        setIsImageUploading(`${category}-${imageName}`);
+        
+        // Firebase Storage에 업로드
+        const result = await designService.uploadImage(file, category, imageName);
+        
+        if (result.success) {
+          // 활성 이미지 URL 업데이트
+          await designService.updateActiveImage(category, imageName, result.url);
+          
+          // 디자인 설정 다시 로드
+          await loadDesignSettings();
+          
+          alert('✅ 이미지가 성공적으로 업로드되었습니다!');
+        }
+      } catch (error) {
+        console.error('❌ 이미지 업로드 오류:', error);
+        alert('❌ 이미지 업로드 중 오류가 발생했습니다.');
+      } finally {
+        setIsImageUploading(null);
+      }
+    };
+    
+    input.click();
+  };
+
+  // 색상 변경 처리
+  const handleColorChange = (colorType: string, newColor: string) => {
+    setCurrentColors(prev => ({
+      ...prev,
+      [colorType]: newColor
+    }));
+  };
+
+  // 폰트 변경 처리
+  const handleFontChange = (fontType: string, newValue: string | number) => {
+    setCurrentFonts(prev => ({
+      ...prev,
+      [fontType]: newValue
+    }));
+  };
+
+  // 미리 정의된 테마 적용
+  const handleApplyPresetTheme = async (themeName: string) => {
+    try {
+      setIsDesignSaving(true);
+      await designService.applyPresetTheme(themeName);
+      await loadDesignSettings();
+      alert(`✅ ${themeName} 테마가 적용되었습니다!`);
+    } catch (error) {
+      console.error('❌ 테마 적용 오류:', error);
+      alert('❌ 테마 적용 중 오류가 발생했습니다.');
+    } finally {
+      setIsDesignSaving(false);
+    }
+  };
+
+  // 모든 디자인 변경사항 저장
+  const handleSaveDesign = async () => {
+    if (!user?.email) {
+      alert('관리자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    try {
+      setIsDesignSaving(true);
+      
+      // 색상 테마 저장
+      await designService.saveColorTheme(currentColors);
+      
+      // 폰트 설정 저장
+      await designService.saveFontSettings(currentFonts);
+      
+      // 활동 로그 기록
+      await logService.createLog({
+        type: 'admin',
+        action: 'design_update',
+        adminEmail: user.email,
+        description: '디자인 설정을 변경하였습니다',
+        details: {
+          colors: currentColors,
+          fonts: currentFonts,
+          changeTime: new Date().toISOString()
+        }
+      });
+      
+      alert('✅ 모든 디자인 변경사항이 저장되었습니다!');
+      
+      // 설정 다시 로드
+      await loadDesignSettings();
+      
+    } catch (error) {
+      console.error('❌ 디자인 저장 오류:', error);
+      alert('❌ 디자인 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsDesignSaving(false);
+    }
+  };
+
+  // 전체 미리보기 (새 탭에서 홈페이지 열기)
+  const handlePreviewDesign = () => {
+    window.open('/', '_blank');
+    alert('💡 새 탭에서 홈페이지를 확인하세요. 변경사항을 저장한 후 새로고침하면 반영됩니다.');
+  };
+
+  // 설정 내보내기 (JSON 파일로 다운로드)
+  const handleExportSettings = () => {
+    const settings = {
+      colors: currentColors,
+      fonts: currentFonts,
+      exportedAt: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(settings, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `design-settings-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    
+    alert('✅ 디자인 설정이 JSON 파일로 다운로드되었습니다!');
   };
 
   const loadPendingApplications = async () => {
@@ -1249,16 +1499,16 @@ export default function AdminPage() {
       description: '홈페이지 텍스트 및 섹션 수정'
     },
     {
+      id: 'design-editor' as TabType,
+      name: '디자인 편집',
+      icon: Palette,
+      description: '이미지, 색상, 폰트 변경'
+    },
+    {
       id: 'activity-log' as TabType,
       name: '활동 로그 열람',
       icon: Activity,
       description: '사용자 활동 기록 조회'
-    },
-    {
-      id: 'log-export' as TabType,
-      name: '로그 내보내기',
-      icon: Download,
-      description: '활동 로그 데이터 내보내기'
     },
     {
       id: 'admin-settings' as TabType,
@@ -1890,148 +2140,412 @@ export default function AdminPage() {
           </div>
         );
 
-      case 'activity-log':
-        return <ActivityLogComponent />;
-
-      case 'log-export':
+      case 'design-editor':
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* 헤더 */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Download size={28} className="mr-3 text-purple-600" />
-                💾 로그 내보내기
+                <Palette size={28} className="mr-3 text-purple-600" />
+                🎨 디자인 편집
               </h2>
               <p className="text-gray-600 mt-2">
-                활동 로그를 다양한 형태로 내보내고 리포트를 생성할 수 있습니다.
+                이미지 업로드, 색상 변경, 폰트 설정으로 홈페이지를 커스터마이징하세요.
               </p>
             </div>
 
-            {/* 안내 메시지 */}
-            <div className="bg-blue-50 rounded-xl p-6">
-              <div className="flex items-start">
-                <Activity size={24} className="text-blue-600 mr-3 mt-1" />
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                    📊 활동 로그 열람 탭에서 내보내기 가능
-                  </h3>
-                  <p className="text-blue-800 mb-4">
-                    현재 로그 내보내기 기능은 <strong>&lsquo;활동 로그 열람&rsquo;</strong> 탭에서 이용하실 수 있습니다.
-                    필터링과 함께 PDF, CSV 형태로 내보낼 수 있습니다.
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('activity-log')}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Eye size={18} className="mr-2" />
-                    활동 로그 열람 탭으로 이동
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 추가 기능 계획 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <FileText size={24} className="text-green-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">자동 리포트 생성</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  일간, 주간, 월간 활동 리포트를 자동으로 생성하여 이메일로 발송하는 기능입니다.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 font-medium">🚧 개발 예정 기능</p>
-                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                    <li>• 스케줄링된 리포트 생성</li>
-                    <li>• 이메일 자동 발송</li>
-                    <li>• 커스텀 리포트 템플릿</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Target size={24} className="text-orange-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">데이터 분석</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  활동 패턴 분석, 통계 차트 생성, 트렌드 분석 등의 고급 분석 기능입니다.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 font-medium">🚧 개발 예정 기능</p>
-                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                    <li>• 시간대별 활동 분석</li>
-                    <li>• 관리자별 업무량 통계</li>
-                    <li>• 트렌드 차트 및 그래프</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Settings size={24} className="text-purple-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">내보내기 설정</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  내보내기 형식, 데이터 범위, 필터 프리셋 등을 미리 설정하는 기능입니다.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 font-medium">🚧 개발 예정 기능</p>
-                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                    <li>• 내보내기 프리셋 저장</li>
-                    <li>• 자동 파일명 생성 규칙</li>
-                    <li>• 데이터 압축 옵션</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-4">
-                  <BookOpen size={24} className="text-blue-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">감사 보고서</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  규정 준수를 위한 정형화된 감사 보고서를 생성하는 기능입니다.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 font-medium">🚧 개발 예정 기능</p>
-                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                    <li>• 표준 감사 리포트 템플릿</li>
-                    <li>• 규정 준수 체크리스트</li>
-                    <li>• 디지털 서명 지원</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* 현재 이용 가능한 기능 */}
-            <div className="bg-green-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
-                <CheckCircle size={20} className="mr-2" />
-                현재 이용 가능한 기능
+            {/* 이미지 편집 섹션 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <ImageIcon size={24} className="mr-3 text-blue-600" />
+                📸 이미지 관리
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-green-800">
-                <div className="flex items-center">
-                  <Download size={16} className="mr-2" />
-                  PDF 형태 로그 내보내기
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* 히어로 슬라이드 이미지들 */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">메인 히어로 슬라이드</h4>
+                  {[1, 2, 3].map((slideNum) => (
+                    <div key={slideNum} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-gray-700">슬라이드 {slideNum}</span>
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => handleImageUpload('heroSlides', `slide${slideNum}`)}
+                            disabled={isImageUploading === `heroSlides-slide${slideNum}`}
+                            className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm disabled:opacity-50"
+                          >
+                            {isImageUploading === `heroSlides-slide${slideNum}` ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-700 mr-1"></div>
+                            ) : (
+                              <Upload size={14} className="mr-1" />
+                            )}
+                            {isImageUploading === `heroSlides-slide${slideNum}` ? '업로드중...' : '변경'}
+                          </button>
+                          <button 
+                            onClick={() => window.open('/#hero-section', '_blank')}
+                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                          >
+                            <Eye size={14} className="mr-1" />
+                            미리보기
+                          </button>
+                        </div>
+                      </div>
+                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={`/images/메인홈${slideNum}.${slideNum === 2 ? 'jpg' : 'png'}`}
+                          alt={`메인 슬라이드 ${slideNum}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <Upload size={20} className="text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center">
-                  <Download size={16} className="mr-2" />
-                  CSV 형태 로그 내보내기
-                </div>
-                <div className="flex items-center">
-                  <Filter size={16} className="mr-2" />
-                  날짜/관리자/유형별 필터링
-                </div>
-                <div className="flex items-center">
-                  <Search size={16} className="mr-2" />
-                  실시간 로그 검색
+
+                {/* 기능 카드 이미지들 */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">기능 카드 이미지</h4>
+                  {[
+                    { name: '학생 구직', file: '7번.png', key: 'student' },
+                    { name: '추천서 지원', file: '4번.png', key: 'reference' },
+                    { name: '기업 채용', file: '3번.png', key: 'company' },
+                    { name: '교육 이벤트', file: '교육이벤트.png', key: 'events' }
+                  ].map((card, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-gray-700">{card.name}</span>
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => handleImageUpload('featureCards', card.key)}
+                            disabled={isImageUploading === `featureCards-${card.key}`}
+                            className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors text-sm disabled:opacity-50"
+                          >
+                            {isImageUploading === `featureCards-${card.key}` ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-700 mr-1"></div>
+                            ) : (
+                              <Upload size={14} className="mr-1" />
+                            )}
+                            {isImageUploading === `featureCards-${card.key}` ? '업로드중...' : '변경'}
+                          </button>
+                          <button 
+                            onClick={() => window.open(`/#card-${card.key}`, '_blank')}
+                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                          >
+                            <Eye size={14} className="mr-1" />
+                            미리보기
+                          </button>
+                        </div>
+                      </div>
+                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={`/images/${card.file}`}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <Upload size={20} className="text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+              {/* 이미지 업로드 안내 */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h5 className="font-semibold text-blue-900 mb-2">📌 이미지 업로드 가이드</h5>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• 권장 해상도: 1920x1080 (히어로 이미지), 800x600 (카드 이미지)</li>
+                  <li>• 지원 형식: JPG, PNG, WebP</li>
+                  <li>• 최대 파일 크기: 5MB</li>
+                  <li>• 변경 후 즉시 홈페이지에 반영됩니다</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 색상 편집 섹션 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <Palette size={24} className="mr-3 text-purple-600" />
+                🎨 색상 테마
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* 주요 색상 */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">주요 색상 (Primary)</label>
+                  <div className="flex items-center space-x-3">
+                    <input 
+                      type="color" 
+                      value={currentColors.primary} 
+                      onChange={(e) => handleColorChange('primary', e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        value={currentColors.primary} 
+                        onChange={(e) => handleColorChange('primary', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full h-8 rounded-md" style={{ backgroundColor: currentColors.primary }}></div>
+                </div>
+
+                {/* 보조 색상 */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">보조 색상 (Secondary)</label>
+                  <div className="flex items-center space-x-3">
+                    <input 
+                      type="color" 
+                      value={currentColors.secondary} 
+                      onChange={(e) => handleColorChange('secondary', e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        value={currentColors.secondary} 
+                        onChange={(e) => handleColorChange('secondary', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full h-8 rounded-md" style={{ backgroundColor: currentColors.secondary }}></div>
+                </div>
+
+                {/* 강조 색상 */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">강조 색상 (Accent)</label>
+                  <div className="flex items-center space-x-3">
+                    <input 
+                      type="color" 
+                      value={currentColors.accent} 
+                      onChange={(e) => handleColorChange('accent', e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        value={currentColors.accent} 
+                        onChange={(e) => handleColorChange('accent', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full h-8 rounded-md" style={{ backgroundColor: currentColors.accent }}></div>
+                </div>
+
+                {/* 배경 색상 */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">배경 색상</label>
+                  <div className="flex items-center space-x-3">
+                    <input 
+                      type="color" 
+                      value={currentColors.background} 
+                      onChange={(e) => handleColorChange('background', e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        value={currentColors.background} 
+                        onChange={(e) => handleColorChange('background', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full h-8 rounded-md" style={{ backgroundColor: currentColors.background }}></div>
+                </div>
+              </div>
+
+              {/* 미리 정의된 테마 */}
+              <div className="mt-8">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">🎨 미리 정의된 테마</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { name: '현재 (스카이)', key: 'sky', colors: ['#0ea5e9', '#7dd3fc', '#0369a1', '#dbeafe'] },
+                    { name: '보라색', key: 'purple', colors: ['#8b5cf6', '#c4b5fd', '#6d28d9', '#ede9fe'] },
+                    { name: '초록색', key: 'green', colors: ['#10b981', '#6ee7b7', '#047857', '#d1fae5'] },
+                    { name: '오렌지', key: 'orange', colors: ['#f59e0b', '#fcd34d', '#d97706', '#fef3c7'] }
+                  ].map((theme, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleApplyPresetTheme(theme.key)}
+                      disabled={isDesignSaving}
+                      className="p-3 border border-gray-200 rounded-lg hover:border-gray-400 transition-colors group disabled:opacity-50"
+                    >
+                      <div className="text-sm font-medium text-gray-700 mb-2">{theme.name}</div>
+                      <div className="flex space-x-1">
+                        {theme.colors.map((color, colorIndex) => (
+                          <div 
+                            key={colorIndex}
+                            className="w-6 h-6 rounded"
+                            style={{ backgroundColor: color }}
+                          ></div>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 폰트 편집 섹션 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <Type size={24} className="mr-3 text-green-600" />
+                ✍️ 폰트 설정
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* 본문 폰트 */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-800">본문 폰트</h4>
+                  <select 
+                    value={currentFonts.bodyFont}
+                    onChange={(e) => handleFontChange('bodyFont', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="inter">Inter</option>
+                    <option value="noto-sans-kr">Noto Sans KR</option>
+                    <option value="pretendard">Pretendard</option>
+                    <option value="malgun-gothic">Malgun Gothic</option>
+                    <option value="roboto">Roboto</option>
+                  </select>
+                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <p className="text-gray-800" style={{ fontFamily: currentFonts.bodyFont, fontSize: `${currentFonts.bodySize}px`, lineHeight: currentFonts.lineHeight }}>
+                      샘플 텍스트: 캐나다 학생들을 위한 취업 플랫폼입니다. 
+                      Sample Text: New Brunswick High School Jobs Platform.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 제목 폰트 */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-800">제목 폰트</h4>
+                  <select 
+                    value={currentFonts.headingFont}
+                    onChange={(e) => handleFontChange('headingFont', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="inter">Inter</option>
+                    <option value="noto-sans-kr">Noto Sans KR</option>
+                    <option value="pretendard">Pretendard</option>
+                    <option value="playfair-display">Playfair Display</option>
+                    <option value="montserrat">Montserrat</option>
+                  </select>
+                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <h3 className="text-xl font-bold text-gray-800" style={{ fontFamily: currentFonts.headingFont, fontSize: `${currentFonts.headingSize}px` }}>
+                      샘플 제목: 미래를 만들어갈 학생 인재들
+                    </h3>
+                    <h4 className="text-lg font-semibold text-gray-600 mt-2" style={{ fontFamily: currentFonts.headingFont }}>
+                      Sample Heading: Future Talents
+                    </h4>
+                  </div>
+                </div>
+              </div>
+
+              {/* 폰트 크기 설정 */}
+              <div className="mt-8">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">폰트 크기 설정</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">본문 크기 ({currentFonts.bodySize}px)</label>
+                    <input 
+                      type="range" 
+                      min="14" 
+                      max="20" 
+                      value={currentFonts.bodySize}
+                      onChange={(e) => handleFontChange('bodySize', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>14px</span>
+                      <span>16px</span>
+                      <span>20px</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">제목 크기 ({currentFonts.headingSize}px)</label>
+                    <input 
+                      type="range" 
+                      min="24" 
+                      max="48" 
+                      value={currentFonts.headingSize}
+                      onChange={(e) => handleFontChange('headingSize', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>24px</span>
+                      <span>32px</span>
+                      <span>48px</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">줄 간격 ({currentFonts.lineHeight})</label>
+                    <input 
+                      type="range" 
+                      min="1.2" 
+                      max="2.0" 
+                      step="0.1"
+                      value={currentFonts.lineHeight}
+                      onChange={(e) => handleFontChange('lineHeight', parseFloat(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>1.2</span>
+                      <span>1.5</span>
+                      <span>2.0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 저장 및 미리보기 버튼 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button 
+                  onClick={handleSaveDesign}
+                  disabled={isDesignSaving}
+                  className="flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50"
+                >
+                  {isDesignSaving ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  ) : (
+                    <CheckCircle size={20} className="mr-3" />
+                  )}
+                  {isDesignSaving ? '저장 중...' : '모든 변경사항 저장'}
+                </button>
+                <button 
+                  onClick={handlePreviewDesign}
+                  className="flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                >
+                  <Eye size={20} className="mr-3" />
+                  전체 미리보기
+                </button>
+                <button 
+                  onClick={handleExportSettings}
+                  className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-bold text-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg"
+                >
+                  <Download size={20} className="mr-3" />
+                  설정 내보내기
+                </button>
+              </div>
+              <p className="text-center text-sm text-gray-600 mt-4">
+                💡 변경사항은 저장 후 즉시 홈페이지에 반영됩니다. 미리보기로 먼저 확인해보세요!
+              </p>
             </div>
           </div>
         );
+
+      case 'activity-log':
+        return <ActivityLogComponent />;
 
       case 'admin-settings':
         return (
@@ -2197,51 +2711,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* 추가 기능 계획 */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center mb-6">
-                <BookOpen size={24} className="text-orange-600 mr-3" />
-                <h3 className="text-xl font-semibold text-gray-900">향후 추가 예정 기능</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
-                    <Mail size={18} className="text-gray-400 mr-2" />
-                    <span className="font-medium text-gray-700">알림 설정</span>
-                  </div>
-                  <p className="text-sm text-gray-600">이메일 알림, 푸시 알림 설정</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">개발 예정</span>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
-                    <Download size={18} className="text-gray-400 mr-2" />
-                    <span className="font-medium text-gray-700">데이터 백업</span>
-                  </div>
-                  <p className="text-sm text-gray-600">시스템 데이터 백업/복원</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">개발 예정</span>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
-                    <Settings size={18} className="text-gray-400 mr-2" />
-                    <span className="font-medium text-gray-700">시스템 설정</span>
-                  </div>
-                  <p className="text-sm text-gray-600">사이트 기본 설정, 권한 관리</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">개발 예정</span>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
-                    <Target size={18} className="text-gray-400 mr-2" />
-                    <span className="font-medium text-gray-700">성능 모니터링</span>
-                  </div>
-                  <p className="text-sm text-gray-600">시스템 성능 및 사용량 추적</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">개발 예정</span>
-                </div>
-              </div>
-            </div>
+
           </div>
         );
 

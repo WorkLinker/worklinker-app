@@ -137,11 +137,9 @@ export default function VolunteerPostingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Navigation />
-      
-      {/* Hero Section */}
-      <section className="relative h-96 flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen">
+      {/* Full Screen Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <Image
           src="/images/봉사활동.png"
           alt="봉사자 모집"
@@ -150,18 +148,25 @@ export default function VolunteerPostingsPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="relative z-10 text-center text-white px-4">
-          <div className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Heart size={16} className="mr-2" />
-            봉사자 모집
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        
+        {/* Navigation Overlay */}
+        <div className="absolute top-0 left-0 right-0 z-30">
+          <Navigation />
+        </div>
+        
+        {/* Hero Content - Positioned at Bottom */}
+        <div className="absolute bottom-20 left-0 right-0 z-20 text-center text-white px-4">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              함께 만드는 더 나은<br />
+              <span className="text-green-400">지역사회</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+              뉴브런즈윅의 미래를 이끌어갈 학생 봉사자들을 모집해보세요<br />
+              지역사회에 기여할 수 있는 의미 있는 기회를 만들어보세요
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            함께 만드는 더 나은 지역사회
-          </h1>
-          <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">
-            뉴브런즈윅의 미래를 이끌어갈 학생 봉사자들을 모집해보세요
-          </p>
         </div>
       </section>
 
@@ -177,7 +182,8 @@ export default function VolunteerPostingsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+        <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           
           {/* Info Section */}
@@ -463,6 +469,7 @@ export default function VolunteerPostingsPage() {
             </form>
           </div>
         </div>
+      </div>
       </div>
 
       <Footer />

@@ -1702,4 +1702,297 @@ export const volunteerService = {
       throw error;
     }
   }
-}; 
+};
+
+// 🎨 디자인 편집 관련
+export const designService = {
+  // 이미지 업로드 (Firebase Storage)
+  async uploadImage(file: File, category: string, imageName: string) {
+    try {
+      console.log('📸 이미지 업로드 시작:', imageName, '카테고리:', category);
+      
+      // 파일 이름 생성 (중복 방지)
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
+      
+      // Firebase Storage에 업로드
+      const imageRef = ref(storage, `design-assets/${fileName}`);
+      const snapshot = await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Firestore에 이미지 정보 저장
+      await addDoc(collection(db, 'designAssets'), {
+        category,
+        imageName,
+        fileName,
+        downloadURL,
+        originalName: file.name,
+        size: file.size,
+        uploadedAt: serverTimestamp(),
+        isActive: true
+      });
+      
+      console.log('✅ 이미지 업로드 성공:', downloadURL);
+      return { success: true, url: downloadURL, fileName };
+    } catch (error) {
+      console.error('❌ 이미지 업로드 오류:', error);
+      throw error;
+    }
+  },
+
+  // 현재 활성 이미지 URL 업데이트
+  async updateActiveImage(category: string, imageName: string, newUrl: string) {
+    try {
+      console.log('🔄 활성 이미지 업데이트:', category, imageName, newUrl);
+      
+      // 기존 설정 조회
+      const settingsRef = doc(db, 'siteSettings', 'design');
+      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      
+      let currentSettings: any = {};
+      if (!settingsDoc.empty) {
+        currentSettings = settingsDoc.docs[0].data();
+      }
+      
+      // 이미지 URL 업데이트
+      const updatedSettings = {
+        ...currentSettings,
+        images: {
+          ...currentSettings.images,
+          [category]: {
+            ...currentSettings.images?.[category],
+            [imageName]: newUrl
+          }
+        },
+        updatedAt: serverTimestamp()
+      };
+      
+      // Firestore에 저장
+      if (settingsDoc.empty) {
+        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
+      } else {
+        await updateDoc(settingsRef, updatedSettings);
+      }
+      
+      console.log('✅ 활성 이미지 업데이트 완료');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ 활성 이미지 업데이트 오류:', error);
+      throw error;
+    }
+  },
+
+  // 색상 테마 저장
+  async saveColorTheme(colors: any) {
+    try {
+      console.log('🎨 색상 테마 저장:', colors);
+      
+      const settingsRef = doc(db, 'siteSettings', 'design');
+      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      
+      let currentSettings = {};
+      if (!settingsDoc.empty) {
+        currentSettings = settingsDoc.docs[0].data();
+      }
+      
+      const updatedSettings = {
+        ...currentSettings,
+        colors: {
+          primary: colors.primary,
+          secondary: colors.secondary,
+          accent: colors.accent,
+          background: colors.background,
+          lastUpdated: serverTimestamp()
+        },
+        updatedAt: serverTimestamp()
+      };
+      
+      if (settingsDoc.empty) {
+        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
+      } else {
+        await updateDoc(settingsRef, updatedSettings);
+      }
+      
+      console.log('✅ 색상 테마 저장 완료');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ 색상 테마 저장 오류:', error);
+      throw error;
+    }
+  },
+
+  // 폰트 설정 저장
+  async saveFontSettings(fonts: any) {
+    try {
+      console.log('✍️ 폰트 설정 저장:', fonts);
+      
+      const settingsRef = doc(db, 'siteSettings', 'design');
+      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      
+      let currentSettings = {};
+      if (!settingsDoc.empty) {
+        currentSettings = settingsDoc.docs[0].data();
+      }
+      
+      const updatedSettings = {
+        ...currentSettings,
+        fonts: {
+          bodyFont: fonts.bodyFont,
+          headingFont: fonts.headingFont,
+          bodySize: fonts.bodySize,
+          headingSize: fonts.headingSize,
+          lineHeight: fonts.lineHeight,
+          lastUpdated: serverTimestamp()
+        },
+        updatedAt: serverTimestamp()
+      };
+      
+      if (settingsDoc.empty) {
+        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
+      } else {
+        await updateDoc(settingsRef, updatedSettings);
+      }
+      
+      console.log('✅ 폰트 설정 저장 완료');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ 폰트 설정 저장 오류:', error);
+      throw error;
+    }
+  },
+
+  // 현재 디자인 설정 조회
+  async getCurrentDesignSettings() {
+    try {
+      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      
+      if (settingsDoc.empty) {
+        // 기본 설정 반환
+        const defaultSettings = {
+          colors: {
+            primary: '#0ea5e9',
+            secondary: '#7dd3fc',
+            accent: '#0369a1',
+            background: '#dbeafe'
+          },
+          fonts: {
+            bodyFont: 'inter',
+            headingFont: 'inter',
+            bodySize: 16,
+            headingSize: 32,
+            lineHeight: 1.5
+          },
+          images: {
+            heroSlides: {
+              slide1: '/images/메인홈1.png',
+              slide2: '/images/메인홈2.jpg',
+              slide3: '/images/메인홈3.png'
+            },
+            featureCards: {
+              student: '/images/7번.png',
+              reference: '/images/4번.png',
+              company: '/images/3번.png',
+              events: '/images/교육이벤트.png'
+            }
+          }
+        };
+        
+        console.log('📋 기본 디자인 설정 반환');
+        return defaultSettings;
+      }
+      
+      const settings = settingsDoc.docs[0].data();
+      console.log('✅ 현재 디자인 설정 조회 완료');
+      return settings;
+    } catch (error) {
+      console.error('❌ 디자인 설정 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 디자인 설정 실시간 구독
+  subscribeToDesignSettings(callback: (settings: any) => void) {
+    const settingsQuery = query(collection(db, 'siteSettings'), where('__name__', '==', 'design'));
+    
+    return onSnapshot(settingsQuery, (snapshot) => {
+      if (snapshot.empty) {
+        // 기본 설정 반환
+        callback({
+          colors: {
+            primary: '#0ea5e9',
+            secondary: '#7dd3fc',
+            accent: '#0369a1',
+            background: '#dbeafe'
+          },
+          fonts: {
+            bodyFont: 'inter',
+            headingFont: 'inter',
+            bodySize: 16,
+            headingSize: 32,
+            lineHeight: 1.5
+          },
+          images: {
+            heroSlides: {
+              slide1: '/images/메인홈1.png',
+              slide2: '/images/메인홈2.jpg',
+              slide3: '/images/메인홈3.png'
+            },
+            featureCards: {
+              student: '/images/7번.png',
+              reference: '/images/4번.png',
+              company: '/images/3번.png',
+              events: '/images/교육이벤트.png'
+            }
+          }
+        });
+      } else {
+        callback(snapshot.docs[0].data());
+      }
+    });
+  },
+
+  // 프리셋 테마 적용
+  async applyPresetTheme(themeName: string) {
+    try {
+      const presetThemes = {
+        'sky': {
+          primary: '#0ea5e9',
+          secondary: '#7dd3fc',
+          accent: '#0369a1',
+          background: '#dbeafe'
+        },
+        'purple': {
+          primary: '#8b5cf6',
+          secondary: '#c4b5fd',
+          accent: '#6d28d9',
+          background: '#ede9fe'
+        },
+        'green': {
+          primary: '#10b981',
+          secondary: '#6ee7b7',
+          accent: '#047857',
+          background: '#d1fae5'
+        },
+        'orange': {
+          primary: '#f59e0b',
+          secondary: '#fcd34d',
+          accent: '#d97706',
+          background: '#fef3c7'
+        }
+      };
+      
+      const theme = presetThemes[themeName as keyof typeof presetThemes];
+      if (!theme) {
+        throw new Error('존재하지 않는 테마입니다.');
+      }
+      
+      await this.saveColorTheme(theme);
+      console.log('✅ 프리셋 테마 적용 완료:', themeName);
+      return { success: true, theme };
+    } catch (error) {
+      console.error('❌ 프리셋 테마 적용 오류:', error);
+      throw error;
+    }
+  }
+};
