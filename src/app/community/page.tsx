@@ -22,124 +22,24 @@ const PostSchema = z.object({
 
 type PostForm = z.infer<typeof PostSchema>;
 
-// 샘플 게시물 데이터
-const samplePosts = [
-  {
-    id: 1,
-    title: '신입 바리스타 일자리 후기 공유합니다',
-    content: '처음 바리스타로 일하게 되어 걱정이 많았는데, 생각보다 재미있고 배울 점이 많아요! 고등학생도 충분히 할 수 있는 일이라고 생각합니다.',
-    author: '커피러버',
-    category: 'job',
-    createdAt: '2025-01-10',
-    views: 156,
-    likes: 23,
-    comments: 8
-  },
-  {
-    id: 2,
-    title: '졸업 후 진로 고민 중입니다',
-    content: '내년에 졸업인데 대학 진학할지 취업할지 고민이 많아요. 같은 고민하는 분들 있나요? 조언도 구하고 싶습니다.',
-    author: '고민이많은학생',
-    category: 'life',
-    createdAt: '2025-01-09',
-    views: 234,
-    likes: 45,
-    comments: 15
-  },
-  {
-    id: 3,
-    title: '면접 준비 팁 공유해요!',
-    content: '최근에 몇 군데 면접을 보면서 배운 점들을 공유해보려고 합니다. 특히 고등학생 대상 면접에서 자주 나오는 질문들 정리해봤어요.',
-    author: '면접마스터',
-    category: 'study',
-    createdAt: '2025-01-08',
-    views: 389,
-    likes: 67,
-    comments: 22
-  },
-  {
-    id: 4,
-    title: '뉴브런즈윅 학생들 모여요!',
-    content: '같은 지역 학생들끼리 정보 공유하고 네트워킹했으면 좋겠어요. 프레더릭턴 지역 학생분들 있으신가요?',
-    author: '뉴브런즈윅토박이',
-    category: 'general',
-    createdAt: '2025-01-07',
-    views: 178,
-    likes: 34,
-    comments: 12
-  },
-  // 더 많은 샘플 데이터 추가
-  {
-    id: 5,
-    title: '여름 방학 인턴십 경험 후기',
-    content: '이번 여름에 로컬 회사에서 인턴십을 했는데 정말 좋은 경험이었어요. 실무 경험을 쌓을 수 있어서 뿌듯했습니다.',
-    author: '인턴십경험자',
-    category: 'job',
-    createdAt: '2025-01-06',
-    views: 298,
-    likes: 52,
-    comments: 18
-  },
-  {
-    id: 6,
-    title: '영어 실력 향상 방법 공유',
-    content: '캐나다에서 살면서 영어 실력을 늘리는 제 나름의 방법들을 공유해보려고 해요. 도움이 되었으면 좋겠습니다.',
-    author: '영어마스터',
-    category: 'study',
-    createdAt: '2025-01-05',
-    views: 412,
-    likes: 89,
-    comments: 31
-  },
-  {
-    id: 7,
-    title: '캐나다 생활 적응 팁',
-    content: '처음 캐나다에 와서 힘들었던 점들과 어떻게 극복했는지 공유해보려고 합니다.',
-    author: '캐나다신입',
-    category: 'life',
-    createdAt: '2025-01-04',
-    views: 267,
-    likes: 43,
-    comments: 16
-  },
-  {
-    id: 8,
-    title: '코딩 공부 시작하는 분들께',
-    content: '프로그래밍에 관심 있는 고등학생들을 위한 조언을 드리고 싶어요. 무료 리소스들도 많이 공유할게요.',
-    author: '코딩초보',
-    category: 'study',
-    createdAt: '2025-01-03',
-    views: 345,
-    likes: 76,
-    comments: 25
-  },
-  {
-    id: 9,
-    title: '학교 생활과 아르바이트 병행하기',
-    content: '학업과 일을 동시에 하면서 시간 관리하는 방법에 대해 이야기해보고 싶어요.',
-    author: '시간관리왕',
-    category: 'general',
-    createdAt: '2025-01-02',
-    views: 189,
-    likes: 38,
-    comments: 14
-  },
-  {
-    id: 10,
-    title: '대학 지원서 작성 팁',
-    content: '대학 지원서를 작성하면서 알게 된 유용한 팁들을 공유해드릴게요.',
-    author: '대학지원생',
-    category: 'study',
-    createdAt: '2025-01-01',
-    views: 423,
-    likes: 95,
-    comments: 37
-  }
-];
+// 게시물 타입 정의
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  category: 'general' | 'job' | 'study' | 'life';
+  createdAt: string;
+  views: number;
+  likes: number;
+  comments: number;
+}
+
+// 실제 게시물은 Firebase에서 불러와서 사용 (샘플 데이터 제거)
 
 export default function CommunityPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState(samplePosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
