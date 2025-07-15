@@ -1,227 +1,173 @@
-# 캐나다 학생 일자리 플랫폼 🍁
+# NB High School Jobs - 캐나다 학생 취업 플랫폼
 
-> 뉴브런즈윅 주 고등학생들을 위한 무료 오픈소스 일자리 매칭 플랫폼
+뉴브런즈윅 주 고등학생들을 위한 전문 구직 서비스 플랫폼입니다.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+## 🚀 프로덕션 배포 정보
 
-## 🎯 프로젝트 소개
+### **배포 URL**
+- **메인 사이트**: [Vercel 배포 URL]
+- **관리자 대시보드**: [배포 URL]/admin
 
-이 프로젝트는 **완전 무료**로 제공되는 오픈소스 플랫폼으로, 캐나다 뉴브런즈윅 주의 고등학생들이 방학 중 풀타임, 학기 중 파트타임, 봉사활동 등 다양한 일자리 기회를 찾을 수 있도록 돕습니다.
-
-### ✨ 핵심 가치
-- 🆓 **100% 무료** - 모든 기능 무료 제공
-- 🌐 **오픈소스** - 투명하고 지속 가능한 개발
-- 🤝 **지역사회 중심** - 뉴브런즈윅 학생들을 위한 맞춤 서비스
-- 🎓 **교육 중심** - 학생들의 성장과 진로 개발 지원
-
-## 🚀 주요 기능
-
-### 👨‍🎓 학생 구직 기능
-- 📄 레쥬메 업로드 및 프로필 관리
-- 📝 기본 정보 입력 (이름, 이메일, 학교, 학년 등)
-- 💼 근무 형태 선택 (풀타임/파트타임/봉사활동)
-- ✅ 관리자 승인 후 기업 노출
-
-### 🏢 구인 게시판
-- 📢 기업 구인공고 직접 등록
-- 🔍 상세한 업무 설명 및 요구사항 입력
-- 💰 급여 정보 및 연락처 제공
-- 🔎 검색 및 필터링 기능
-
-### 👩‍🏫 추천서 시스템 (선생님 전용)
-- 📋 학생별 추천서 작성 및 업로드
-- 📚 과목 및 관계 정보 입력
-- 📎 파일 첨부 기능 (PDF, DOC, DOCX)
-- 🔗 학생 프로필 연결
-
-### 🎪 이벤트 & 교육
-- 🎤 취업설명회 정보 및 참가 신청
-- 💪 면접 스킬 향상 워크숍
-- 🎯 진로 세미나 및 봉사활동 설명회
-- 📅 상세한 일정 및 참여 혜택 안내
-
-### 📞 문의 시스템
-- 💬 온라인 문의 폼
-- 📂 카테고리별 문의 분류
-- ❓ 자주 묻는 질문 (FAQ)
-- 📧 연락처 정보 제공
+### **현재 상태**
+- ✅ **프로덕션 준비 완료**
+- ✅ **테스트 데이터 모두 제거됨**
+- ✅ **이메일 자동발송 정상 작동**
+- ✅ **모든 기능 테스트 완료**
 
 ## 🛠️ 기술 스택
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript
-- **Styling**: Tailwind CSS, Pretendard 폰트
-- **Forms**: React Hook Form, Zod 검증
-- **Icons**: Lucide React
-- **Backend**: Firebase (Firestore, Authentication, Storage)
-- **Deployment**: Vercel
+### **프론트엔드**
+- **Next.js 15** (React 기반)
+- **TypeScript** - 타입 안전성
+- **Tailwind CSS** - 반응형 UI
+- **Lucide React** - 아이콘
 
-## 📁 프로젝트 구조
+### **백엔드 & 데이터베이스**
+- **Firebase Firestore** - 게시판, 인증, 메인 데이터
+- **Supabase** - 파일 업로드, 이미지 저장
+- **MailerSend** - 이메일 자동발송
 
-```
-src/
-├── app/                    # Next.js App Router 페이지
-│   ├── page.tsx           # 홈페이지 (풀스크린 히어로)
-│   ├── job-seekers/       # 학생 구직 페이지
-│   ├── job-postings/      # 구인 게시판
-│   ├── references/        # 추천서 업로드 (선생님 전용)
-│   ├── events/            # 이벤트 & 교육
-│   ├── contact/           # 문의하기
-│   ├── layout.tsx         # 루트 레이아웃
-│   └── globals.css        # 전역 스타일
-├── components/            # 재사용 가능한 컴포넌트
-│   ├── Navigation.tsx     # 네비게이션 바
-│   └── Footer.tsx         # 푸터
-├── lib/                   # 유틸리티 및 설정
-│   ├── firebase.ts        # Firebase 설정
-│   └── utils.ts           # 유틸리티 함수
-├── types/                 # TypeScript 타입 정의
-│   └── index.ts
-docs/                      # 프로젝트 문서
-├── 클라이언트요구사항.txt
-├── 클라이언트정보.txt
-├── 홈페이지만들때참고.txt
-└── 환경변수값모음.txt
-```
+### **배포 & 호스팅**
+- **Vercel** - 웹사이트 호스팅
+- **GitHub** - 소스 코드 관리
+- **도메인**: Wix 구매 → Vercel 연결 준비
 
-## 🚀 빠른 시작
+## 📋 주요 기능
 
-### 1. 저장소 클론
+### **👥 사용자 기능**
+- 회원가입/로그인 (Firebase Auth)
+- 구직 신청서 제출
+- 이력서 파일 업로드 (Supabase Storage)
+- 커뮤니티 게시판 이용
+- 이벤트 참여 신청
+- 봉사활동 지원
+- 추천서 요청
 
+### **🏢 기업 기능**
+- 구인공고 등록
+- 지원자 관리
+- 연락처 관리
+
+### **👨‍💼 관리자 기능**
+- 전체 데이터 관리
+- 승인/거부 처리
+- 통계 및 분석
+- 파일 관리
+- 사용자 관리
+
+### **📧 자동화 시스템**
+- 문의 폼 자동 이메일 발송
+- 지원/승인 알림
+- 관리자 통지
+
+## 🔧 환경 설정
+
+### **필수 환경변수 (.env.local)**
 ```bash
-git clone https://github.com/your-username/canada-student-job-platform.git
-cd canada-student-job-platform
-```
-
-### 2. 종속성 설치
-
-```bash
-npm install
-```
-
-### 3. 환경 변수 설정
-
-`.env.local` 파일을 생성하고 다음 값들을 설정하세요:
-
-```env
 # Firebase 설정
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
 
-# 사이트 정보
-SITE_NAME=캐나다 학생 일자리 플랫폼
-CONTACT_EMAIL=nbhighschooljobs@gmail.com
-CONTACT_PHONE=506-429-6148
-CONTACT_ADDRESS=122 Brianna Dr Fredericton NB COA 1N0
-CONTACT_PERSON=Matthew Jeon
+# Supabase 설정
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# MailerSend 설정
+MAILERSEND_API_TOKEN=
+MAILERSEND_FROM_EMAIL=
+MAILERSEND_FROM_NAME=
+
+# 연락처 정보
+ADMIN_EMAIL=
+NEXT_PUBLIC_CONTACT_EMAIL=
+NEXT_PUBLIC_CONTACT_PHONE=
+NEXT_PUBLIC_CONTACT_ADDRESS=
 ```
 
-### 4. 개발 서버 실행
+### **Vercel 배포 환경변수**
+위 모든 환경변수가 Vercel Dashboard에 설정되어 있습니다.
+
+## 📱 반응형 지원
+
+- **데스크톱**: 1024px 이상
+- **태블릿**: 768px - 1023px  
+- **모바일**: 767px 이하
+
+모든 페이지가 완전 반응형으로 구현되어 있습니다.
+
+## 🗄️ 데이터베이스 구조
+
+### **Firebase Collections**
+- `jobSeekers` - 구직자 신청
+- `jobPostings` - 구인공고
+- `events` - 이벤트 정보
+- `communityPosts` - 커뮤니티 게시글
+- `volunteerPostings` - 봉사활동
+- `references` - 추천서
+
+### **Supabase Tables**
+- 파일 업로드 메타데이터
+- 이미지 관리 정보
+
+## 🚀 배포 프로세스
+
+1. **코드 변경** → GitHub push
+2. **자동 배포** → Vercel 자동 감지
+3. **빌드 완료** → 사이트 업데이트
+
+## 👨‍💻 개발 환경 실행
 
 ```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
 npm run dev
-```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
-
-## 🎨 디자인 특징
-
-- 🎓 **청소년 친화적** 디자인
-- 🔵 **파랑/하늘색** 계열 메인 컬러
-- 🧭 **직관적인 메뉴** 구조
-- 📱 **모바일 반응형** 디자인
-- 🏔️ **풀스크린 히어로** 섹션
-- 🇰🇷 **한국어 폰트** 최적화 (Pretendard)
-- 🍁 **캐나다 테마** 요소
-
-## 📱 주요 화면
-
-### 🏠 홈페이지
-- 풀스크린 히어로 섹션
-- 무료 오픈소스 배지
-- 애니메이션 효과
-- 캐나다 플래그 이모지
-- 통계 및 CTA 버튼
-
-### 👨‍🎓 학생 구직 페이지
-- 단계별 폼 구성
-- 파일 업로드 기능
-- 실시간 유효성 검사
-- 성공 확인 페이지
-
-### 🏢 구인 게시판
-- 카드 기반 레이아웃
-- 고급 검색 필터
-- 모달 상세 보기
-- 반응형 그리드
-
-## 🤝 기여하기
-
-이 프로젝트는 오픈소스이며 모든 기여를 환영합니다!
-
-### 기여 방법
-1. 이 저장소를 Fork 하세요
-2. 새로운 기능 브랜치를 만드세요 (`git checkout -b feature/amazing-feature`)
-3. 변경사항을 커밋하세요 (`git commit -m 'Add some amazing feature'`)
-4. 브랜치에 Push 하세요 (`git push origin feature/amazing-feature`)
-5. Pull Request를 열어주세요
-
-### 기여 가이드라인
-- 코드 스타일: Prettier + ESLint 설정 준수
-- 커밋 메시지: [Conventional Commits](https://www.conventionalcommits.org/) 형식
-- 테스트: 새로운 기능에 대한 테스트 코드 작성
-- 문서화: README 및 코드 주석 업데이트
-
-## 🌍 다국어 지원
-
-- 🇰🇷 **현재**: 한국어 (개발 단계)
-- 🇨🇦 **계획**: 영어 (배포 전 전환 예정)
-
-## 🚀 배포
-
-### Vercel 배포
-```bash
+# 빌드 테스트
 npm run build
-vercel --prod
+
+# 프로덕션 실행
+npm start
 ```
 
-### Firebase 설정
-1. Firebase 프로젝트 생성
-2. Authentication, Firestore, Storage 활성화
-3. 환경변수 설정
-4. 보안 규칙 구성
+## 🧹 데이터 정리 스크립트
+
+프로덕션 배포를 위해 모든 테스트 데이터가 제거되었습니다.
+
+추가 정리가 필요한 경우:
+```bash
+npx tsx scripts/cleanup-test-data.ts
+```
+
+## 🔗 도메인 연결 가이드
+
+Wix에서 구매한 도메인을 Vercel에 연결하려면:
+
+1. **Vercel Dashboard** → Domain 설정
+2. **Wix DNS 설정** → A/CNAME 레코드 변경
+3. **DNS 전파** 대기 (최대 48시간)
+
+자세한 가이드는 별도 문서에서 제공됩니다.
+
+## 📞 지원 및 문의
+
+- **이메일**: nbhighschooljobs@gmail.com
+- **전화**: (506) 429-6148
+- **주소**: 122 Brianna Dr, Fredericton NB COA 1N0
 
 ## 📄 라이선스
 
-이 프로젝트는 [MIT 라이선스](LICENSE)로 배포됩니다.
-
-## 🙏 후원 및 지원
-
-이 프로젝트가 도움이 되었다면:
-- ⭐ GitHub Star를 눌러주세요
-- 🐛 버그 리포트나 기능 제안을 해주세요
-- 🤝 프로젝트에 기여해주세요
-- 💬 다른 사람들에게 공유해주세요
-
-## 📞 연락처
-
-- **이메일**: nbhighschooljobs@gmail.com
-- **전화**: 506-429-6148
-- **주소**: 122 Brianna Dr, Fredericton NB COA 1N0, Canada
-- **프로젝트 관리자**: Matthew Jeon
+이 프로젝트는 클라이언트 전용 맞춤 개발 프로젝트입니다.
 
 ---
 
-<p align="center">
-  <strong>🍁 캐나다 학생들의 더 나은 미래를 위한 무료 오픈소스 플랫폼 🍁</strong>
-</p>
+**🎉 프로덕션 배포 완료 - 클라이언트 납품 준비 완료**
 
-<p align="center">
-  Made with ❤️ in New Brunswick, Canada
-</p>
+> 모든 기능이 정상 작동하며, 깨끗한 상태로 클라이언트에게 인계할 수 있습니다.
+> 도메인 연결만 완료하면 서비스 오픈이 가능합니다.
