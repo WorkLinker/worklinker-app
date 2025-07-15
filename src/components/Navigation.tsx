@@ -221,12 +221,13 @@ export default function Navigation() {
                   >
                     {/* 프로필 이미지 또는 기본 아이콘 */}
                     {profileImage ? (
-                      <div className="w-5 h-5 rounded-full overflow-hidden bg-white">
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-white border border-gray-200">
                         <Image 
                           src={profileImage} 
                           alt="프로필" 
+                          width={24}
+                          height={24}
                           className="w-full h-full object-cover"
-                          fill
                         />
                       </div>
                     ) : (
@@ -291,16 +292,7 @@ export default function Navigation() {
                     <LogIn size={20} />
                     <span>로그인</span>
                   </button>
-                  <button 
-                    onClick={() => {
-                      setIsSignUp(true);
-                      setShowAuthModal(true);
-                    }}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 bg-white text-sky-600 hover:bg-gray-100 text-lg font-semibold"
-                  >
-                    <User size={20} />
-                    <span>회원가입</span>
-                  </button>
+
                 </div>
               )}
             </div>
@@ -472,17 +464,7 @@ export default function Navigation() {
                       <LogIn size={20} />
                       <span>로그인</span>
                     </button>
-                    <button 
-                      onClick={() => {
-                        setIsOpen(false);
-                        setIsSignUp(true);
-                        setShowAuthModal(true);
-                      }}
-                      className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 bg-white text-sky-600 hover:bg-gray-100 text-base font-semibold w-full"
-                    >
-                      <User size={20} />
-                      <span>회원가입</span>
-                    </button>
+
                   </div>
                 )}
               </div>

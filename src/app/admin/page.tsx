@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import EmailTest from '@/components/EmailTest';
+
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
 import { jobSeekerService, eventService, contentService, logService, volunteerService, designService } from '@/lib/firebase-services';
@@ -2760,48 +2760,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* 이메일 시스템 테스트 */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center mb-6">
-                <Mail size={24} className="text-green-600 mr-3" />
-                <h3 className="text-xl font-semibold text-gray-900">📧 이메일 시스템 테스트</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <EmailTest />
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3">설정 확인사항</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span>MailerSend API 키 설정</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span>발신자 이메일 인증</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span>이메일 템플릿 구성</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span>로그 기록 시스템</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xs text-blue-800">
-                      <strong>환경변수 설정:</strong><br/>
-                      MailerSend API 키와 발신자 이메일을 .env.local 파일에 설정하세요.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
 
           </div>

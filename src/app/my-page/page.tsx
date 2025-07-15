@@ -223,8 +223,9 @@ export default function MyPage() {
                     <Image 
                       src={profileImage} 
                       alt="프로필 이미지" 
+                      width={96}
+                      height={96}
                       className="w-full h-full object-cover"
-                      fill
                     />
                   ) : (
                     <User size={48} className="text-white" />

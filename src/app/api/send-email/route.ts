@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 import { generateContactEmailHTML, generateJobApplicationEmailHTML, generateJobPostingNotificationHTML } from '@/lib/email-service';
 
-// 환경변수
-const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY || '';
+// 환경변수  
+const MAILERSEND_API_KEY = process.env.MAILERSEND_API_TOKEN || process.env.MAILERSEND_API_KEY || '';
 const FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL || 'nbhighschooljobs@gmail.com';
 const FROM_NAME = process.env.MAILERSEND_FROM_NAME || 'NB High School Jobs Platform';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nbhighschooljobs@gmail.com';
@@ -17,9 +17,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // 환경변수 디버깅 (보안상 일부만 표시)
+    console.log('🔍 환경변수 체크:');
+    console.log('- API_KEY 존재:', !!MAILERSEND_API_KEY);
+    console.log('- API_KEY 길이:', MAILERSEND_API_KEY?.length || 0);
+    console.log('- FROM_EMAIL:', FROM_EMAIL);
+    console.log('- FROM_NAME:', FROM_NAME);
+    console.log('- ADMIN_EMAIL:', ADMIN_EMAIL);
+
     // API 키 검증
     if (!MAILERSEND_API_KEY) {
-      console.error('MailerSend API 키가 설정되지 않았습니다.');
+      console.error('❌ MailerSend API 키가 설정되지 않았습니다.');
       return NextResponse.json(
         { error: 'MailerSend API 키가 설정되지 않았습니다.' },
         { status: 500 }
@@ -64,10 +72,13 @@ export async function POST(request: NextRequest) {
     }
     // 새로운 직접 방식 (to, subject, text/html이 직접 제공되는 경우)
     else if (body.to && body.subject && (body.text || body.html)) {
-      to = body.to;
-      subject = body.subject;
+      // ⚠️ Trial 계정 제한: 모든 이메일을 관리자 이메일로 전송
+      to = ADMIN_EMAIL;
+      subject = `[원래받을사람: ${body.to}] ${body.subject}`;
       text = body.text || '';
       html = body.html || body.text;
+      
+      console.log(`🔄 Trial 제한으로 인해 ${body.to} → ${ADMIN_EMAIL}로 리다이렉트`);
     }
     // 필수 필드 누락
     else {
@@ -123,6 +134,22 @@ export async function POST(request: NextRequest) {
       };
       
       console.error('MailerSend 에러:', mailerSendError.response?.data);
+      
+      // Trial 계정 제한 에러 특별 처리
+      const errorData = JSON.stringify(mailerSendError.response?.data || '');
+      if (errorData.includes('Trial accounts') || errorData.includes('MS42225')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '⚠️ MailerSend Trial 계정 제한',
+            message: '인증된 이메일 주소로만 전송 가능합니다.',
+            details: '해결방법: MailerSend에서 도메인 또는 이메일 주소를 인증해주세요.',
+            helpUrl: 'https://app.mailersend.com/domains'
+          },
+          { status: 422 }
+        );
+      }
+      
       return NextResponse.json(
         { 
           error: '이메일 전송 중 오류가 발생했습니다.',

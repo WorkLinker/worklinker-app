@@ -9,9 +9,9 @@ export async function testFirebaseConnection() {
     // 테스트 문서 생성
     const testDoc = doc(db, 'test', 'connection-test');
     const testData = {
-      message: 'Firebase 연결 성공!',
+      message: 'Firebase connection successful!',
       timestamp: new Date(),
-      project: 'JobSprout - 캐나다 학생 플랫폼'
+      project: 'WorkLinker - Canada Student Platform'
     };
     
     // 문서 저장
