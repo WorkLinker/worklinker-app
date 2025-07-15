@@ -1,5 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db, storage } from './firebase';
+// import { supabase } from './supabase';
+
+// 안전한 응답 생성 헬퍼
+// const createSafeResponse = (message: string = 'Firebase not available') => ({
+//   success: false,
+//   error: message,
+//   data: null
+// });
+
+// Firebase 서비스 가용성 확인
+const isFirebaseAvailable = () => {
+  return !!db && !!storage;
+};
 import { 
   collection, 
   addDoc, 
@@ -18,6 +31,11 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 export const jobSeekerService = {
   // 구직 신청 제출
   async submitApplication(data: any, resumeFile?: File) {
+    if (!db) {
+      console.warn('Firebase not configured - using placeholder response');
+      return { success: false, error: 'Firebase not available. Please use Supabase services.' };
+    }
+    
     try {
       let resumeUrl = '';
       
@@ -54,6 +72,11 @@ export const jobSeekerService = {
 
   // 모든 구직자 목록 조회 (승인된 것만)
   async getApprovedJobSeekers() {
+    if (!isFirebaseAvailable()) {
+      console.warn('Firebase not available - returning empty job seekers list');
+      return [];
+    }
+    
     try {
       // 복합 인덱스 오류 방지를 위해 where와 orderBy 분리
       const q = query(
@@ -375,6 +398,11 @@ export const jobPostingService = {
 
   // 승인된 채용 공고 목록 조회
   async getApprovedJobPostings() {
+    if (!isFirebaseAvailable()) {
+      console.warn('Firebase not available - returning empty job postings list');
+      return [];
+    }
+    
     try {
       // 개발 환경에서는 모든 구인공고 표시 (승인 여부 상관없이)
       const q = query(
@@ -616,6 +644,11 @@ export const eventService = {
 
   // 실시간 이벤트 목록 조회 (참가자 수 포함)
   async getAllEventsWithParticipants() {
+    if (!isFirebaseAvailable()) {
+      console.warn('Firebase not available - returning empty events list');
+      return [];
+    }
+    
     try {
       // 이벤트 목록 조회 (인덱스 오류 방지를 위해 createdAt으로 정렬)
       const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
@@ -697,7 +730,11 @@ export const eventService = {
 
   // 관리자 권한 확인
   isAdmin(email: string): boolean {
-    const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca'];
+    if (!isFirebaseAvailable()) {
+      // Firebase 없을 때는 nbhighschooljobs@gmail.com만 관리자로 인정
+      return email === 'nbhighschooljobs@gmail.com';
+    }
+    const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca', 'nbhighschooljobs@gmail.com'];
     return adminEmails.includes(email);
   },
 

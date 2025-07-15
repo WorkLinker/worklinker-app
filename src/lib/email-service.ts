@@ -157,17 +157,34 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        type: 'contact_form',
-        data
+        to: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'nbhighschooljobs@gmail.com',
+        subject: `새로운 문의사항: ${data.name}님으로부터`,
+        html: generateContactEmailHTML(data),
+        text: `이름: ${data.name}\n이메일: ${data.email}\n전화번호: ${data.phone}\n\n문의내용:\n${data.message}`
       })
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ API 응답 오류:', response.status, errorText);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
-    return result;
+    
+    if (result.success) {
+      console.log('✅ 문의 이메일 전송 성공:', result);
+      return {
+        success: true,
+        message: '문의가 성공적으로 전송되었습니다. 24시간 내에 답변드리겠습니다.'
+      };
+    } else {
+      console.error('❌ 문의 이메일 전송 실패:', result);
+      return {
+        success: false,
+        message: result.message || '문의 전송 중 오류가 발생했습니다.'
+      };
+    }
   } catch (error) {
     console.error('❌ 문의 이메일 전송 오류:', error);
     return {

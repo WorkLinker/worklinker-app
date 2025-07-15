@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   Users, 
   CheckCircle, 
@@ -38,14 +39,18 @@ import {
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import EmailTest from '@/components/EmailTest';
+import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
 import { jobSeekerService, eventService, contentService, logService, volunteerService, designService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
-import { User as FirebaseUser, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+// import { User as SupabaseUser } from '@supabase/supabase-js';
+// import { supabaseAuthService } from '@/lib/supabase-auth-service';
+import { supabase } from '@/lib/supabase';
+import { User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor';
+type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management';
 
 // 비밀번호 변경 모달 컴포넌트
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -1129,6 +1134,7 @@ export default function AdminPage() {
     });
 
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   // 사이트 콘텐츠 로드
@@ -1198,7 +1204,7 @@ export default function AdminPage() {
     }
   };
 
-  // 이미지 업로드 처리
+  // 이미지 업로드 처리 (Supabase Storage 사용)
   const handleImageUpload = async (category: string, imageName: string) => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -1217,12 +1223,26 @@ export default function AdminPage() {
       try {
         setIsImageUploading(`${category}-${imageName}`);
         
-        // Firebase Storage에 업로드
-        const result = await designService.uploadImage(file, category, imageName);
+        // Supabase Storage에 업로드
+        const timestamp = Date.now();
+        const fileExtension = file.name.split('.').pop();
+        const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
         
-        if (result.success) {
-          // 활성 이미지 URL 업데이트
-          await designService.updateActiveImage(category, imageName, result.url);
+        // Supabase 업로드
+        const { error } = await supabase.storage
+          .from('profile-images')
+          .upload(`design-assets/${fileName}`, file);
+        
+        if (error) throw error;
+        
+        // 공개 URL 얻기
+        const { data: urlData } = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(`design-assets/${fileName}`);
+        
+        if (urlData?.publicUrl) {
+          // Firebase Firestore에 이미지 정보 저장 (기존 방식 유지)
+          await designService.updateActiveImage(category, imageName, urlData.publicUrl);
           
           // 디자인 설정 다시 로드
           await loadDesignSettings();
@@ -1519,6 +1539,12 @@ export default function AdminPage() {
       name: '관리자 설정',
       icon: Settings,
       description: '관리자 계정 및 시스템 설정'
+    },
+    {
+      id: 'file-management' as TabType,
+      name: '파일 관리',
+      icon: Upload,
+      description: '파일 업로드 및 다운로드 관리'
     }
   ];
 
@@ -2200,10 +2226,11 @@ export default function AdminPage() {
                         </div>
                       </div>
                       <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-                        <img 
+                        <Image 
                           src={`/images/메인홈${slideNum}.${slideNum === 2 ? 'jpg' : 'png'}`}
                           alt={`메인 슬라이드 ${slideNum}`}
                           className="w-full h-full object-cover"
+                          fill
                         />
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <Upload size={20} className="text-white" />
@@ -2252,10 +2279,11 @@ export default function AdminPage() {
                         </div>
                       </div>
                       <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-                        <img 
+                        <Image 
                           src={`/images/${card.file}`}
                           alt={card.name}
                           className="w-full h-full object-cover"
+                          fill
                         />
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <Upload size={20} className="text-white" />
@@ -2423,11 +2451,33 @@ export default function AdminPage() {
                     onChange={(e) => handleFontChange('bodyFont', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="inter">Inter</option>
-                    <option value="noto-sans-kr">Noto Sans KR</option>
-                    <option value="pretendard">Pretendard</option>
-                    <option value="malgun-gothic">Malgun Gothic</option>
-                    <option value="roboto">Roboto</option>
+                    <optgroup label="🇰🇷 한국어 최적화">
+                      <option value="pretendard">Pretendard (기본 추천)</option>
+                      <option value="noto-sans-kr">Noto Sans KR</option>
+                      <option value="nanum-gothic">나눔고딕</option>
+                      <option value="spoqa-han-sans">스포카 한 산스</option>
+                    </optgroup>
+                    <optgroup label="📝 깔끔한 Sans-serif">
+                      <option value="inter">Inter</option>
+                      <option value="roboto">Roboto</option>
+                      <option value="open-sans">Open Sans</option>
+                      <option value="lato">Lato</option>
+                      <option value="source-sans-pro">Source Sans Pro</option>
+                      <option value="nunito">Nunito</option>
+                      <option value="poppins">Poppins</option>
+                      <option value="work-sans">Work Sans</option>
+                    </optgroup>
+                    <optgroup label="📖 읽기 좋은 Serif">
+                      <option value="noto-serif">Noto Serif</option>
+                      <option value="merriweather">Merriweather</option>
+                      <option value="source-serif-pro">Source Serif Pro</option>
+                      <option value="crimson-text">Crimson Text</option>
+                    </optgroup>
+                    <optgroup label="💻 개발자 스타일">
+                      <option value="fira-sans">Fira Sans</option>
+                      <option value="ubuntu">Ubuntu</option>
+                      <option value="system-ui">System UI</option>
+                    </optgroup>
                   </select>
                   <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                     <p className="text-gray-800" style={{ fontFamily: currentFonts.bodyFont, fontSize: `${currentFonts.bodySize}px`, lineHeight: currentFonts.lineHeight }}>
@@ -2445,11 +2495,41 @@ export default function AdminPage() {
                     onChange={(e) => handleFontChange('headingFont', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="inter">Inter</option>
-                    <option value="noto-sans-kr">Noto Sans KR</option>
-                    <option value="pretendard">Pretendard</option>
-                    <option value="playfair-display">Playfair Display</option>
-                    <option value="montserrat">Montserrat</option>
+                    <optgroup label="🇰🇷 한국어 최적화">
+                      <option value="pretendard">Pretendard (기본 추천)</option>
+                      <option value="noto-sans-kr">Noto Sans KR</option>
+                      <option value="nanum-gothic">나눔고딕</option>
+                      <option value="spoqa-han-sans">스포카 한 산스</option>
+                    </optgroup>
+                    <optgroup label="💪 임팩트 있는 Display">
+                      <option value="montserrat">Montserrat</option>
+                      <option value="oswald">Oswald</option>
+                      <option value="raleway">Raleway</option>
+                      <option value="bebas-neue">Bebas Neue</option>
+                      <option value="anton">Anton</option>
+                      <option value="fredoka-one">Fredoka One</option>
+                    </optgroup>
+                    <optgroup label="🎨 우아한 Serif">
+                      <option value="playfair-display">Playfair Display</option>
+                      <option value="merriweather">Merriweather</option>
+                      <option value="cormorant-garamond">Cormorant Garamond</option>
+                      <option value="crimson-text">Crimson Text</option>
+                      <option value="libre-baskerville">Libre Baskerville</option>
+                    </optgroup>
+                    <optgroup label="📝 깔끔한 Sans-serif">
+                      <option value="inter">Inter</option>
+                      <option value="roboto">Roboto</option>
+                      <option value="open-sans">Open Sans</option>
+                      <option value="lato">Lato</option>
+                      <option value="poppins">Poppins</option>
+                      <option value="nunito">Nunito</option>
+                    </optgroup>
+                    <optgroup label="✨ 독특한 스타일">
+                      <option value="dancing-script">Dancing Script</option>
+                      <option value="pacifico">Pacifico</option>
+                      <option value="comfortaa">Comfortaa</option>
+                      <option value="lobster">Lobster</option>
+                    </optgroup>
                   </select>
                   <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                     <h3 className="text-xl font-bold text-gray-800" style={{ fontFamily: currentFonts.headingFont, fontSize: `${currentFonts.headingSize}px` }}>
@@ -2697,7 +2777,7 @@ export default function AdminPage() {
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span>SendGrid API 키 설정</span>
+                      <span>MailerSend API 키 설정</span>
                     </div>
                     <div className="flex items-center">
                       <CheckCircle size={16} className="text-green-600 mr-2" />
@@ -2716,7 +2796,7 @@ export default function AdminPage() {
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                     <p className="text-xs text-blue-800">
                       <strong>환경변수 설정:</strong><br/>
-                      SendGrid API 키와 발신자 이메일을 .env.local 파일에 설정하세요.
+                      MailerSend API 키와 발신자 이메일을 .env.local 파일에 설정하세요.
                     </p>
                   </div>
                 </div>
@@ -2726,6 +2806,9 @@ export default function AdminPage() {
 
           </div>
         );
+
+      case 'file-management':
+        return <FileManager />;
 
       default:
         return null;

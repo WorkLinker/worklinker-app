@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import DynamicStyleLoader from "@/components/DynamicStyleLoader";
 
 export const metadata: Metadata = {
   title: "캐나다 학생 플랫폼",
@@ -10,11 +11,20 @@ export const metadata: Metadata = {
   publisher: "전문 서비스 팀",
   robots: "index, follow",
   
+  // 브라우저 탭에서 명확하게 보이는 파비콘 설정
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/web-app-manifest-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
     shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
+    ],
   },
+  manifest: '/site.webmanifest',
   
   openGraph: {
     type: "website",
@@ -38,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="min-h-screen bg-gray-50 dynamic-font-body">
+        <DynamicStyleLoader />
         {children}
       </body>
     </html>

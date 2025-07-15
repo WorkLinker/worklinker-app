@@ -1,4 +1,5 @@
 import { auth } from './firebase';
+// import { supabaseAuthService } from './supabase-auth-service';
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -19,6 +20,11 @@ import {
 
 // 로그인 상태 영구 유지 설정
 const initializePersistence = async () => {
+  if (!auth) {
+    console.log('Firebase not configured, using Supabase auth');
+    return;
+  }
+  
   try {
     await setPersistence(auth, browserLocalPersistence);
     console.log('✅ Firebase Auth persistence 설정 완료 - 로그인 상태 유지');
@@ -177,6 +183,10 @@ export const authService = {
 
   // 현재 사용자 가져오기
   getCurrentUser(): User | null {
+    if (!auth) {
+      console.log('Using Supabase auth instead of Firebase');
+      return null;
+    }
     return auth.currentUser;
   },
 

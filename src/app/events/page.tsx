@@ -7,7 +7,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { eventService } from '@/lib/firebase-services';
 import { authService } from '@/lib/auth-service';
-import { User as FirebaseUser } from 'firebase/auth';
+// import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function EventsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,7 +18,8 @@ export default function EventsPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any | null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [loading, setLoading] = useState(true);
 

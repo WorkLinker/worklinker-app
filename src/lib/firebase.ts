@@ -12,12 +12,29 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Firebase 초기화
-const app = initializeApp(firebaseConfig);
+// Firebase 초기화 (환경변수가 있을 때만)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let app: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let auth: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let db: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let storage: any = null;
 
-// Firebase 서비스 인스턴스
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    console.log('Firebase initialized successfully');
+  } catch (error) {
+    console.warn('Firebase initialization failed:', error);
+  }
+} else {
+  console.log('Firebase not configured - using Supabase instead');
+}
 
+export { auth, db, storage };
 export default app; 

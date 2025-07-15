@@ -227,7 +227,7 @@ export default function StudentProfilesPage() {
     window.open(mailtoLink);
   };
 
-  // 이력서 다운로드
+  // 이력서 다운로드 (강제 다운로드 방식)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDownloadResume = async (student: any) => {
     try {
@@ -236,22 +236,44 @@ export default function StudentProfilesPage() {
         return;
       }
 
-      // Firebase Storage URL인 경우 직접 다운로드
-      if (student.resumeUrl.includes('firebase') || student.resumeUrl.startsWith('http')) {
-        const link = document.createElement('a');
-        link.href = student.resumeUrl;
-        link.download = student.resumeFileName || `${student.name}_이력서.pdf`;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // 파일명만 있는 경우 (업로드 대기중)
-        alert(`${student.resumeFileName} 파일이 아직 업로드 처리 중입니다. 나중에 다시 시도해주세요.`);
+      // 파일명만 있는 경우 (업로드 대기중)
+      if (!student.resumeUrl || !student.resumeUrl.startsWith('http')) {
+        alert(`${student.resumeFileName || '파일이'} 아직 업로드 처리 중입니다. 나중에 다시 시도해주세요.`);
+        return;
       }
+
+      console.log('📥 이력서 다운로드 시작:', student.resumeFileName);
+
+      // Fetch로 파일 데이터 가져오기 (강제 다운로드 방식)
+      const response = await fetch(student.resumeUrl);
+      if (!response.ok) {
+        throw new Error('파일 데이터 가져오기 실패');
+      }
+
+      // Blob으로 변환
+      const blob = await response.blob();
+      
+      // 파일명 설정 (기본값 포함)
+      const fileName = student.resumeFileName || `${student.name}_이력서.pdf`;
+      
+      // 강제 다운로드 처리
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 메모리 정리
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ 이력서 다운로드 완료:', fileName);
     } catch (error) {
-      console.error('이력서 다운로드 오류:', error);
-      alert('이력서 다운로드 중 오류가 발생했습니다.');
+      console.error('❌ 이력서 다운로드 오류:', error);
+      alert('이력서 다운로드 중 오류가 발생했습니다. 네트워크 상태를 확인해주세요.');
     }
   };
 

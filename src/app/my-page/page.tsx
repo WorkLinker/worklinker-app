@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   User, 
   Activity, 
@@ -219,10 +220,11 @@ export default function MyPage() {
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center relative">
                   {profileImage ? (
-                    <img 
+                    <Image 
                       src={profileImage} 
                       alt="프로필 이미지" 
                       className="w-full h-full object-cover"
+                      fill
                     />
                   ) : (
                     <User size={48} className="text-white" />

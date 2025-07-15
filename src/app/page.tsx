@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Users, Briefcase, GraduationCap, BookOpen, TrendingUp, Trophy, Target, Sparkles, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Users, Briefcase, GraduationCap, TrendingUp, Trophy, Sparkles, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { contentService, designService } from '@/lib/firebase-services';
@@ -34,13 +34,47 @@ export default function Home() {
     // 폰트 설정 적용
     if (settings.fonts) {
       const fontFamilies = {
-        'inter': 'Inter, sans-serif',
-        'noto-sans-kr': '"Noto Sans KR", sans-serif',
+        // 🇰🇷 한국어 최적화
         'pretendard': 'Pretendard, sans-serif',
-        'malgun-gothic': '"Malgun Gothic", sans-serif',
+        'noto-sans-kr': '"Noto Sans KR", sans-serif',
+        'nanum-gothic': '"Nanum Gothic", sans-serif',
+        'spoqa-han-sans': '"Spoqa Han Sans", sans-serif',
+        
+        // 📝 깔끔한 Sans-serif
+        'inter': 'Inter, sans-serif',
         'roboto': 'Roboto, sans-serif',
+        'open-sans': '"Open Sans", sans-serif',
+        'lato': 'Lato, sans-serif',
+        'source-sans-pro': '"Source Sans Pro", sans-serif',
+        'nunito': 'Nunito, sans-serif',
+        'poppins': 'Poppins, sans-serif',
+        'work-sans': '"Work Sans", sans-serif',
+        'fira-sans': '"Fira Sans", sans-serif',
+        'ubuntu': 'Ubuntu, sans-serif',
+        'system-ui': 'system-ui, sans-serif',
+        
+        // 💪 임팩트 있는 Display
+        'montserrat': 'Montserrat, sans-serif',
+        'oswald': 'Oswald, sans-serif',
+        'raleway': 'Raleway, sans-serif',
+        'bebas-neue': '"Bebas Neue", sans-serif',
+        'anton': 'Anton, sans-serif',
+        'fredoka-one': '"Fredoka One", sans-serif',
+        
+        // 🎨 우아한 Serif
         'playfair-display': '"Playfair Display", serif',
-        'montserrat': 'Montserrat, sans-serif'
+        'merriweather': 'Merriweather, serif',
+        'cormorant-garamond': '"Cormorant Garamond", serif',
+        'crimson-text': '"Crimson Text", serif',
+        'libre-baskerville': '"Libre Baskerville", serif',
+        'source-serif-pro': '"Source Serif Pro", serif',
+        'noto-serif': '"Noto Serif KR", serif',
+        
+        // ✨ 독특한 스타일
+        'dancing-script': '"Dancing Script", cursive',
+        'pacifico': 'Pacifico, cursive',
+        'comfortaa': 'Comfortaa, cursive',
+        'lobster': 'Lobster, cursive'
       };
       
       root.style.setProperty('--font-body', fontFamilies[settings.fonts.bodyFont as keyof typeof fontFamilies] || fontFamilies['pretendard']);
@@ -135,8 +169,7 @@ export default function Home() {
 
   // 현재 사용할 슬라이드 (디자인 설정 이미지 + Firestore 콘텐츠 or 기본값)
   const slides = siteContent?.heroSlides ? 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    siteContent.heroSlides.map((slide: any, index: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+    siteContent.heroSlides.map((slide: {title: string, subtitle: string}, index: number) => ({
       ...slide,
       image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || defaultSlides[index]?.image || '/images/메인홈1.png'
     })) : 
@@ -255,8 +288,7 @@ export default function Home() {
         
         {/* Slideshow Background */}
         <div className="absolute inset-0">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {slides.map((slide: any, index: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+          {slides.map((slide: {title: string, subtitle: string, image: string}, index: number) => (
             <div
               key={index}
               className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -366,19 +398,11 @@ export default function Home() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section id="features-section" className="py-32 bg-gradient-to-b dynamic-bg-background to-white relative">
+      <section id="features-section" className="py-32 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center dynamic-bg-background rounded-full px-6 py-2 mb-8">
-              <BookOpen size={20} className="mr-2 dynamic-text-primary" />
-              <span className="dynamic-text-primary font-semibold">통합 진로 플랫폼</span>
-            </div>
-            
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
               캐나다 학생들을 위한
-              <span className="block text-transparent bg-clip-text dynamic-gradient-primary mt-2">
-                원스톱 진로 솔루션
-              </span>
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는 
@@ -632,15 +656,8 @@ export default function Home() {
       <section className="py-32 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center dynamic-bg-background rounded-full px-6 py-2 mb-8">
-              <Target size={20} className="mr-2 dynamic-text-primary" />
-              <span className="dynamic-text-primary font-semibold">간단한 시작</span>
-            </div>
-            
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
-              <span className="text-transparent bg-clip-text dynamic-gradient-primary">
-                3단계면 충분합니다
-              </span>
+              간단한 3단계 프로세스
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto">
               복잡한 절차 없이 <span className="font-bold dynamic-text-primary">편리하고 똑똑한 시스템</span>

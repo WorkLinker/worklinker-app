@@ -1,0 +1,818 @@
+{
+  "metadata": {
+    "backupTimestamp": "2025-07-14T04:43:15.707Z",
+    "totalCollections": 13,
+    "totalDocuments": 31,
+    "collections": [
+      {
+        "name": "jobSeekers",
+        "documentCount": 6
+      },
+      {
+        "name": "jobPostings",
+        "documentCount": 11
+      },
+      {
+        "name": "jobApplications",
+        "documentCount": 0
+      },
+      {
+        "name": "references",
+        "documentCount": 0
+      },
+      {
+        "name": "events",
+        "documentCount": 7
+      },
+      {
+        "name": "eventRegistrations",
+        "documentCount": 2
+      },
+      {
+        "name": "posts",
+        "documentCount": 0
+      },
+      {
+        "name": "contacts",
+        "documentCount": 2
+      },
+      {
+        "name": "activityLogs",
+        "documentCount": 0
+      },
+      {
+        "name": "siteContent",
+        "documentCount": 3
+      },
+      {
+        "name": "designSettings",
+        "documentCount": 0
+      },
+      {
+        "name": "volunteerPostings",
+        "documentCount": 0
+      },
+      {
+        "name": "volunteerApplications",
+        "documentCount": 0
+      }
+    ]
+  },
+  "data": {
+    "jobSeekers": [
+      {
+        "id": "Edjkw7piyLIsi9owELV9",
+        "phone": "(506) 555-1004",
+        "name": "Michael Chen",
+        "approved": true,
+        "school": "Oromocto High School",
+        "updatedAt": "2025-07-11T18:14:16.344Z",
+        "email": "michael.chen@student.ca",
+        "skills": "자전거 수리 및 정비, 스포츠 용품 판매 경험, 중국어-영어 번역, 컴퓨터 하드웨어 조립, 수영 강사 보조",
+        "resumeFileName": "MichaelChen_Resume.pdf",
+        "availability": "part-time",
+        "resumeUrl": "테스트 이력서 (파일 업로드 대기중)",
+        "createdAt": "2025-07-11T18:14:16.344Z",
+        "approvedAt": "2025-07-11T18:14:16.344Z",
+        "grade": "10"
+      },
+      {
+        "id": "MyIlYyotYoamZRa8TslV",
+        "skills": "예술 및 공예 (도자기, 그림), 온라인 쇼핑몰 운영 경험, 사진 촬영 및 편집, 이벤트 기획, 봉사활동 리더십",
+        "resumeFileName": "SoyoungLee_Resume.pdf",
+        "createdAt": "2025-07-11T18:14:16.565Z",
+        "resumeUrl": "테스트 이력서 (파일 업로드 대기중)",
+        "school": "Rothesay Netherwood School",
+        "name": "이소영",
+        "availability": "volunteer",
+        "grade": "11",
+        "approved": true,
+        "email": "soyoung.lee@student.ca",
+        "updatedAt": "2025-07-11T18:14:16.565Z",
+        "phone": "(506) 555-1005",
+        "approvedAt": "2025-07-11T18:14:16.565Z"
+      },
+      {
+        "id": "RX8hSV2QzfqMlfcQ9g0d",
+        "resumeUrl": "파일명: resume_test_converted.pdf (업로드 대기중)",
+        "resumeFileName": "resume_test_converted.pdf",
+        "phone": "5061234578",
+        "availability": "full-time",
+        "email": "fffffffff@gmail.com",
+        "createdAt": "2025-07-14T03:05:20.082Z",
+        "agreement": true,
+        "approved": false,
+        "skills": "test",
+        "name": "ggggggggggggggg",
+        "grade": "10",
+        "school": "fffffffffffffffffffffffffe",
+        "updatedAt": "2025-07-14T03:05:20.082Z"
+      },
+      {
+        "id": "e2ALUHojnLVMXMi1F7wt",
+        "approved": true,
+        "updatedAt": "2025-07-11T18:14:15.660Z",
+        "resumeFileName": "MinsuKim_Resume.pdf",
+        "skills": "컴퓨터 프로그래밍 (Python, JavaScript), 웹사이트 제작, 그래픽 디자인 (Photoshop), 영어-한국어 번역, 고객 서비스",
+        "grade": "12",
+        "availability": "part-time",
+        "resumeUrl": "테스트 이력서 (파일 업로드 대기중)",
+        "email": "minsu.kim@student.ca",
+        "name": "김민수",
+        "createdAt": "2025-07-11T18:14:15.660Z",
+        "approvedAt": "2025-07-11T18:14:15.660Z",
+        "phone": "(506) 555-1001",
+        "school": "Fredericton High School"
+      },
+      {
+        "id": "nDXMQ4OM9JV9QzgfBIVA",
+        "name": "박지영",
+        "resumeFileName": "JiyoungPark_Resume.pdf",
+        "phone": "(506) 555-1003",
+        "school": "George Street Middle School",
+        "skills": "카페 근무 경험 1년 (Starbucks), 라떼아트, 캐시어 업무, 재고 관리, SNS 마케팅, 한국어-영어 통번역",
+        "grade": "12",
+        "resumeUrl": "테스트 이력서 (파일 업로드 대기중)",
+        "approved": true,
+        "updatedAt": "2025-07-11T18:14:16.105Z",
+        "availability": "part-time",
+        "email": "jiyoung.park@student.ca",
+        "createdAt": "2025-07-11T18:14:16.105Z",
+        "approvedAt": "2025-07-11T18:14:16.105Z"
+      },
+      {
+        "id": "rQT3xOAGU40Vjnj2Y0CO",
+        "grade": "11",
+        "createdAt": "2025-07-11T18:14:15.882Z",
+        "name": "Sarah Johnson",
+        "school": "Leo Hayes High School",
+        "email": "sarah.johnson@student.ca",
+        "skills": "베이비시터 경험 3년, 피아노 연주 (10년 경력), 수학 튜터링, 프랑스어 회화, 팀 스포츠 (배구, 농구)",
+        "resumeFileName": "SarahJohnson_Resume.pdf",
+        "approvedAt": "2025-07-11T18:14:15.882Z",
+        "updatedAt": "2025-07-11T18:14:15.882Z",
+        "resumeUrl": "테스트 이력서 (파일 업로드 대기중)",
+        "availability": "part-time",
+        "approved": true,
+        "phone": "(506) 555-1002"
+      }
+    ],
+    "jobPostings": [
+      {
+        "id": "4a0z9nUMYz4l3Kfc128R",
+        "contactEmail": "manager@dollarama-bathurst.ca",
+        "jobType": "part-time",
+        "applications": 0,
+        "createdAt": "2025-07-11T17:04:51.909Z",
+        "company": "Dollarama Bathurst",
+        "title": "Dollarama 매장 어시스턴트",
+        "salary": "시급 $15.20",
+        "location": "배서스트, NB",
+        "updatedAt": "2025-07-11T17:04:51.909Z",
+        "contactPhone": "(506) 555-0567",
+        "approved": false,
+        "views": 0,
+        "description": "인기 있는 할인점 Dollarama에서 매장 운영을 도와줄 학생 직원을 모집합니다. 상품 진열, 창고 정리, 고객 안내 등의 다양한 업무를 경험할 수 있습니다. 소매업의 기초를 배우고 싶은 학생들에게 추천하는 일자리입니다.",
+        "industry": "소매/판매",
+        "requirements": "고등학생, 기본적인 영어 회화 가능, 성실하고 꼼꼼한 성격, 팀워크를 중시하는 자세, 주말 근무 가능"
+      },
+      {
+        "id": "Gg9EeLBOhabAjPiviOqk",
+        "contactPhone": "55511113333",
+        "applications": 0,
+        "approved": false,
+        "salary": "155",
+        "agreement": true,
+        "location": "555555555555555555555",
+        "createdAt": "2025-07-11T14:28:56.556Z",
+        "views": 0,
+        "company": "111111111111111111",
+        "title": "FFFFFFFFFFF",
+        "requirements": "5555555555555555555555555555555555555555555555555555555",
+        "jobType": "volunteer",
+        "description": "5555555555555555555555555555555555555555555555555555555",
+        "updatedAt": "2025-07-11T14:28:56.556Z",
+        "contactEmail": "dfdfefe@gmail.com"
+      },
+      {
+        "id": "IDMMUIJNwH9PVXA1r75l",
+        "updatedAt": "2025-07-11T18:14:21.078Z",
+        "applications": 0,
+        "salary": "시급 $15.20",
+        "jobType": "part-time",
+        "industry": "소매/판매",
+        "description": "인기 있는 할인점 Dollarama에서 매장 운영을 도와줄 학생 직원을 모집합니다. 상품 진열, 창고 정리, 고객 안내 등의 다양한 업무를 경험할 수 있습니다. 소매업의 기초를 배우고 싶은 학생들에게 추천하는 일자리입니다.",
+        "views": 0,
+        "company": "Dollarama Bathurst",
+        "createdAt": "2025-07-11T18:14:21.078Z",
+        "contactEmail": "manager@dollarama-bathurst.ca",
+        "contactPhone": "(506) 555-0567",
+        "approved": false,
+        "location": "배서스트, NB",
+        "title": "Dollarama 매장 어시스턴트",
+        "requirements": "고등학생, 기본적인 영어 회화 가능, 성실하고 꼼꼼한 성격, 팀워크를 중시하는 자세, 주말 근무 가능"
+      },
+      {
+        "id": "IPDDWJLpCJTDHmGZkt4B",
+        "description": "피자헛에서 배달 업무를 도와줄 고등학생을 모집합니다. 주문 준비, 포장, 배달 동행 등의 업무를 담당합니다. 운전면허가 없어도 지원 가능하며, 숙련된 배달원과 함께 업무를 배우게 됩니다. 팁 수입도 기대할 수 있는 활동적인 일자리입니다.",
+        "requirements": "16세 이상, 체력이 좋은 자, 길 찾기를 잘하는 자, 시간 약속을 잘 지키는 성격, 자전거나 대중교통 이용 가능",
+        "contactEmail": "hiring@pizzahut-saintjohn.ca",
+        "approved": false,
+        "company": "Pizza Hut Saint John",
+        "title": "피자헛 배달 도우미",
+        "applications": 0,
+        "location": "세인트존, NB",
+        "jobType": "part-time",
+        "salary": "시급 $15.00 + 팁",
+        "contactPhone": "(506) 555-0456",
+        "createdAt": "2025-07-11T17:04:51.681Z",
+        "views": 1,
+        "industry": "음식/요식업",
+        "updatedAt": "2025-07-11T18:13:41.672Z"
+      },
+      {
+        "id": "Ldq6QLwXRFpq9FdrkDAn",
+        "industry": "교육/과외",
+        "updatedAt": "2025-07-11T18:14:20.655Z",
+        "title": "영어 과외 튜터 (고등학생 대상)",
+        "jobType": "part-time",
+        "company": "Fredericton Learning Center",
+        "requirements": "고등학교 3학년 이상, 영어 성적 A 이상, 인내심과 책임감, 의사소통 능력 우수, 중학생과 잘 어울릴 수 있는 성격",
+        "views": 0,
+        "salary": "시급 $18.00 - $22.00",
+        "contactPhone": "(506) 555-0345",
+        "location": "프레데릭턴, NB",
+        "description": "중학생들을 위한 영어 과외 튜터를 모집합니다. 독해, 작문, 문법 등 전반적인 영어 실력 향상을 도와주는 역할입니다. 교육에 관심이 있고 영어 실력이 우수한 고등학생들에게 좋은 경험이 될 것입니다. 주 2-3회, 1회 2시간 정도의 유연한 스케줄입니다.",
+        "contactEmail": "info@frederictonlearning.ca",
+        "approved": false,
+        "applications": 0,
+        "createdAt": "2025-07-11T18:14:20.655Z"
+      },
+      {
+        "id": "M9yqC3I5CqWvV2g1IZ2J",
+        "company": "Pizza Hut Saint John",
+        "salary": "시급 $15.00 + 팁",
+        "industry": "음식/요식업",
+        "contactPhone": "(506) 555-0456",
+        "title": "피자헛 배달 도우미",
+        "approved": false,
+        "createdAt": "2025-07-11T18:14:20.869Z",
+        "description": "피자헛에서 배달 업무를 도와줄 고등학생을 모집합니다. 주문 준비, 포장, 배달 동행 등의 업무를 담당합니다. 운전면허가 없어도 지원 가능하며, 숙련된 배달원과 함께 업무를 배우게 됩니다. 팁 수입도 기대할 수 있는 활동적인 일자리입니다.",
+        "applications": 0,
+        "jobType": "part-time",
+        "contactEmail": "hiring@pizzahut-saintjohn.ca",
+        "views": 0,
+        "requirements": "16세 이상, 체력이 좋은 자, 길 찾기를 잘하는 자, 시간 약속을 잘 지키는 성격, 자전거나 대중교통 이용 가능",
+        "updatedAt": "2025-07-11T18:14:20.869Z",
+        "location": "세인트존, NB"
+      },
+      {
+        "id": "RXYk87nVYTVbtnv6Xshn",
+        "title": "영어 과외 튜터 (고등학생 대상)",
+        "createdAt": "2025-07-11T17:04:51.453Z",
+        "description": "중학생들을 위한 영어 과외 튜터를 모집합니다. 독해, 작문, 문법 등 전반적인 영어 실력 향상을 도와주는 역할입니다. 교육에 관심이 있고 영어 실력이 우수한 고등학생들에게 좋은 경험이 될 것입니다. 주 2-3회, 1회 2시간 정도의 유연한 스케줄입니다.",
+        "contactPhone": "(506) 555-0345",
+        "approved": false,
+        "industry": "교육/과외",
+        "contactEmail": "info@frederictonlearning.ca",
+        "company": "Fredericton Learning Center",
+        "requirements": "고등학교 3학년 이상, 영어 성적 A 이상, 인내심과 책임감, 의사소통 능력 우수, 중학생과 잘 어울릴 수 있는 성격",
+        "applications": 0,
+        "location": "프레데릭턴, NB",
+        "jobType": "part-time",
+        "salary": "시급 $18.00 - $22.00",
+        "views": 0,
+        "updatedAt": "2025-07-11T17:04:51.453Z"
+      },
+      {
+        "id": "WH2ppWFT49viLGFmOJ7d",
+        "applications": 0,
+        "location": "프레데릭턴, NB",
+        "contactEmail": "manager@timhortons-fredericton.ca",
+        "title": "Tim Hortons 파트타임 직원 모집",
+        "createdAt": "2025-07-11T18:14:20.230Z",
+        "description": "캐나다를 대표하는 커피 체인 Tim Hortons에서 친절하고 성실한 고등학생 파트타임 직원을 모집합니다. 커피 제조, 도넛 및 샌드위치 준비, 고객 서비스 등의 업무를 담당하게 됩니다. 유연한 스케줄과 동료들과의 즐거운 근무 환경을 제공합니다.",
+        "company": "Tim Hortons 프레데릭턴 본점",
+        "requirements": "고등학생 이상, 친절한 성격, 기본적인 영어 의사소통 가능, 팀워크 중시, 성실하고 책임감 있는 자세",
+        "approved": false,
+        "contactPhone": "(506) 555-0123",
+        "jobType": "part-time",
+        "updatedAt": "2025-07-11T18:14:20.230Z",
+        "salary": "시급 $15.50 - $16.00",
+        "views": 0,
+        "industry": "음식/요식업"
+      },
+      {
+        "id": "i9RvFdRPbuhAKcLoRtNW",
+        "location": "프레데릭턴, NB",
+        "jobType": "part-time",
+        "applications": 0,
+        "company": "Tim Hortons 프레데릭턴 본점",
+        "createdAt": "2025-07-11T17:04:50.986Z",
+        "requirements": "고등학생 이상, 친절한 성격, 기본적인 영어 의사소통 가능, 팀워크 중시, 성실하고 책임감 있는 자세",
+        "description": "캐나다를 대표하는 커피 체인 Tim Hortons에서 친절하고 성실한 고등학생 파트타임 직원을 모집합니다. 커피 제조, 도넛 및 샌드위치 준비, 고객 서비스 등의 업무를 담당하게 됩니다. 유연한 스케줄과 동료들과의 즐거운 근무 환경을 제공합니다.",
+        "industry": "음식/요식업",
+        "updatedAt": "2025-07-11T17:04:50.986Z",
+        "title": "Tim Hortons 파트타임 직원 모집",
+        "approved": false,
+        "contactPhone": "(506) 555-0123",
+        "contactEmail": "manager@timhortons-fredericton.ca",
+        "views": 0,
+        "salary": "시급 $15.50 - $16.00"
+      },
+      {
+        "id": "mVDQjBF5aAdZZ6hCzXFL",
+        "industry": "소매/판매",
+        "title": "Atlantic Superstore 매장 직원",
+        "updatedAt": "2025-07-11T17:04:51.224Z",
+        "views": 0,
+        "approved": false,
+        "location": "몽크턴, NB",
+        "applications": 0,
+        "salary": "시급 $15.20 - $15.75",
+        "description": "대서양 지역 최대 슈퍼마켓 체인에서 근무할 매장 직원을 모집합니다. 상품 진열, 재고 관리, 고객 안내, 계산대 업무 등을 담당합니다. 소매업 경험을 쌓고 싶은 학생들에게 좋은 기회입니다. 직원 할인 혜택과 유연한 근무 시간을 제공합니다.",
+        "createdAt": "2025-07-11T17:04:51.224Z",
+        "contactEmail": "hr@atlanticsuperstore-moncton.ca",
+        "company": "Atlantic Superstore",
+        "jobType": "part-time",
+        "requirements": "16세 이상 고등학생, 기본적인 수학 계산 능력, 고객 서비스 마인드, 체력적으로 건강한 자, 주말 근무 가능자 우대",
+        "contactPhone": "(506) 555-0234"
+      },
+      {
+        "id": "yuhHxea3hq6FSzOeTHfO",
+        "description": "대서양 지역 최대 슈퍼마켓 체인에서 근무할 매장 직원을 모집합니다. 상품 진열, 재고 관리, 고객 안내, 계산대 업무 등을 담당합니다. 소매업 경험을 쌓고 싶은 학생들에게 좋은 기회입니다. 직원 할인 혜택과 유연한 근무 시간을 제공합니다.",
+        "updatedAt": "2025-07-11T18:14:20.452Z",
+        "industry": "소매/판매",
+        "applications": 0,
+        "jobType": "part-time",
+        "salary": "시급 $15.20 - $15.75",
+        "createdAt": "2025-07-11T18:14:20.452Z",
+        "views": 0,
+        "requirements": "16세 이상 고등학생, 기본적인 수학 계산 능력, 고객 서비스 마인드, 체력적으로 건강한 자, 주말 근무 가능자 우대",
+        "location": "몽크턴, NB",
+        "contactEmail": "hr@atlanticsuperstore-moncton.ca",
+        "approved": false,
+        "contactPhone": "(506) 555-0234",
+        "company": "Atlantic Superstore",
+        "title": "Atlantic Superstore 매장 직원"
+      }
+    ],
+    "jobApplications": [],
+    "references": [],
+    "events": [
+      {
+        "id": "6TkxsbSx4JP1tR8x1xVh",
+        "title": "코딩 부트캠프: 웹 개발 입문",
+        "time": "09:00",
+        "agenda": [
+          "Day 1: HTML/CSS 기초",
+          "Day 2: JavaScript 프로그래밍",
+          "Day 3: 프로젝트 제작",
+          "최종 발표 및 피드백"
+        ],
+        "date": "2024-04-19",
+        "type": "workshop",
+        "createdBy": "admin@jobsprout.ca",
+        "requirements": [
+          "중학생 이상",
+          "컴퓨터 기초 지식",
+          "3일 전일 참석 필수"
+        ],
+        "location": "NBCC 프레데릭턴 캠퍼스",
+        "description": "3일간의 집중적인 웹 개발 부트캠프입니다. HTML, CSS, JavaScript 기초부터 실제 웹사이트 제작까지 배워보세요.",
+        "createdAt": "2025-07-11T16:02:14.092Z",
+        "updatedAt": "2025-07-11T16:02:14.092Z",
+        "benefits": [
+          "무료 노트북 대여",
+          "코딩 수료증",
+          "GitHub 포트폴리오",
+          "IT 업계 멘토 연결"
+        ],
+        "maxParticipants": 30,
+        "organizer": "뉴브런즈윅 코딩 아카데미"
+      },
+      {
+        "id": "F92kg8d9CmoqmYnSPhyk",
+        "createdAt": "2025-07-11T16:02:13.861Z",
+        "organizer": "프레데릭턴 의료진협회",
+        "requirements": [
+          "고등학생 이상",
+          "의료계 관심자",
+          "건강 검진서 필수",
+          "부모 동의서"
+        ],
+        "updatedAt": "2025-07-11T16:02:13.861Z",
+        "maxParticipants": 25,
+        "benefits": [
+          "실제 의료 현장 경험",
+          "의료진과의 멘토링",
+          "진로 상담 기회",
+          "체험 수료증"
+        ],
+        "createdBy": "admin@jobsprout.ca",
+        "date": "2024-04-12",
+        "description": "의료진의 실제 업무를 체험해볼 수 있는 특별한 기회입니다. 의료계 진출을 희망하는 학생들에게 추천합니다.",
+        "agenda": [
+          "09:00-09:30 오리엔테이션",
+          "09:30-11:00 병원 투어",
+          "11:00-12:00 의료진 강연",
+          "12:00-13:00 점심시간",
+          "13:00-15:00 실습 체험",
+          "15:00-15:30 질의응답"
+        ],
+        "type": "experience",
+        "location": "프레데릭턴 종합병원",
+        "time": "09:00",
+        "title": "병원 인턴십 체험 프로그램"
+      },
+      {
+        "id": "IQ0yO4PHgIvb87oRZca0",
+        "title": "리더십 워크숍: 미래의 리더가 되는 법",
+        "type": "workshop",
+        "updatedAt": "2025-07-11T16:02:13.159Z",
+        "benefits": [
+          "리더십 인증서 발급",
+          "멘토링 프로그램 연결",
+          "네트워킹 기회",
+          "무료 교재 제공"
+        ],
+        "description": "학생들을 위한 실무 중심의 리더십 개발 프로그램입니다. 팀워크, 의사소통, 문제해결 능력을 키울 수 있습니다.",
+        "createdBy": "admin@jobsprout.ca",
+        "date": "2024-03-22",
+        "createdAt": "2025-07-11T16:02:13.159Z",
+        "location": "UNB 학생회관 대강당",
+        "maxParticipants": 50,
+        "organizer": "청소년 리더십 센터",
+        "time": "14:00",
+        "requirements": [
+          "중학생 이상",
+          "적극적인 참여 의지",
+          "팀워크 정신"
+        ],
+        "agenda": [
+          "14:00-14:30 아이스브레이킹",
+          "14:30-15:30 리더십 이론",
+          "15:30-16:30 팀 프로젝트",
+          "16:30-17:00 발표 및 피드백"
+        ]
+      },
+      {
+        "id": "mjs1nFdFTkGqNboEhokW",
+        "agenda": [
+          "10:00-11:00 등록 및 네트워킹",
+          "11:00-15:00 기업 부스 운영",
+          "15:00-16:00 채용 설명회",
+          "16:00-17:00 1:1 면접"
+        ],
+        "maxParticipants": 200,
+        "time": "10:00",
+        "updatedAt": "2025-07-11T16:02:12.039Z",
+        "requirements": [
+          "고등학생 이상",
+          "이력서 필수 지참",
+          "사전 등록 필수"
+        ],
+        "description": "뉴브런즈윅 주 최대 규모의 취업 박람회입니다. 50개 이상의 기업이 참여하여 다양한 직종의 채용 정보를 제공합니다.",
+        "organizer": "뉴브런즈윅 고용센터",
+        "createdBy": "admin@jobsprout.ca",
+        "createdAt": "2025-07-11T16:02:12.039Z",
+        "title": "캐나다 취업 박람회 2024",
+        "location": "프레데릭턴 컨벤션 센터",
+        "benefits": [
+          "현장 면접 기회",
+          "이력서 검토 서비스",
+          "무료 점심 제공",
+          "교통비 지원"
+        ],
+        "type": "job-fair",
+        "date": "2024-03-15"
+      },
+      {
+        "id": "pUUSCl769V4NoEwpbrTu",
+        "type": "experience",
+        "title": "환경 보호 프로젝트 참가자 모집",
+        "agenda": [
+          "08:00-09:00 등록 및 장비 배급",
+          "09:00-12:00 해안 정화 활동",
+          "12:00-13:00 점심 및 휴식",
+          "13:00-15:00 환경 교육",
+          "15:00-16:00 활동 마무리"
+        ],
+        "date": "2024-04-26",
+        "description": "지역 환경 보호를 위한 청소년 자원봉사 프로젝트입니다. 환경에 대한 인식을 높이고 실천할 수 있는 기회를 제공합니다.",
+        "maxParticipants": 60,
+        "createdAt": "2025-07-11T16:02:14.308Z",
+        "createdBy": "admin@jobsprout.ca",
+        "time": "08:00",
+        "location": "세인트존 하버프론트",
+        "requirements": [
+          "모든 연령 환영",
+          "야외 활동 가능자",
+          "장갑 및 작업복 착용"
+        ],
+        "benefits": [
+          "자원봉사 시간 인정",
+          "환경 보호 인증서",
+          "무료 점심 제공",
+          "단체 사진 촬영"
+        ],
+        "updatedAt": "2025-07-11T16:02:14.308Z",
+        "organizer": "NB 환경보호청"
+      },
+      {
+        "id": "sKsgvgbCfOWtyvKMPYWb",
+        "title": "청소년 창업 아이디어 경진대회",
+        "type": "competition",
+        "organizer": "청소년 창업 지원센터",
+        "time": "13:00",
+        "description": "창의적인 사업 아이디어를 가진 청소년들을 위한 경진대회입니다. 우수 아이디어에는 창업 지원금이 제공됩니다.",
+        "date": "2024-04-05",
+        "benefits": [
+          "1등 상금 $1,000",
+          "창업 멘토링 제공",
+          "투자자 연결 기회",
+          "참가 인증서"
+        ],
+        "maxParticipants": 80,
+        "updatedAt": "2025-07-11T16:02:13.625Z",
+        "location": "세인트존 비즈니스 센터",
+        "createdBy": "admin@jobsprout.ca",
+        "createdAt": "2025-07-11T16:02:13.625Z",
+        "agenda": [
+          "13:00-13:30 등록 및 팀 배치",
+          "13:30-15:00 아이디어 발표",
+          "15:00-15:30 심사 및 휴식",
+          "15:30-16:30 결과 발표",
+          "16:30-17:00 시상식"
+        ],
+        "requirements": [
+          "만 14-19세",
+          "창업 아이디어 필수",
+          "팀 구성 가능"
+        ]
+      },
+      {
+        "id": "ugcCytGE0rk3f2krsEQo",
+        "createdBy": "admin@jobsprout.ca",
+        "time": "19:00",
+        "date": "2024-03-29",
+        "location": "몽크턴 테크 센터",
+        "updatedAt": "2025-07-11T16:02:13.390Z",
+        "createdAt": "2025-07-11T16:02:13.390Z",
+        "agenda": [
+          "19:00-19:15 개회사",
+          "19:15-20:00 AI 트렌드 발표",
+          "20:00-20:30 휴식 및 네트워킹",
+          "20:30-21:15 패널 토론",
+          "21:15-21:30 Q&A"
+        ],
+        "benefits": [
+          "최신 AI 트렌드 정보",
+          "전문가 네트워킹",
+          "진로 상담 기회",
+          "세미나 자료 제공"
+        ],
+        "type": "seminar",
+        "organizer": "캐나다 AI 협회",
+        "requirements": [
+          "고등학생 이상",
+          "기본 컴퓨터 지식",
+          "영어 가능자 우대"
+        ],
+        "description": "인공지능 시대에 대비한 새로운 직업과 필요한 스킬에 대해 알아보는 세미나입니다. IT 전문가들의 생생한 경험담을 들어보세요.",
+        "title": "AI와 미래 직업 세미나",
+        "maxParticipants": 100
+      }
+    ],
+    "eventRegistrations": [
+      {
+        "id": "Z5LeBfmWeXvM4pvOLaSa",
+        "registeredAt": "2025-07-11T16:19:43.977Z",
+        "eventTitle": "캐나다 취업 박람회 2024",
+        "name": "JobSprout 관리자",
+        "email": "admin@jobsprout.ca",
+        "grade": "학년 정보",
+        "eventId": "mjs1nFdFTkGqNboEhokW",
+        "school": "학교 정보",
+        "phone": "010-0000-0000"
+      },
+      {
+        "id": "hZGUYAQzFseZFPZdwJDL",
+        "school": "테스트 고등학교",
+        "email": "test@example.com",
+        "eventTitle": "면접 스킬 향상 워크숍",
+        "name": "테스트 참가자",
+        "registeredAt": "2025-07-11T14:52:23.538Z",
+        "grade": "2학년",
+        "eventId": "2",
+        "phone": "010-1234-5678"
+      }
+    ],
+    "posts": [],
+    "contacts": [
+      {
+        "id": "AosLY3ca1Nv9y7iJiKZl",
+        "email": "fffffffff@gmail.com",
+        "message": "aasssssssssssssssssssssssssssssssssssssaasssssssssssssssssssssssssssssssssssss",
+        "subject": "aaaaaaaaaaaaaa",
+        "updatedAt": "2025-07-11T14:49:20.149Z",
+        "category": "general",
+        "resolved": false,
+        "urgent": false,
+        "name": "ggggggggggggggg",
+        "createdAt": "2025-07-11T14:49:20.149Z"
+      },
+      {
+        "id": "JQCXL0x1Jmtzzh6E99Vw",
+        "createdAt": "2025-07-11T14:49:40.796Z",
+        "email": "fffffffff@gmail.com",
+        "name": "ggggggggggggggg",
+        "resolved": false,
+        "updatedAt": "2025-07-11T14:49:40.796Z",
+        "subject": "aaaaaaaaaaaaaa",
+        "message": "aasssssssssssssssssssssssssssssssssssssaasssssssssssssssssssssssssssssssssssssaasssssssssssssssssssssssssssssssssssssaasssssssssssssssssssssssssssssssssssss",
+        "urgent": true,
+        "category": "job-seeker"
+      }
+    ],
+    "activityLogs": [],
+    "siteContent": [
+      {
+        "id": "ZKy1fQUVG2s166xzGu1J",
+        "updatedAt": "2025-07-12T00:52:00.435Z",
+        "heroSlides": [
+          {
+            "subtitle": "뉴브런즈윅의 미래를 이끌어갈 인재들과 함께하세요",
+            "title": "미래를 만들어갈 학생 인재들을 만나보세용"
+          },
+          {
+            "title": "성공적인 진로를 위한 첫걸음",
+            "subtitle": "전문적인 지도와 실무 경험으로 꿈을 현실로 만들어보세요"
+          },
+          {
+            "subtitle": "기술과 교육이 만나 새로운 가능성을 열어갑니다",
+            "title": "혁신적인 교육 플랫폼"
+          }
+        ],
+        "mainSection": {
+          "title": "캐나다 학생들을 위한",
+          "subtitle": "원스톱 진로 솔루션",
+          "description": "뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는",
+          "badge": "통합 진로 플랫폼",
+          "highlight": "차세대 진로 지원 시스템"
+        },
+        "missionSection": {
+          "description": "모든 학생이 꿈꾸는 미래를 실현할 수 있도록 돕겠습니다",
+          "title": "청년 취업의 새로운 패러다임",
+          "badge": "우리의 목표"
+        },
+        "createdAt": "2025-07-12T00:51:30.336Z",
+        "updatedBy": "admin@jobsprout.ca",
+        "featureCards": {
+          "student": {
+            "description": "스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다",
+            "title": "학생 구직",
+            "buttonText": "시작하기 →"
+          },
+          "reference": {
+            "description": "선생님들과 연결되는 디지털 추천서 생태계",
+            "buttonText": "참여하기 →",
+            "title": "추천서 지원"
+          },
+          "events": {
+            "buttonText": "참가하기 →",
+            "description": "미래를 준비하는 실무 중심 교육 프로그램",
+            "title": "교육 이벤트"
+          },
+          "company": {
+            "title": "기업 채용",
+            "description": "우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼",
+            "buttonText": "둘러보기 →"
+          }
+        },
+        "ctaButtons": {
+          "company": "기업으로 참여하기",
+          "student": "학생으로 시작하기"
+        }
+      },
+      {
+        "id": "eMO3Yh6UBvSRXJmNqizH",
+        "mainSection": {
+          "title": "캐나다 학생들을 위한",
+          "subtitle": "원스톱 진로 솔루션",
+          "badge": "통합 진로 플랫폼",
+          "highlight": "차세대 진로 지원 시스템",
+          "description": "뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는"
+        },
+        "createdAt": "2025-07-12T00:51:30.336Z",
+        "ctaButtons": {
+          "student": "학생으로 시작하기",
+          "company": "기업으로 참여하기"
+        },
+        "featureCards": {
+          "reference": {
+            "buttonText": "참여하기 →",
+            "title": "추천서 지원",
+            "description": "선생님들과 연결되는 디지털 추천서 생태계"
+          },
+          "events": {
+            "buttonText": "참가하기 →",
+            "title": "교육 이벤트",
+            "description": "미래를 준비하는 실무 중심 교육 프로그램"
+          },
+          "company": {
+            "description": "우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼",
+            "title": "기업 채용",
+            "buttonText": "둘러보기 →"
+          },
+          "student": {
+            "title": "학생 구직",
+            "description": "스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다",
+            "buttonText": "시작하기 →"
+          }
+        },
+        "heroSlides": [
+          {
+            "subtitle": "뉴브런즈윅의 미래를 이끌어갈 인재들과 함께하세요",
+            "title": "미래를 만들어갈 학생 인재들을 만나보세요"
+          },
+          {
+            "title": "성공적인 진로를 위한 첫걸음",
+            "subtitle": "전문적인 지도와 실무 경험으로 꿈을 현실로 만들어보세요"
+          },
+          {
+            "subtitle": "기술과 교육이 만나 새로운 가능성을 열어갑니다",
+            "title": "혁신적인 교육 플랫폼"
+          }
+        ],
+        "updatedBy": "admin@example.com",
+        "missionSection": {
+          "title": "청년 취업의 새로운 패러다임",
+          "badge": "우리의 목표",
+          "description": "모든 학생이 꿈꾸는 미래를 실현할 수 있도록 돕겠습니다"
+        },
+        "updatedAt": "2025-07-12T13:54:46.222Z"
+      },
+      {
+        "id": "hD8FbgahCsjPBgF83YC2",
+        "createdAt": "2025-07-12T00:51:30.336Z",
+        "featureCards": {
+          "events": {
+            "title": "교육 이벤트",
+            "buttonText": "참가하기 →",
+            "description": "미래를 준비하는 실무 중심 교육 프로그램"
+          },
+          "reference": {
+            "title": "추천서 지원",
+            "buttonText": "참여하기 →",
+            "description": "선생님들과 연결되는 디지털 추천서 생태계"
+          },
+          "company": {
+            "description": "우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼",
+            "buttonText": "둘러보기 →",
+            "title": "기업 채용"
+          },
+          "student": {
+            "title": "학생 구직",
+            "buttonText": "시작하기 →",
+            "description": "스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다"
+          }
+        },
+        "updatedAt": "2025-07-12T00:51:30.336Z",
+        "ctaButtons": {
+          "student": "학생으로 시작하기",
+          "company": "기업으로 참여하기"
+        },
+        "missionSection": {
+          "description": "모든 학생이 꿈꾸는 미래를 실현할 수 있도록 돕겠습니다",
+          "badge": "우리의 목표",
+          "title": "청년 취업의 새로운 패러다임"
+        },
+        "heroSlides": [
+          {
+            "title": "미래를 만들어갈 학생 인재들을 만나보세요",
+            "subtitle": "뉴브런즈윅의 미래를 이끌어갈 인재들과 함께하세요"
+          },
+          {
+            "title": "성공적인 진로를 위한 첫걸음",
+            "subtitle": "전문적인 지도와 실무 경험으로 꿈을 현실로 만들어보세요"
+          },
+          {
+            "title": "혁신적인 교육 플랫폼",
+            "subtitle": "기술과 교육이 만나 새로운 가능성을 열어갑니다"
+          }
+        ],
+        "mainSection": {
+          "description": "뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는",
+          "title": "캐나다 학생들을 위한",
+          "highlight": "차세대 진로 지원 시스템",
+          "subtitle": "원스톱 진로 솔루션",
+          "badge": "통합 진로 플랫폼"
+        }
+      }
+    ],
+    "designSettings": [],
+    "volunteerPostings": [],
+    "volunteerApplications": []
+  }
+}
