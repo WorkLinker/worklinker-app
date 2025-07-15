@@ -180,32 +180,7 @@ export default function EventsPage() {
     }
   };
 
-  // 샘플 이벤트 추가 함수
-  const handleAddSampleEvents = async () => {
-    if (!user || !eventService.isAdmin(user.email || '')) {
-      alert('관리자 권한이 필요합니다.');
-      return;
-    }
 
-    if (!confirm('7개의 샘플 이벤트를 추가하시겠습니까?')) {
-      return;
-    }
-
-    try {
-      setIsRegistering(true);
-      const result = await eventService.addSampleEvents();
-      
-      if (result.success) {
-        alert(`${result.events.length}개의 샘플 이벤트가 성공적으로 추가되었습니다!`);
-      }
-    } catch (error: unknown) {
-      console.error('❌ 샘플 이벤트 추가 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '샘플 이벤트 추가 중 오류가 발생했습니다.';
-      alert(errorMessage);
-    } finally {
-      setIsRegistering(false);
-    }
-  };
 
   // const addFormField = (fieldName: 'agenda' | 'benefits' | 'requirements') => {
   //   setEventForm(prev => ({
@@ -369,18 +344,7 @@ export default function EventsPage() {
                 <Plus size={20} />
                 <span>관리자: 이벤트 등록</span>
               </button>
-              <button
-                onClick={handleAddSampleEvents}
-                disabled={isRegistering}
-                className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isRegistering ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <Building size={20} />
-                )}
-                <span>샘플 이벤트 추가</span>
-              </button>
+
             </div>
           )}
         </div>
