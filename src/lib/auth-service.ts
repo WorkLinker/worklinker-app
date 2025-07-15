@@ -27,9 +27,9 @@ const initializePersistence = async () => {
   
   try {
     await setPersistence(auth, browserLocalPersistence);
-    console.log('✅ Firebase Auth persistence 설정 완료 - 로그인 상태 유지');
+    console.log('Firebase Auth persistence setup complete - login state maintained');
   } catch (error) {
-    console.error('❌ Firebase Auth persistence 설정 오류:', error);
+    console.error('Firebase Auth persistence setup error:', error);
   }
 };
 

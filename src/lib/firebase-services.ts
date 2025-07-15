@@ -45,7 +45,7 @@ export const jobSeekerService = {
           const resumeRef = ref(storage, `resumes/${Date.now()}_${resumeFile.name}`);
           const snapshot = await uploadBytes(resumeRef, resumeFile);
           resumeUrl = await getDownloadURL(snapshot.ref);
-          console.log('✅ 파일 업로드 성공:', resumeUrl);
+          console.log('File upload successful:', resumeUrl);
         } catch (storageError) {
           console.warn('⚠️ 파일 업로드 실패 (Storage 미설정):', storageError);
           resumeUrl = `파일명: ${resumeFile.name} (업로드 대기중)`;
