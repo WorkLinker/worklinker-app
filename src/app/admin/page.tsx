@@ -2842,7 +2842,7 @@ export default function AdminPage() {
           {/* 탭 네비게이션 */}
           <div className="bg-white rounded-t-xl shadow-xl">
             <div className="border-b border-gray-200">
-              <nav className="flex overflow-x-auto">
+              <nav className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -2852,16 +2852,16 @@ export default function AdminPage() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`
-                        flex items-center px-6 py-4 text-sm font-medium whitespace-nowrap transition-all duration-200
+                        flex items-center px-4 py-4 text-sm font-medium whitespace-nowrap transition-all duration-200 min-w-fit
                         ${isActive 
                           ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
                           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }
                       `}
                     >
-                      <Icon size={18} className="mr-2" />
-                      <span className="hidden sm:inline">{tab.name}</span>
-                      <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
+                      <Icon size={16} className="mr-2" />
+                      <span className="hidden md:inline">{tab.name}</span>
+                      <span className="md:hidden text-xs">{tab.name.split(' ')[0]}</span>
                     </button>
                   );
                 })}
