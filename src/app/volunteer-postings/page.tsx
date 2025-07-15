@@ -1,140 +1,70 @@
 'use client';
 
 import { useState } from 'react';
-
-import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Image from 'next/image';
-import { Heart, Users, Building, CheckCircle, FileText, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Users, FileText, Building, Phone, DollarSign, Star, CheckCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { volunteerService } from '@/lib/firebase-services';
 
+// Volunteer recruitment form schema
+const VolunteerSchema = z.object({
+  organizationName: z.string().min(2, 'Organization name must be at least 2 characters'),
+  organizationType: z.string().min(1, 'Please select organization type'),
+  contactPerson: z.string().min(2, 'Contact person name must be at least 2 characters'),
+  contactEmail: z.string().email('Please enter a valid email address'),
+  contactPhone: z.string().min(10, 'Please enter a valid phone number'),
+  volunteerTitle: z.string().min(5, 'Volunteer position title must be at least 5 characters'),
+  volunteerDescription: z.string().min(50, 'Description must be at least 50 characters'),
+  location: z.string().min(5, 'Please enter the location'),
+  startDate: z.string().min(1, 'Please enter start date'),
+  endDate: z.string().min(1, 'Please enter end date'),
+  timeCommitment: z.string().min(1, 'Please select time commitment'),
+  requiredSkills: z.string().min(10, 'Required skills must be at least 10 characters'),
+  benefits: z.string().min(10, 'Benefits must be at least 10 characters'),
+  additionalInfo: z.string().optional(),
+  agreement: z.boolean().refine((val) => val === true, 'Please agree to the terms')
+});
+
+type VolunteerForm = z.infer<typeof VolunteerSchema>;
+
 export default function VolunteerPostingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    organizationName: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    title: '',
-    description: '',
-    organizationType: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    timeCommitment: '',
-    requiredSkills: '',
-    benefits: '',
-    additionalInfo: ''
+  const [submitted, setSubmitted] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<VolunteerForm>({
+    resolver: zodResolver(VolunteerSchema)
   });
 
-  const organizationTypes = [
-    '도서관',
-    '요양원/요양소', 
-    '노인정/복지관',
-    '약국/의료기관',
-    '정부기관/공공기관',
-    '학교/교육기관',
-    '종교기관',
-    '환경단체',
-    '동물보호소',
-    '푸드뱅크/급식소',
-    '기타'
-  ];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: VolunteerForm) => {
     setIsSubmitting(true);
-
+    
     try {
-      const result = await volunteerService.submitVolunteerPosting(formData);
+      console.log('🔄 Starting volunteer recruitment registration...');
+      
+      const result = await volunteerService.submitVolunteerPosting(data);
       
       if (result.success) {
-        setIsSubmitted(true);
-        console.log('✅ 봉사자 모집 등록 성공:', result.id);
+        console.log('✅ Volunteer recruitment registration successful!');
+        setSubmitted(true);
+        reset();
       }
     } catch (error) {
-      console.error('❌ 봉사자 모집 등록 오류:', error);
-      alert('등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('❌ Volunteer recruitment registration error:', error);
+      alert('An error occurred during registration. Please check your network connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-20">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <CheckCircle size={64} className="mx-auto text-green-500 mb-6" />
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                🎉 봉사자 모집 등록이 완료되었습니다!
-              </h1>
-              <p className="text-gray-600 mb-6">
-                관리자 검토 후 승인되면 봉사 기회 목록에 게시됩니다.<br/>
-                승인 결과는 이메일로 안내드리겠습니다.
-              </p>
-              
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-green-800 mb-2">📋 다음 단계</h3>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>• 관리자 검토 (1-2일 소요)</li>
-                  <li>• 승인 시 자동으로 목록에 게시</li>
-                  <li>• 학생들의 지원 접수 시작</li>
-                  <li>• 지원자 정보를 이메일로 전달</li>
-                </ul>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link 
-                  href="/volunteer-listings"
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  봉사 기회 목록 보기
-                </Link>
-                <button
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    setFormData({
-                      organizationName: '',
-                      contactPerson: '',
-                      email: '',
-                      phone: '',
-                      title: '',
-                      description: '',
-                      organizationType: '',
-                      location: '',
-                      startDate: '',
-                      endDate: '',
-                      timeCommitment: '',
-                      requiredSkills: '',
-                      benefits: '',
-                      additionalInfo: ''
-                    });
-                  }}
-                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  새로운 모집 등록
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">
@@ -142,7 +72,7 @@ export default function VolunteerPostingsPage() {
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <Image
           src="/images/봉사활동.png"
-          alt="봉사자 모집"
+          alt="Volunteer recruitment"
           fill
           sizes="100vw"
           className="object-cover"
@@ -159,12 +89,12 @@ export default function VolunteerPostingsPage() {
         <div className="absolute bottom-20 left-0 right-0 z-20 text-center text-white px-4">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              함께 만드는 더 나은<br />
-              <span className="text-green-400">지역사회</span>
+              Building a better<br />
+              <span className="text-green-400">community together</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
-              뉴브런즈윅의 미래를 이끌어갈 학생 봉사자들을 모집해보세요<br />
-              지역사회에 기여할 수 있는 의미 있는 기회를 만들어보세요
+              Recruit student volunteers who will lead New Brunswick&apos;s future<br />
+              Create meaningful opportunities to contribute to the community
             </p>
           </div>
         </div>
@@ -174,9 +104,9 @@ export default function VolunteerPostingsPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center text-sm text-gray-600">
-            <Link href="/" className="hover:text-green-600">홈</Link>
+            <Link href="/" className="hover:text-green-600">Home</Link>
             <span className="mx-2">•</span>
-            <span className="text-green-600">봉사자 모집 등록</span>
+            <span className="text-green-600">Volunteer Recruitment Registration</span>
           </div>
         </div>
       </div>
@@ -190,25 +120,25 @@ export default function VolunteerPostingsPage() {
           <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-6 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <Users className="mr-3 text-green-600" size={28} />
-              봉사자 모집 등록 안내
+              Volunteer Recruitment Registration Guide
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-gray-800 mb-2">📋 모집 대상</h3>
+                <h3 className="font-semibold text-gray-800 mb-2">📋 Target Volunteers</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• 뉴브런즈윅 고등학생 (9-12학년)</li>
-                  <li>• 만 14-18세 학생</li>
-                  <li>• 지역사회 봉사 의지가 있는 학생</li>
-                  <li>• 기본적인 영어 소통 가능자</li>
+                  <li>• New Brunswick high school students (Grades 9-12)</li>
+                  <li>• Students aged 14-18</li>
+                  <li>• Students with community service motivation</li>
+                  <li>• Basic English communication skills</li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800 mb-2">⚡ 등록 절차</h3>
+                <h3 className="font-semibold text-gray-800 mb-2">⚡ Registration Process</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• 봉사자 모집 정보 입력</li>
-                  <li>• 관리자 검토 (1-2일)</li>
-                  <li>• 승인 후 목록 게시</li>
-                  <li>• 학생 지원 접수 및 매칭</li>
+                  <li>• Enter volunteer recruitment information</li>
+                  <li>• Administrator review (1-2 days)</li>
+                  <li>• Publication after approval</li>
+                  <li>• Accept student applications and matching</li>
                 </ul>
               </div>
             </div>
@@ -218,259 +148,344 @@ export default function VolunteerPostingsPage() {
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
               <FileText className="mr-3 text-green-600" size={28} />
-              봉사자 모집 등록
+              Volunteer Recruitment Registration
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               
               {/* Organization Info */}
               <div className="border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Building className="mr-2 text-green-600" size={20} />
-                  기관 정보
+                  Organization Information
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      기관명 *
+                      Organization Name *
                     </label>
                     <input
                       type="text"
-                      name="organizationName"
-                      value={formData.organizationName}
-                      onChange={handleInputChange}
+                      {...register('organizationName')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="예: 프레더릭턴 공공도서관"
-                      required
+                      placeholder="e.g., Fredericton Public Library"
                     />
+                    {errors.organizationName && (
+                      <p className="mt-1 text-sm text-red-600">{errors.organizationName.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      기관 유형 *
+                      Organization Type *
                     </label>
                     <select
-                      name="organizationType"
-                      value={formData.organizationType}
-                      onChange={handleInputChange}
+                      {...register('organizationType')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      required
                     >
-                      <option value="">기관 유형을 선택하세요</option>
-                      {organizationTypes.map((type) => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
+                      <option value="">Select organization type</option>
+                      <option value="non-profit">Non-profit Organization</option>
+                      <option value="educational">Educational Institution</option>
+                      <option value="healthcare">Healthcare Facility</option>
+                      <option value="environmental">Environmental Organization</option>
+                      <option value="community">Community Center</option>
+                      <option value="library">Library</option>
+                      <option value="religious">Religious Organization</option>
+                      <option value="sports">Sports Club</option>
+                      <option value="cultural">Cultural Organization</option>
+                      <option value="other">Other</option>
                     </select>
+                    {errors.organizationType && (
+                      <p className="mt-1 text-sm text-red-600">{errors.organizationType.message}</p>
+                    )}
                   </div>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Phone className="mr-2 text-green-600" size={20} />
+                  Contact Information
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      담당자명 *
+                      Contact Person *
                     </label>
                     <input
                       type="text"
-                      name="contactPerson"
-                      value={formData.contactPerson}
-                      onChange={handleInputChange}
+                      {...register('contactPerson')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="홍길동"
-                      required
+                      placeholder="John Smith"
                     />
+                    {errors.contactPerson && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactPerson.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      연락처 *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="(506) 555-0123"
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이메일 *
+                      Email *
                     </label>
                     <input
                       type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
+                      {...register('contactEmail')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="contact@organization.ca"
-                      required
                     />
+                    {errors.contactEmail && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactEmail.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      {...register('contactPhone')}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="506-123-4567"
+                    />
+                    {errors.contactPhone && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactPhone.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Volunteer Info */}
+              {/* Volunteer Position Details */}
               <div className="border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Heart className="mr-2 text-green-600" size={20} />
-                  봉사 활동 정보
+                  <Star className="mr-2 text-green-600" size={20} />
+                  Volunteer Position Details
                 </h3>
-                <div className="space-y-4">
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Position Title *
+                  </label>
+                  <input
+                    type="text"
+                    {...register('volunteerTitle')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g., Youth Reading Assistant"
+                  />
+                  {errors.volunteerTitle && (
+                    <p className="mt-1 text-sm text-red-600">{errors.volunteerTitle.message}</p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Detailed Description *
+                  </label>
+                  <textarea
+                    {...register('volunteerDescription')}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Describe the volunteer activities, responsibilities, and goals in detail..."
+                  />
+                  {errors.volunteerDescription && (
+                    <p className="mt-1 text-sm text-red-600">{errors.volunteerDescription.message}</p>
+                  )}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      봉사 제목 *
+                      Location *
                     </label>
                     <input
                       type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
+                      {...register('location')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="예: 도서관 아동 독서 프로그램 보조"
-                      required
+                      placeholder="e.g., Fredericton, NB"
                     />
+                    {errors.location && (
+                      <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      활동 내용 *
+                      Time Commitment *
                     </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      rows={4}
+                    <select
+                      {...register('timeCommitment')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="봉사 활동의 구체적인 내용, 업무, 목적 등을 자세히 설명해주세요."
-                      required
-                    />
+                    >
+                      <option value="">Select time commitment</option>
+                      <option value="flexible">Flexible hours</option>
+                      <option value="weekends">Weekends only</option>
+                      <option value="weekdays">Weekdays only</option>
+                      <option value="evenings">Evenings</option>
+                      <option value="summer">Summer vacation</option>
+                      <option value="one-time">One-time event</option>
+                    </select>
+                    {errors.timeCommitment && (
+                      <p className="mt-1 text-sm text-red-600">{errors.timeCommitment.message}</p>
+                    )}
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        활동 장소 *
-                      </label>
-                      <input
-                        type="text"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="프레더릭턴, NB"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        시간 약속 *
-                      </label>
-                      <input
-                        type="text"
-                        name="timeCommitment"
-                        value={formData.timeCommitment}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="예: 주 2회, 각 3시간"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        시작일
-                      </label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        종료일
-                      </label>
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      {...register('startDate')}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                    {errors.startDate && (
+                      <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      필요한 기술/경험
+                      End Date *
                     </label>
-                    <textarea
-                      name="requiredSkills"
-                      value={formData.requiredSkills}
-                      onChange={handleInputChange}
-                      rows={3}
+                    <input
+                      type="date"
+                      {...register('endDate')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="예: 아이들과 소통 능력, 기본적인 컴퓨터 활용, 영어 회화 등"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      봉사자 혜택
-                    </label>
-                    <textarea
-                      name="benefits"
-                      value={formData.benefits}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="예: 봉사 확인서 발급, 추천서 작성, 교통비 지원, 간식 제공 등"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      추가 정보
-                    </label>
-                    <textarea
-                      name="additionalInfo"
-                      value={formData.additionalInfo}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="기타 참고사항, 특별 요구사항 등"
-                    />
+                    {errors.endDate && (
+                      <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-between items-center pt-6">
-                <Link
-                  href="/volunteer-listings"
-                  className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  <ArrowLeft size={20} className="mr-2" />
-                  봉사 기회 목록으로 돌아가기
-                </Link>
+              {/* Requirements & Benefits */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <DollarSign className="mr-2 text-green-600" size={20} />
+                  Requirements & Benefits
+                </h3>
                 
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Required Skills & Qualifications *
+                  </label>
+                  <textarea
+                    {...register('requiredSkills')}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g., Good communication skills, patience with children, basic computer skills, etc."
+                  />
+                  {errors.requiredSkills && (
+                    <p className="mt-1 text-sm text-red-600">{errors.requiredSkills.message}</p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Benefits & Learning Opportunities *
+                  </label>
+                  <textarea
+                    {...register('benefits')}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g., Community service hours, reference letter, skill development, networking opportunities, etc."
+                  />
+                  {errors.benefits && (
+                    <p className="mt-1 text-sm text-red-600">{errors.benefits.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Information (Optional)
+                  </label>
+                  <textarea
+                    {...register('additionalInfo')}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Any other important information about the volunteer position..."
+                  />
+                </div>
+              </div>
+
+              {/* Terms Agreement */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Terms & Conditions</h3>
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Important Notice</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• All volunteer positions will be reviewed by administrators before publication</li>
+                    <li>• Organizations must provide a safe and educational environment for students</li>
+                    <li>• Volunteer hours must comply with New Brunswick labor regulations for minors</li>
+                    <li>• Background checks may be required for certain positions</li>
+                  </ul>
+                </div>
+                
+                <label className="flex items-start">
+                  <input
+                    type="checkbox"
+                    {...register('agreement')}
+                    className="mt-1 mr-3"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I agree to the terms and conditions above and confirm that our organization will provide appropriate supervision and a safe environment for student volunteers. *
+                  </span>
+                </label>
+                {errors.agreement && (
+                  <p className="mt-1 text-sm text-red-600">{errors.agreement.message}</p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => window.history.back()}
+                  className="px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-8 py-3 rounded-lg font-medium transition-all ${
-                    isSubmitting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700'
-                  } text-white`}
+                  className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      등록 중...
-                    </span>
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Submitting...</span>
+                    </>
                   ) : (
-                    '봉사자 모집 등록'
+                    <span>Submit Registration</span>
                   )}
                 </button>
               </div>
             </form>
           </div>
         </div>
+        </div>
       </div>
-      </div>
+
+      {/* Success Modal */}
+      {submitted && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center">
+              <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Submitted!</h3>
+              <p className="text-gray-600 mb-6">
+                Your volunteer recruitment has been successfully submitted. 
+                It will be published after administrator review and approval.
+              </p>
+              <button
+                onClick={() => setSubmitted(false)}
+                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

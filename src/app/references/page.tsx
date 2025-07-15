@@ -11,22 +11,22 @@ import Footer from '@/components/Footer';
 import { referenceService } from '@/lib/firebase-services';
 
 const ReferenceSchema = z.object({
-  studentName: z.string().min(2, '학생 이름은 2글자 이상이어야 합니다'),
-  studentEmail: z.string().email('올바른 학생 이메일 주소를 입력해주세요'),
-  teacherName: z.string().min(2, '선생님 이름은 2글자 이상이어야 합니다'),
-  teacherEmail: z.string().email('올바른 선생님 이메일 주소를 입력해주세요'),
-  subject: z.string().min(1, '과목명을 입력해주세요'),
-  relationship: z.string().min(5, '관계를 구체적으로 설명해주세요'),
-  referenceText: z.string().min(100, '추천서 내용은 100글자 이상이어야 합니다'),
-  agreement: z.boolean().refine((val) => val === true, '약관에 동의해주세요')
+  studentName: z.string().min(2, 'Student name must be at least 2 characters'),
+  studentEmail: z.string().email('Please enter a valid student email address'),
+  teacherName: z.string().min(2, 'Teacher name must be at least 2 characters'),
+  teacherEmail: z.string().email('Please enter a valid teacher email address'),
+  subject: z.string().min(1, 'Please enter the subject'),
+  relationship: z.string().min(5, 'Please describe the relationship in detail'),
+  referenceText: z.string().min(100, 'Reference letter must be at least 100 characters'),
+  agreement: z.boolean().refine((val) => val === true, 'Please agree to the terms')
 });
 
 type ReferenceForm = z.infer<typeof ReferenceSchema>;
 
 export default function ReferencesPage() {
-  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const {
     register,
@@ -40,23 +40,19 @@ export default function ReferencesPage() {
 
   const watchedValues = watch();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 파일 크기 제한 (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('파일 크기는 5MB 이하여야 합니다.');
+        alert('File size must be 5MB or less.');
         return;
       }
-      
-      // 파일 형식 제한
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
-        alert('PDF, DOC, DOCX 파일만 업로드 가능합니다.');
+        alert('Only PDF, DOC, and DOCX files are allowed.');
         return;
       }
-      
-      setReferenceFile(file);
+      setSelectedFile(file);
     }
   };
 
@@ -64,60 +60,23 @@ export default function ReferencesPage() {
     setIsSubmitting(true);
     
     try {
-      console.log('📄 추천서 제출 시작...');
+      console.log('📝 Starting reference letter submission...');
       
-      // 실제 Firebase에 데이터 저장
-      const result = await referenceService.submitReference(data, referenceFile || undefined);
+      const result = await referenceService.submitReference(data, selectedFile || undefined);
       
       if (result.success) {
-        console.log('🎉 추천서가 성공적으로 제출되었습니다!');
+        console.log('🎉 Reference letter submission successful!');
         setSubmitted(true);
         reset();
-        setReferenceFile(null);
+        setSelectedFile(null);
       }
     } catch (error) {
-      console.error('❌ 추천서 제출 오류:', error);
-      alert('제출 중 오류가 발생했습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      console.error('❌ Reference letter submission error:', error);
+      alert('An error occurred during submission. Please check your network connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-blue-50">
-        <Navigation />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <CheckCircle size={80} className="text-green-500 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              추천서가 제출되었습니다!
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              제출해주신 추천서를 검토한 후, 승인 결과를 이메일로 안내드리겠습니다.
-              <br />
-              학생과 선생님 모두에게 확인 이메일이 발송됩니다.
-            </p>
-            <div className="bg-sky-50 rounded-lg p-6 mb-8">
-              <h2 className="text-lg font-semibold text-sky-900 mb-3">제출 완료</h2>
-              <ul className="text-sky-800 space-y-2">
-                <li>• 추천서가 안전하게 저장되었습니다</li>
-                <li>• 관리자 승인 후 학생 프로필에 연결됩니다</li>
-                <li>• 기업들이 학생 평가 시 참고자료로 활용됩니다</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setSubmitted(false)}
-              className="btn-primary"
-            >
-              다른 추천서 작성하기
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-blue-50">
@@ -131,7 +90,7 @@ export default function ReferencesPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/추천서지원.png"
-            alt="추천서 지원"
+            alt="Reference letter support"
             fill
             sizes="100vw"
             className="object-cover"
@@ -143,7 +102,7 @@ export default function ReferencesPage() {
         {/* Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                                       <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
-              진심이 담긴 추천이 힘이 됩니다
+              Sincere recommendations become strength
             </h1>
         </div>
       </section>
@@ -152,15 +111,15 @@ export default function ReferencesPage() {
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
-            추천서 업로드
+            Reference Letter Upload
           </h1>
           <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-            선생님 전용 페이지입니다. 학생들의 구직 활동을 도와주세요.
+            This is a teacher-only page. Please help students with their job search activities.
             <br />
-            추천서는 학생들에게 큰 도움이 됩니다.
+            Reference letters are of great help to students.
           </p>
           <p className="text-lg text-sky-600 font-semibold">
-            디지털 추천서 시스템으로 학생과 선생님을 연결
+            Connecting students and teachers through a digital reference system
           </p>
         </div>
       </section>
@@ -174,13 +133,13 @@ export default function ReferencesPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <User size={36} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">선생님 전용</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Teacher Only</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                학교 선생님들만 이용할 수 있는 추천서 업로드 시스템입니다.
+                This is a reference letter upload system exclusively for school teachers.
               </p>
               <div className="bg-sky-50 rounded-lg p-4">
                 <p className="text-sky-700 font-medium text-sm">
-                  교사 인증 후 이용 가능
+                  Available after teacher verification
                 </p>
               </div>
             </div>
@@ -190,62 +149,80 @@ export default function ReferencesPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <FileText size={36} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">안전한 보관</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Secure Storage</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                모든 추천서는 안전하게 암호화되어 보관되며, 승인 후 학생 프로필에 연결됩니다.
+                All reference letters are securely encrypted and stored, linked to student profiles after approval.
               </p>
               <div className="bg-sky-50 rounded-lg p-4">
                 <p className="text-sky-700 font-medium text-sm">
-                  SSL 암호화 및 GDPR 준수
+                  SSL encryption and GDPR compliant
                 </p>
               </div>
             </div>
             
-            {/* Student Support Card */}
+            {/* Professional Support Card */}
             <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-center border border-gray-100 hover:border-sky-200">
               <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <GraduationCap size={36} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">학생 지원</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Professional Support</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                추천서는 학생들의 구직 활동에 큰 도움이 되며, 기업들의 신뢰를 얻는 데 중요한 역할을 합니다.
+                Support students&apos; successful career start through professional references.
               </p>
               <div className="bg-sky-50 rounded-lg p-4">
                 <p className="text-sky-700 font-medium text-sm">
-                  취업 성공률 향상 도구
+                  Supports New Brunswick students
                 </p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Form Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">추천서 작성 및 업로드</h2>
-              <p className="text-gray-600">
-                학생의 성실성, 능력, 태도 등을 기반으로 솔직하고 구체적인 추천서를 작성해주세요.
-              </p>
+          {/* Process Steps */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">How It Works</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-sky-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Student Information</h3>
+                <p className="text-sm text-gray-600">Enter the student&apos;s basic information and your relationship</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-sky-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Write Reference</h3>
+                <p className="text-sm text-gray-600">Write a detailed reference letter or upload a file</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-sky-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Review & Submit</h3>
+                <p className="text-sm text-gray-600">Review your reference letter and submit</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-sky-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">4</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Profile Connection</h3>
+                <p className="text-sm text-gray-600">Reference is linked to the student&apos;s profile after approval</p>
+              </div>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* 학생 정보 */}
+          {/* Reference Form */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Submit Reference Letter</h2>
+            
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              {/* Student Information */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">학생 정보</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Student Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      학생 이름 *
+                      Student Name *
                     </label>
                     <input
                       type="text"
                       {...register('studentName')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="김학생"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="John Smith"
                     />
                     {errors.studentName && (
                       <p className="mt-1 text-sm text-red-600">{errors.studentName.message}</p>
@@ -254,13 +231,13 @@ export default function ReferencesPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      학생 이메일 *
+                      Student Email *
                     </label>
                     <input
                       type="email"
                       {...register('studentEmail')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="student@example.com"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="student@school.ca"
                     />
                     {errors.studentEmail && (
                       <p className="mt-1 text-sm text-red-600">{errors.studentEmail.message}</p>
@@ -269,20 +246,20 @@ export default function ReferencesPage() {
                 </div>
               </div>
 
-              {/* 선생님 정보 */}
+              {/* Teacher Information */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">선생님 정보</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Teacher Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      선생님 이름 *
+                      Teacher Name *
                     </label>
                     <input
                       type="text"
                       {...register('teacherName')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="김선생"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="Ms. Johnson"
                     />
                     {errors.teacherName && (
                       <p className="mt-1 text-sm text-red-600">{errors.teacherName.message}</p>
@@ -291,35 +268,28 @@ export default function ReferencesPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      선생님 이메일 *
+                      Teacher Email *
                     </label>
                     <input
                       type="email"
                       {...register('teacherEmail')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       placeholder="teacher@school.ca"
                     />
                     {errors.teacherEmail && (
                       <p className="mt-1 text-sm text-red-600">{errors.teacherEmail.message}</p>
                     )}
                   </div>
-                </div>
-              </div>
 
-              {/* 관계 정보 */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">관계 정보</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      담당 과목 *
+                      Subject Taught *
                     </label>
                     <input
                       type="text"
                       {...register('subject')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="수학, 영어, 과학 등"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="English, Math, Science, etc."
                     />
                     {errors.subject && (
                       <p className="mt-1 text-sm text-red-600">{errors.subject.message}</p>
@@ -328,13 +298,13 @@ export default function ReferencesPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      학생과의 관계 *
+                      Relationship to Student *
                     </label>
                     <input
                       type="text"
                       {...register('relationship')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="예: 2년간 수학 과목 담당"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="e.g., Homeroom teacher for 2 years"
                     />
                     {errors.relationship && (
                       <p className="mt-1 text-sm text-red-600">{errors.relationship.message}</p>
@@ -343,110 +313,138 @@ export default function ReferencesPage() {
                 </div>
               </div>
 
-              {/* 추천서 내용 */}
+              {/* Reference Content */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">추천서 내용</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Reference Letter Content</h3>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    추천서 내용 *
+                    Reference Letter Content *
                   </label>
                   <textarea
                     {...register('referenceText')}
                     rows={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="학생의 성실성, 능력, 태도, 성장 과정 등을 구체적으로 설명해주세요. 
-                    
-예시:
-- 학업 성취도 및 학습 태도
-- 책임감과 성실성
-- 팀워크 및 리더십
-- 특별한 재능이나 경험
-- 직업 준비도 및 추천 이유"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    placeholder="Please describe the student's integrity, abilities, attitude, growth process, etc. in detail.
+
+Example:
+- Academic achievement and learning attitude
+- Responsibility and integrity
+- Teamwork and leadership
+- Special talents or experiences
+- Job readiness and reasons for recommendation"
                   />
                   {errors.referenceText && (
                     <p className="mt-1 text-sm text-red-600">{errors.referenceText.message}</p>
                   )}
                   <p className="mt-2 text-sm text-gray-500">
-                    현재 글자 수: {watchedValues.referenceText?.length || 0}자 (최소 100자)
+                    Current character count: {watchedValues.referenceText?.length || 0} characters (minimum 100)
                   </p>
                 </div>
               </div>
 
-              {/* 파일 업로드 (선택사항) */}
+              {/* File Upload (Optional) */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">추천서 파일 업로드 (선택사항)</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">File Upload (Optional)</h3>
                 
-                <div className="file-upload">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                   <input
                     type="file"
-                    id="reference-file"
+                    id="referenceFile"
                     accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
+                    onChange={handleFileSelect}
                     className="hidden"
                   />
-                  <label htmlFor="reference-file" className="cursor-pointer">
+                  <label htmlFor="referenceFile" className="cursor-pointer">
                     <div className="flex flex-col items-center">
                       <Upload size={48} className="text-gray-400 mb-4" />
                       <p className="text-lg font-medium text-gray-900 mb-2">
-                        추천서 파일 업로드 (선택사항)
+                        Upload additional reference file
                       </p>
                       <p className="text-sm text-gray-500">
-                        PDF, DOC, DOCX 파일만 업로드 가능 (최대 5MB)
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        위에 작성한 내용과 함께 추가 서류가 있다면 업로드하세요
+                        PDF, DOC, DOCX files only (max 5MB)
                       </p>
                     </div>
                   </label>
                 </div>
 
-                {referenceFile && (
+                {selectedFile && (
                   <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center">
                       <FileText size={20} className="text-green-600 mr-2" />
-                      <span className="text-green-800 font-medium">{referenceFile.name}</span>
+                      <span className="text-green-800 font-medium">{selectedFile.name}</span>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 약관 동의 */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="flex items-start">
+              {/* Terms Agreement */}
+              <div>
+                <label className="flex items-start">
                   <input
                     type="checkbox"
                     {...register('agreement')}
                     className="mt-1 mr-3"
                   />
-                  <div className="text-sm text-gray-700">
-                    <p className="font-medium mb-2">추천서 제출 동의 *</p>
-                    <p>
-                      본인은 위에 작성한 추천서가 사실임을 확인하며, 
-                      해당 학생의 구직 활동을 위해 이 추천서가 사용되는 것에 동의합니다. 
-                      추천서는 관리자 승인 후 학생 프로필에 연결되어 기업들이 참고할 수 있습니다.
-                    </p>
-                  </div>
-                </div>
+                  <span className="text-sm text-gray-700">
+                    I confirm that the information provided is accurate and I have the authority to write this reference letter for the student. I agree to the collection and use of this information for student job placement purposes. *
+                  </span>
+                </label>
                 {errors.agreement && (
-                  <p className="mt-2 text-sm text-red-600">{errors.agreement.message}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.agreement.message}</p>
                 )}
               </div>
 
-              {/* 제출 버튼 */}
-              <div className="text-center">
+              {/* Submit Button */}
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => window.history.back()}
+                  className="px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
+                  className="px-8 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
-                  {isSubmitting ? '제출 중...' : '추천서 제출하기'}
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <span>Submit Reference</span>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       </section>
+
+      {/* Success Modal */}
+      {submitted && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center">
+              <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Reference Submitted!</h3>
+              <p className="text-gray-600 mb-6">
+                The reference letter has been successfully submitted. 
+                It will be linked to the student&apos;s profile after administrator review.
+              </p>
+              <button
+                onClick={() => setSubmitted(false)}
+                className="w-full px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

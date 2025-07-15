@@ -28,22 +28,22 @@ import { jobSeekerService } from '@/lib/firebase-services';
 import { authService } from '@/lib/auth-service';
 import { User as FirebaseUser } from 'firebase/auth';
 
-// 구직 신청 폼 스키마
+// Job application form schema
 const JobSeekerSchema = z.object({
-  name: z.string().min(2, '이름은 2글자 이상이어야 합니다'),
-  email: z.string().email('올바른 이메일 주소를 입력해주세요'),
-  phone: z.string().min(10, '올바른 전화번호를 입력해주세요'),
-  grade: z.string().min(1, '학년을 선택해주세요'),
-  school: z.string().min(2, '학교명을 입력해주세요'),
-  skills: z.string().min(1, '기술/경험을 입력해주세요'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  grade: z.string().min(1, 'Please select your grade'),
+  school: z.string().min(2, 'Please enter your school name'),
+  skills: z.string().min(1, 'Please enter your skills/experience'),
   availability: z.enum(['full-time', 'part-time', 'volunteer']),
-  agreement: z.boolean().refine((val) => val === true, '약관에 동의해주세요')
+  agreement: z.boolean().refine((val) => val === true, 'Please agree to the terms')
 });
 
 type JobSeekerForm = z.infer<typeof JobSeekerSchema>;
 
 export default function StudentProfilesPage() {
-  // 기존 학생 프로필 상태
+  // Existing student profile state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,21 +53,21 @@ export default function StudentProfilesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(9);
   
-  // 슬라이드 상태
+  // Slide state
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 2;
   
-  // 구직 신청 상태
+  // Job application state
   const [showJobSeekerForm, setShowJobSeekerForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 사용자 인증 상태
+  // User authentication state
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // 폼 관리
+  // Form management
   const {
     register,
     handleSubmit,
@@ -77,7 +77,7 @@ export default function StudentProfilesPage() {
     resolver: zodResolver(JobSeekerSchema)
   });
 
-  // 자동 슬라이드
+  // Auto slide
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -85,14 +85,14 @@ export default function StudentProfilesPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // 사용자 인증 상태 확인
+  // Check user authentication state
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((currentUser: FirebaseUser | null) => {
       setUser(currentUser);
       setAuthLoading(false);
     });
 
-    // 학생 목록은 항상 로드 (인증 불필요)
+    // Always load student list (no authentication required)
     loadApprovedStudents();
 
     return () => unsubscribe();
@@ -101,14 +101,14 @@ export default function StudentProfilesPage() {
   const loadApprovedStudents = async () => {
     try {
       setLoading(true);
-      console.log('👨‍🎓 승인된 학생 목록 로드...');
+      console.log('👨‍🎓 Loading approved student list...');
       
       const approvedStudents = await jobSeekerService.getApprovedJobSeekers();
       setStudents(approvedStudents);
       
-      console.log('✅ 승인된 학생 목록 로드 완료:', approvedStudents.length, '명');
+      console.log('✅ Approved student list loaded:', approvedStudents.length, 'students');
     } catch (error) {
-      console.error('❌ 학생 목록 로드 오류:', error);
+      console.error('❌ Error loading student list:', error);
     } finally {
       setLoading(false);
     }
@@ -117,16 +117,16 @@ export default function StudentProfilesPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 파일 크기 제한 (5MB)
+      // File size limit (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('파일 크기는 5MB 이하여야 합니다.');
+        alert('File size must be 5MB or less.');
         return;
       }
       
-      // 파일 형식 제한
+      // File format restriction
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
-        alert('PDF, DOC, DOCX 파일만 업로드 가능합니다.');
+        alert('Only PDF, DOC, and DOCX files are allowed.');
         return;
       }
       
@@ -138,20 +138,20 @@ export default function StudentProfilesPage() {
     setIsSubmitting(true);
     
     try {
-      console.log('📝 구직 신청 제출 시작...');
+      console.log('📝 Starting job application submission...');
       
       const result = await jobSeekerService.submitApplication(data, resumeFile || undefined);
       
       if (result.success) {
-        console.log('🎉 구직 신청이 성공적으로 제출되었습니다!');
+        console.log('🎉 Job application submitted successfully!');
         setSubmitted(true);
         reset();
         setResumeFile(null);
         setShowJobSeekerForm(false);
       }
     } catch (error) {
-      console.error('❌ 구직 신청 제출 오류:', error);
-      alert('제출 중 오류가 발생했습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      console.error('❌ Job application submission error:', error);
+      alert('An error occurred during submission. Please check your network connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +163,7 @@ export default function StudentProfilesPage() {
     
     try {
       const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return date.toLocaleDateString('ko-KR');
+      return date.toLocaleDateString('en-CA');
     } catch {
       return '';
     }
@@ -171,9 +171,9 @@ export default function StudentProfilesPage() {
 
   const getAvailabilityBadge = (availability: string) => {
     const badges = {
-      'full-time': { label: '풀타임', color: 'bg-green-100 text-green-800' },
-      'part-time': { label: '파트타임', color: 'bg-blue-100 text-blue-800' },
-      'volunteer': { label: '봉사활동', color: 'bg-purple-100 text-purple-800' }
+      'full-time': { label: 'Full-time', color: 'bg-green-100 text-green-800' },
+      'part-time': { label: 'Part-time', color: 'bg-blue-100 text-blue-800' },
+      'volunteer': { label: 'Volunteer', color: 'bg-purple-100 text-purple-800' }
     };
     
     const badge = badges[availability as keyof typeof badges] || { label: availability, color: 'bg-gray-100 text-gray-800' };
@@ -185,7 +185,7 @@ export default function StudentProfilesPage() {
     );
   };
 
-  // 필터링된 학생 목록
+  // Filtered student list
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -197,7 +197,7 @@ export default function StudentProfilesPage() {
     return matchesSearch && matchesGrade && matchesAvailability;
   });
 
-  // 페이지네이션
+  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
@@ -207,56 +207,56 @@ export default function StudentProfilesPage() {
     setCurrentPage(page);
   };
 
-  // 학생에게 연락하기
+  // Contact student
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleContactStudent = (student: any) => {
-    const subject = `[구인 문의] ${student.name}님에게 연락드립니다`;
-    const body = `안녕하세요 ${student.name}님,
+    const subject = `[Job Inquiry] Contacting ${student.name}`;
+    const body = `Hello ${student.name},
 
-저희 회사에서 ${student.name}님의 프로필을 확인하고 연락드립니다.
+I found your profile through the NB Student Hub and would like to contact you.
 
-학년: ${student.grade}학년
-학교: ${student.school}
-기술/경험: ${student.skills}
+Grade: Grade ${student.grade}
+School: ${student.school}
+Skills/Experience: ${student.skills}
 
-추가 문의사항이나 면접 일정 등에 대해 논의하고 싶습니다.
+I would like to discuss additional details and possible interview schedules.
 
-감사합니다.`;
+Thank you.`;
 
     const mailtoLink = `mailto:${student.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoLink);
   };
 
-  // 이력서 다운로드 (강제 다운로드 방식)
+  // Download resume (forced download method)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDownloadResume = async (student: any) => {
     try {
       if (!student.resumeUrl) {
-        alert('이력서 파일이 없습니다.');
+        alert('No resume file available.');
         return;
       }
 
-      // 파일명만 있는 경우 (업로드 대기중)
+      // If only filename exists (upload pending)
       if (!student.resumeUrl || !student.resumeUrl.startsWith('http')) {
-        alert(`${student.resumeFileName || '파일이'} 아직 업로드 처리 중입니다. 나중에 다시 시도해주세요.`);
+        alert(`${student.resumeFileName || 'File'} is still being processed. Please try again later.`);
         return;
       }
 
-      console.log('📥 이력서 다운로드 시작:', student.resumeFileName);
+      console.log('📥 Starting resume download:', student.resumeFileName);
 
-      // Fetch로 파일 데이터 가져오기 (강제 다운로드 방식)
+      // Fetch file data with forced download method
       const response = await fetch(student.resumeUrl);
       if (!response.ok) {
-        throw new Error('파일 데이터 가져오기 실패');
+        throw new Error('Failed to fetch file data');
       }
 
-      // Blob으로 변환
+      // Convert to Blob
       const blob = await response.blob();
       
-      // 파일명 설정 (기본값 포함)
-      const fileName = student.resumeFileName || `${student.name}_이력서.pdf`;
+      // Set filename (with fallback)
+      const fileName = student.resumeFileName || `${student.name}_resume.pdf`;
       
-      // 강제 다운로드 처리
+      // Force download processing
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -267,19 +267,19 @@ export default function StudentProfilesPage() {
       link.click();
       document.body.removeChild(link);
       
-      // 메모리 정리
+      // Memory cleanup
       window.URL.revokeObjectURL(url);
       
-      console.log('✅ 이력서 다운로드 완료:', fileName);
+      console.log('✅ Resume download completed:', fileName);
     } catch (error) {
-      console.error('❌ 이력서 다운로드 오류:', error);
-      alert('이력서 다운로드 중 오류가 발생했습니다. 네트워크 상태를 확인해주세요.');
+      console.error('❌ Resume download error:', error);
+      alert('An error occurred while downloading the resume. Please check your network connection.');
     }
   };
 
   const handleJobSeekerFormOpen = () => {
     if (!user) {
-      alert('구직 신청을 위해서는 로그인이 필요합니다. 상단의 로그인 버튼을 클릭해주세요.');
+      alert('You need to sign in to submit a job application. Please click the Sign In button at the top.');
       return;
     }
     setShowJobSeekerForm(true);
@@ -289,46 +289,46 @@ export default function StudentProfilesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">페이지를 불러오는 중입니다...</p>
+        <p className="text-gray-600">Loading page...</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 풀스크린 히어로 섹션 */}
+      {/* Full screen hero section */}
       <section className="relative h-screen overflow-hidden">
-        {/* 네비게이션 오버레이 */}
+        {/* Navigation overlay */}
         <div className="absolute inset-x-0 top-0 z-50">
           <Navigation />
         </div>
         
-        {/* 슬라이드 컨테이너 */}
+        {/* Slide container */}
         <div className="relative h-full">
-          {/* 첫 번째 슬라이드 */}
+          {/* First slide */}
           <div className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${
             currentSlide === 0 ? 'translate-x-0' : '-translate-x-full'
           }`}>
             <div className="relative h-full">
               <Image
                 src="/images/학생구직.png"
-                alt="학생 구직"
+                alt="Student job search"
                 fill
                 className="object-cover"
                 priority
               />
               <div className="absolute inset-0 bg-black bg-opacity-40" />
               
-              {/* 콘텐츠 */}
+              {/* Content */}
               <div className="absolute inset-0 flex items-end pb-24">
                 <div className="container mx-auto px-6 text-center">
                   <h1 className="hero-title hero-title-default mb-4 sm:mb-6">
-                    가능성과 열정을 가진 인재들의 이야기를 담았습니다
+                    Stories of talented students with potential and passion
                   </h1>
                   
-                  {/* 두 개의 버튼 카드 */}
+                  {/* Two button cards */}
                   <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                    {/* 학생 프로필 둘러보기 버튼 */}
+                    {/* Browse student profiles button */}
                     <button
                       onClick={() => {
                         const profileSection = document.getElementById('student-profiles');
@@ -337,16 +337,16 @@ export default function StudentProfilesPage() {
                       className="group bg-white/90 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3 border-2 border-transparent hover:border-orange-400"
                     >
                       <Eye size={24} className="group-hover:text-orange-500 transition-colors" />
-                      <span>학생 프로필 둘러보기 👀</span>
+                      <span>Browse Student Profiles 👀</span>
                     </button>
 
-                    {/* 구직 신청하기 버튼 */}
+                    {/* Submit job application button */}
                     <button
                       onClick={handleJobSeekerFormOpen}
                       className="group bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3"
                     >
                       <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                      <span>구직 신청하기 📝</span>
+                      <span>Submit Job Application 📝</span>
                     </button>
                   </div>
                 </div>
@@ -354,37 +354,37 @@ export default function StudentProfilesPage() {
             </div>
           </div>
 
-          {/* 두 번째 슬라이드 */}
+          {/* Second slide */}
           <div className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${
             currentSlide === 1 ? 'translate-x-0' : 'translate-x-full'
           }`}>
             <div className="relative h-full">
               <Image
                 src="/images/학생프로필.png"
-                alt="학생 프로필"
+                alt="Student profile"
                 fill
                 className="object-cover"
                 priority
               />
               <div className="absolute inset-0 bg-black bg-opacity-40" />
               
-              {/* 콘텐츠 */}
+              {/* Content */}
               <div className="absolute inset-0 flex items-end pb-24">
                 <div className="container mx-auto px-6 text-center">
                   <h1 className="text-6xl md:text-7xl font-bold text-white mb-6">
-                    당신의 꿈을
+                    Turn your dreams
                     <span className="block bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
-                      현실로 만들어요
+                      into reality
                     </span>
                   </h1>
                   <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                    레쥬메를 업로드하고 기본 정보를 입력하세요.<br/>
-                    기업들이 여러분의 재능을 발견할 수 있도록 도와드립니다!
+                    Upload your resume and enter your basic information.<br/>
+                    Help employers discover your talents!
                   </p>
                   
-                  {/* 두 개의 버튼 카드 */}
+                  {/* Two button cards */}
                   <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                    {/* 학생 프로필 둘러보기 버튼 */}
+                    {/* Browse student profiles button */}
                     <button
                       onClick={() => {
                         const profileSection = document.getElementById('student-profiles');
@@ -393,16 +393,16 @@ export default function StudentProfilesPage() {
                       className="group bg-white/90 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3 border-2 border-transparent hover:border-sky-400"
                     >
                       <Eye size={24} className="group-hover:text-sky-500 transition-colors" />
-                      <span>학생 프로필 둘러보기 👀</span>
+                      <span>Browse Student Profiles 👀</span>
                     </button>
 
-                    {/* 구직 신청하기 버튼 */}
+                    {/* Submit job application button */}
                     <button
                       onClick={handleJobSeekerFormOpen}
                       className="group bg-gradient-to-r from-sky-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-sky-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-3"
                     >
                       <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                      <span>구직 신청하기 📋</span>
+                      <span>Submit Job Application 📋</span>
                     </button>
                   </div>
                 </div>
@@ -410,7 +410,7 @@ export default function StudentProfilesPage() {
             </div>
           </div>
 
-          {/* 슬라이드 인디케이터 */}
+          {/* Slide indicators */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-40">
             {Array.from({ length: totalSlides }, (_, index) => (
               <button
@@ -425,7 +425,7 @@ export default function StudentProfilesPage() {
             ))}
           </div>
 
-          {/* 네비게이션 화살표 */}
+          {/* Navigation arrows */}
           <button
             onClick={() => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)}
             className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all duration-300 z-40"
@@ -442,63 +442,63 @@ export default function StudentProfilesPage() {
         </div>
       </section>
 
-      {/* 학생 프로필 섹션 */}
+      {/* Student profiles section */}
       <section id="student-profiles" className="py-20">
         <div className="container mx-auto px-6">
-          {/* 헤더 */}
+          {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              승인된 <span className="text-sky-500">학생 프로필</span>
+              Approved <span className="text-sky-500">Student Profiles</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              관리자의 검토를 통과한 우수한 학생들의 프로필입니다. 
-              각 학생의 정보를 확인하고 연락해보세요!
+              Outstanding student profiles that have passed administrator review. 
+              Check out each student&apos;s information and get in touch!
             </p>
           </div>
 
-          {/* 통계 정보 */}
+          {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
               <div className="text-3xl font-bold text-sky-500 mb-2">{students.length}</div>
-              <div className="text-gray-600">총 학생 수</div>
+              <div className="text-gray-600">Total Students</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
               <div className="text-3xl font-bold text-green-500 mb-2">{filteredStudents.length}</div>
-              <div className="text-gray-600">검색 결과</div>
+              <div className="text-gray-600">Search Results</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
               <div className="text-3xl font-bold text-purple-500 mb-2">{totalPages}</div>
-              <div className="text-gray-600">총 페이지</div>
+              <div className="text-gray-600">Total Pages</div>
             </div>
           </div>
 
-          {/* 검색 및 필터 */}
+          {/* Search and filters */}
           <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* 검색창 */}
+              {/* Search bar */}
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="이름, 학교, 기술로 검색..."
+                  placeholder="Search by name, school, or skills..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 />
               </div>
 
-              {/* 필터 */}
+              {/* Filters */}
               <div className="flex gap-4">
                 <select
                   value={gradeFilter}
                   onChange={(e) => setGradeFilter(e.target.value)}
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 >
-                  <option value="all">모든 학년</option>
-                  <option value="9">9학년</option>
-                  <option value="10">10학년</option>
-                  <option value="11">11학년</option>
-                  <option value="12">12학년</option>
+                  <option value="all">All Grades</option>
+                  <option value="9">Grade 9</option>
+                  <option value="10">Grade 10</option>
+                  <option value="11">Grade 11</option>
+                  <option value="12">Grade 12</option>
                 </select>
 
                 <select
@@ -506,46 +506,46 @@ export default function StudentProfilesPage() {
                   onChange={(e) => setAvailabilityFilter(e.target.value)}
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 >
-                  <option value="all">모든 근무형태</option>
-                  <option value="full-time">풀타임</option>
-                  <option value="part-time">파트타임</option>
-                  <option value="volunteer">봉사활동</option>
+                  <option value="all">All Work Types</option>
+                  <option value="full-time">Full-time</option>
+                  <option value="part-time">Part-time</option>
+                  <option value="volunteer">Volunteer</option>
                 </select>
               </div>
 
-              {/* 구직 신청 버튼 */}
+              {/* Job application button */}
               <button
                 onClick={handleJobSeekerFormOpen}
                 className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center space-x-2 whitespace-nowrap"
               >
                 <Plus size={20} />
-                <span>구직 신청하기</span>
+                <span>Submit Application</span>
               </button>
             </div>
           </div>
 
-          {/* 학생 목록 */}
+          {/* Student list */}
           {loading ? (
             <div className="text-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">학생 목록을 불러오는 중...</p>
+              <p className="text-gray-600">Loading student list...</p>
             </div>
           ) : currentStudents.length === 0 ? (
             <div className="text-center py-20">
               <User size={48} className="text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                {students.length === 0 ? '등록된 학생이 없습니다' : '검색 결과가 없습니다'}
+                {students.length === 0 ? 'No students registered' : 'No search results'}
               </h3>
               <p className="text-gray-500">
                 {students.length === 0 
-                  ? '첫 번째 학생이 되어보세요!' 
-                  : '다른 검색어나 필터를 시도해보세요.'
+                  ? 'Be the first student!' 
+                  : 'Try different search terms or filters.'
                 }
               </p>
             </div>
           ) : (
             <>
-              {/* 학생 카드 그리드 */}
+              {/* Student card grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {currentStudents.map((student) => (
                   <div
@@ -553,7 +553,7 @@ export default function StudentProfilesPage() {
                     className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-2"
                   >
                     <div className="p-6">
-                      {/* 헤더 */}
+                      {/* Header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center">
@@ -561,13 +561,13 @@ export default function StudentProfilesPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-lg text-gray-900">{student.name}</h3>
-                            <p className="text-sm text-gray-500">{student.grade}학년</p>
+                            <p className="text-sm text-gray-500">Grade {student.grade}</p>
                           </div>
                         </div>
                         {getAvailabilityBadge(student.availability)}
                       </div>
 
-                      {/* 정보 */}
+                      {/* Information */}
                       <div className="space-y-3 mb-6">
                         <div className="flex items-center space-x-2 text-gray-600">
                           <School size={16} />
@@ -583,33 +583,33 @@ export default function StudentProfilesPage() {
                         </div>
                         <div className="flex items-center space-x-2 text-gray-600">
                           <Clock size={16} />
-                          <span className="text-sm">신청일: {formatDate(student.createdAt)}</span>
+                          <span className="text-sm">Applied: {formatDate(student.createdAt)}</span>
                         </div>
                       </div>
 
-                      {/* 기술/경험 */}
+                      {/* Skills/Experience */}
                       <div className="mb-6">
                         <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                           <Star size={16} className="mr-1" />
-                          기술 & 경험
+                          Skills & Experience
                         </h4>
                         <p className="text-sm text-gray-600 line-clamp-3">{student.skills}</p>
                       </div>
 
-                      {/* 액션 버튼 */}
+                      {/* Action buttons */}
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => handleContactStudent(student)}
                           className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
                         >
                           <Mail size={16} />
-                          <span>연락하기</span>
+                          <span>Contact</span>
                         </button>
                         {student.resumeUrl && (
                           <button 
                             onClick={() => handleDownloadResume(student)}
                             className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            title="이력서 다운로드"
+                            title="Download Resume"
                           >
                             <Download size={16} className="text-gray-600" />
                           </button>
@@ -620,7 +620,7 @@ export default function StudentProfilesPage() {
                 ))}
               </div>
 
-              {/* 페이지네이션 */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center space-x-2">
                   <button
@@ -628,7 +628,7 @@ export default function StudentProfilesPage() {
                     disabled={currentPage === 1}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    이전
+                    Previous
                   </button>
                   
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -653,7 +653,7 @@ export default function StudentProfilesPage() {
                     disabled={currentPage === totalPages}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    다음
+                    Next
                   </button>
                 </div>
               )}
@@ -662,13 +662,13 @@ export default function StudentProfilesPage() {
         </div>
       </section>
 
-      {/* 구직 신청 폼 모달 */}
+      {/* Job application form modal */}
       {showJobSeekerForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">구직 신청</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Job Application</h2>
                 <button
                   onClick={() => setShowJobSeekerForm(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -678,20 +678,20 @@ export default function StudentProfilesPage() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* 기본 정보 */}
+                {/* Basic information */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">기본 정보</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        이름 *
+                        Name *
                       </label>
                       <input
                         type="text"
                         {...register('name')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="홍길동"
+                        placeholder="John Smith"
                       />
                       {errors.name && (
                         <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -700,7 +700,7 @@ export default function StudentProfilesPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        이메일 *
+                        Email *
                       </label>
                       <input
                         type="email"
@@ -715,7 +715,7 @@ export default function StudentProfilesPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        전화번호 *
+                        Phone Number *
                       </label>
                       <input
                         type="tel"
@@ -730,17 +730,17 @@ export default function StudentProfilesPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        학년 *
+                        Grade *
                       </label>
                       <select
                         {...register('grade')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       >
-                        <option value="">학년을 선택하세요</option>
-                        <option value="9">9학년</option>
-                        <option value="10">10학년</option>
-                        <option value="11">11학년</option>
-                        <option value="12">12학년</option>
+                        <option value="">Select your grade</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
                       </select>
                       {errors.grade && (
                         <p className="mt-1 text-sm text-red-600">{errors.grade.message}</p>
@@ -750,13 +750,13 @@ export default function StudentProfilesPage() {
 
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      학교명 *
+                      School Name *
                     </label>
                     <input
                       type="text"
                       {...register('school')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      placeholder="예: Fredericton High School"
+                      placeholder="e.g., Fredericton High School"
                     />
                     {errors.school && (
                       <p className="mt-1 text-sm text-red-600">{errors.school.message}</p>
@@ -764,9 +764,9 @@ export default function StudentProfilesPage() {
                   </div>
                 </div>
 
-                {/* 레쥬메 업로드 */}
+                {/* Resume upload */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">레쥬메 업로드</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Resume Upload</h3>
                   
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                     <input
@@ -780,10 +780,10 @@ export default function StudentProfilesPage() {
                       <div className="flex flex-col items-center">
                         <Upload size={48} className="text-gray-400 mb-4" />
                         <p className="text-lg font-medium text-gray-900 mb-2">
-                          레쥬메 파일을 선택하세요
+                          Select your resume file
                         </p>
                         <p className="text-sm text-gray-500">
-                          PDF, DOC, DOCX 파일만 업로드 가능 (최대 5MB)
+                          Only PDF, DOC, DOCX files allowed (max 5MB)
                         </p>
                       </div>
                     </label>
@@ -799,19 +799,19 @@ export default function StudentProfilesPage() {
                   )}
                 </div>
 
-                {/* 기술/경험 */}
+                {/* Skills/Experience */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">기술 및 경험</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Skills & Experience</h3>
                   
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      기술, 경험, 관심 분야 *
+                      Skills, Experience, Interests *
                     </label>
                     <textarea
                       {...register('skills')}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      placeholder="예: 컴퓨터 기초, 고객 서비스, 팀워크, 책임감 등"
+                      placeholder="e.g., Computer basics, customer service, teamwork, responsibility, etc."
                     />
                     {errors.skills && (
                       <p className="mt-1 text-sm text-red-600">{errors.skills.message}</p>
@@ -820,7 +820,7 @@ export default function StudentProfilesPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      근무 형태 *
+                      Work Type *
                     </label>
                     <div className="space-y-2">
                       <label className="flex items-center">
@@ -830,7 +830,7 @@ export default function StudentProfilesPage() {
                           value="full-time"
                           className="mr-2"
                         />
-                        <span>풀타임 (방학 중)</span>
+                        <span>Full-time (during breaks)</span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -839,7 +839,7 @@ export default function StudentProfilesPage() {
                           value="part-time"
                           className="mr-2"
                         />
-                        <span>파트타임 (학기 중)</span>
+                        <span>Part-time (during school)</span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -848,7 +848,7 @@ export default function StudentProfilesPage() {
                           value="volunteer"
                           className="mr-2"
                         />
-                        <span>봉사활동</span>
+                        <span>Volunteer work</span>
                       </label>
                     </div>
                     {errors.availability && (
@@ -857,7 +857,7 @@ export default function StudentProfilesPage() {
                   </div>
                 </div>
 
-                {/* 약관 동의 */}
+                {/* Terms agreement */}
                 <div>
                   <label className="flex items-center">
                     <input
@@ -866,7 +866,7 @@ export default function StudentProfilesPage() {
                       className="mr-2"
                     />
                     <span className="text-sm text-gray-700">
-                      개인정보 수집 및 이용에 동의합니다 *
+                      I agree to the collection and use of personal information *
                     </span>
                   </label>
                   {errors.agreement && (
@@ -874,14 +874,14 @@ export default function StudentProfilesPage() {
                   )}
                 </div>
 
-                {/* 제출 버튼 */}
+                {/* Submit button */}
                 <div className="flex justify-end space-x-4">
                   <button
                     type="button"
                     onClick={() => setShowJobSeekerForm(false)}
                     className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    취소
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -891,10 +891,10 @@ export default function StudentProfilesPage() {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>제출 중...</span>
+                        <span>Submitting...</span>
                       </>
                     ) : (
-                      <span>신청서 제출</span>
+                      <span>Submit Application</span>
                     )}
                   </button>
                 </div>
@@ -904,22 +904,22 @@ export default function StudentProfilesPage() {
         </div>
       )}
 
-      {/* 성공 모달 */}
+      {/* Success modal */}
       {submitted && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="text-center">
               <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">신청 완료!</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
               <p className="text-gray-600 mb-6">
-                구직 신청이 성공적으로 제출되었습니다. 
-                관리자 검토 후 승인되면 프로필이 공개됩니다.
+                Your job application has been successfully submitted. 
+                Your profile will be published after administrator review and approval.
               </p>
               <button
                 onClick={() => setSubmitted(false)}
                 className="w-full px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
               >
-                확인
+                OK
               </button>
             </div>
           </div>
