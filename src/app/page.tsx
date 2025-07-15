@@ -84,25 +84,25 @@ export default function Home() {
       root.style.setProperty('--line-height', settings.fonts.lineHeight?.toString() || '1.5');
     }
     
-    console.log('🎨 CSS 변수 업데이트 완료:', settings);
+    console.log('🎨 CSS variables updated successfully:', settings);
   };
   
-  // 기본 슬라이드 (Firestore 로딩 중 사용)
+  // Default slides (used while Firestore is loading)
   const defaultSlides = [
     {
       image: '/images/메인홈1.png',
-      title: '미래를 만들어갈 학생 인재들을 만나보세요',
-      subtitle: '뉴브런즈윅의 미래를 이끌어갈 인재들과 함께하세요'
+      title: 'Discover the talented students of tomorrow',
+      subtitle: 'Connect with the future leaders of New Brunswick'
     },
     {
       image: '/images/메인홈2.jpg',
-      title: '성공적인 진로를 위한 첫걸음',
-      subtitle: '전문적인 지도와 실무 경험으로 꿈을 현실로 만들어보세요'
+      title: 'Your first step to career success',
+      subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
     },
     {
       image: '/images/메인홈3.png',
-      title: '혁신적인 교육 플랫폼',
-      subtitle: '기술과 교육이 만나 새로운 가능성을 열어갑니다'
+      title: 'Innovative education platform',
+      subtitle: 'Where technology meets education to unlock new possibilities'
     }
   ];
 
@@ -116,14 +116,14 @@ export default function Home() {
         const content = await contentService.getCurrentContent();
         setSiteContent(content);
 
-        // 실시간 구독 시작
+        // Start real-time subscription
         unsubscribe = contentService.subscribeToContent((updatedContent) => {
           setSiteContent(updatedContent);
-          console.log('🔄 콘텐츠 실시간 업데이트됨');
+          console.log('🔄 Content updated in real-time');
         });
       } catch (error) {
-        console.error('❌ 콘텐츠 초기화 오류:', error);
-        // 오류 시 기본 콘텐츠 사용
+        console.error('❌ Content initialization error:', error);
+        // Use default content on error
       }
     };
 
@@ -147,14 +147,14 @@ export default function Home() {
         setDesignSettings(settings);
         updateCSSVariables(settings);
 
-        // 실시간 구독 설정
+        // Set up real-time subscription
         unsubscribe = designService.subscribeToDesignSettings((updatedSettings) => {
           setDesignSettings(updatedSettings);
           updateCSSVariables(updatedSettings);
-          console.log('🎨 디자인 설정 실시간 업데이트됨');
+          console.log('🎨 Design settings updated in real-time');
         });
       } catch (error) {
-        console.error('❌ 디자인 설정 초기화 오류:', error);
+        console.error('❌ Design settings initialization error:', error);
       }
     };
 
@@ -167,7 +167,7 @@ export default function Home() {
     };
   }, []);
 
-  // 현재 사용할 슬라이드 (디자인 설정 이미지 + Firestore 콘텐츠 or 기본값)
+  // Current slides to use (design settings images + Firestore content or defaults)
   const slides = siteContent?.heroSlides ? 
     siteContent.heroSlides.map((slide: {title: string, subtitle: string}, index: number) => ({
       ...slide,
@@ -297,7 +297,7 @@ export default function Home() {
             >
               <Image
                 src={slide.image}
-                alt={`메인 슬라이드 ${index + 1}`}
+                alt={`Main slide ${index + 1}`}
                 fill
                 sizes="100vw"
                 className="object-cover"
@@ -367,7 +367,7 @@ export default function Home() {
                 <>
                   <GraduationCap size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:rotate-12 transition-transform" />
                   <span className="relative z-10">
-                    {siteContent?.ctaButtons?.student || '학생으로 시작하기'}
+                    {siteContent?.ctaButtons?.student || 'Get Started as Student'}
                   </span>
                   <ArrowRight size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:translate-x-2 transition-transform" />
                 </>
@@ -388,7 +388,7 @@ export default function Home() {
               ) : (
                 <>
                   <Briefcase size={24} className="sm:w-7 sm:h-7 group-hover:rotate-12 transition-transform" />
-                  <span>{siteContent?.ctaButtons?.company || '기업으로 참여하기'}</span>
+                  <span>{siteContent?.ctaButtons?.company || 'Join as Employer'}</span>
                   <TrendingUp size={24} className="sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
                 </>
               )}
@@ -402,16 +402,16 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
-              캐나다 학생들을 위한
+              For Canadian Students
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는 
-              <span className="font-bold dynamic-text-primary">차세대 진로 지원 시스템</span>
+              Available to all high school students in New Brunswick - 
+              <span className="font-bold dynamic-text-primary">next-generation career support system</span>
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* 학생 구직 */}
+            {/* Student Job Search */}
             <div 
               id="card-student" 
               data-animate
@@ -426,11 +426,11 @@ export default function Home() {
               }}
             >
               <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-primary"></div>
-              {/* 이미지 추가 */}
+              {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
                   src={designSettings?.images?.featureCards?.student || "/images/7번.png"}
-                  alt="학생 구직"
+                  alt="Student job search"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -439,20 +439,20 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <GraduationCap size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">학생 구직</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Student Jobs</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다
+                Smart matching system that finds the perfect job opportunities for you
               </p>
               <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-student'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  '시작하기 →'
+                  'Get Started →'
                 )}
               </div>
             </div>
 
-            {/* 추천서 지원 */}
+            {/* Reference Support */}
             <div 
               id="card-reference" 
               data-animate
@@ -467,11 +467,11 @@ export default function Home() {
               }}
             >
               <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-accent"></div>
-              {/* 이미지 추가 */}
+              {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
                   src={designSettings?.images?.featureCards?.reference || "/images/4번.png"}
-                  alt="추천서 지원"
+                  alt="Reference support"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -480,20 +480,20 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Award size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">추천서 지원</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">References</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                선생님들과 연결되는 디지털 추천서 생태계
+                Digital reference ecosystem connecting students with teachers
               </p>
               <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-reference'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  '참여하기 →'
+                  'Get Started →'
                 )}
               </div>
             </div>
 
-            {/* 기업 채용 */}
+            {/* Employer Hiring */}
             <div 
               id="card-company" 
               data-animate
@@ -508,11 +508,11 @@ export default function Home() {
               }}
             >
               <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-accent"></div>
-              {/* 이미지 추가 */}
+              {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
                   src={designSettings?.images?.featureCards?.company || "/images/3번.png"}
-                  alt="기업 채용"
+                  alt="Employer hiring"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -521,20 +521,20 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Trophy size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">기업 채용</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Employer Hub</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼
+                Smart hiring platform to connect with talented Canadian students
               </p>
               <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-company'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  '둘러보기 →'
+                  'Explore →'
                 )}
               </div>
             </div>
 
-            {/* 교육 이벤트 */}
+            {/* Learning Events */}
             <div 
               id="card-events" 
               data-animate
@@ -549,11 +549,11 @@ export default function Home() {
               }}
             >
               <div className="absolute top-0 left-0 w-full h-1 dynamic-gradient-primary"></div>
-              {/* 이미지 추가 */}
+              {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
                   src={designSettings?.images?.featureCards?.events || "/images/교육이벤트.png"}
-                  alt="교육 이벤트"
+                  alt="Learning events"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -562,15 +562,15 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Sparkles size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">교육 이벤트</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Learning Events</h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                미래를 준비하는 실무 중심 교육 프로그램
+                Hands-on educational programs to prepare for your future
               </p>
               <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-events'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  '참가하기 →'
+                  'Join Event →'
                 )}
               </div>
             </div>
@@ -586,19 +586,19 @@ export default function Home() {
           <div className="text-center">
             <div className="inline-flex items-center dynamic-bg-accent rounded-full px-8 py-3 mb-8 border dynamic-border-accent">
               <Trophy size={24} className="mr-3 text-yellow-300" />
-              <span className="text-xl font-bold">우리의 목표</span>
+              <span className="text-xl font-bold">Our Mission</span>
             </div>
             
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 sm:mb-8 leading-tight dynamic-font-heading">
-              모든 학생의 성공을 위한
+              An innovative platform
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-sky-100 to-white mt-2">
-                혁신적인 플랫폼
+                for every student&apos;s success
               </span>
             </h2>
             
             <p className="text-lg sm:text-2xl md:text-3xl text-sky-100 max-w-5xl mx-auto mb-12 sm:mb-16 leading-relaxed">
-              모든 뉴브런즈윅 학생들이 자신의 잠재력을 발휘하고 
-              <span className="font-bold text-white">꿈을 실현할 수 있는 세상</span>을 만들어갑니다.
+              We&apos;re building a world where every New Brunswick student can reach their full potential and 
+              <span className="font-bold text-white">make their dreams come true</span>.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -614,8 +614,8 @@ export default function Home() {
                 <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
                   <GraduationCap size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">교육 기회 평등</h3>
-                <p className="text-sky-100 text-lg">모든 학생에게 동등한 성장 기회 제공</p>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">Equal Opportunities</h3>
+                <p className="text-sky-100 text-lg">Providing equal growth opportunities for every student</p>
               </div>
               <div 
                 id="mission-2" 
@@ -629,8 +629,8 @@ export default function Home() {
                 <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
                   <Users size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">지역사회 연결</h3>
-                <p className="text-sky-100 text-lg">학생과 기업을 잇는 든든한 다리 역할</p>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">Community Connection</h3>
+                <p className="text-sky-100 text-lg">Building strong bridges between students and employers</p>
               </div>
               <div 
                 id="mission-3" 
@@ -644,8 +644,8 @@ export default function Home() {
                 <div className="w-20 h-20 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
                   <Trophy size={40} className="text-white" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">미래 준비</h3>
-                <p className="text-sky-100 text-lg">실무 경험과 전문적인 진로 지도</p>
+                <h3 className="text-3xl font-bold mb-4 dynamic-font-heading">Future Ready</h3>
+                <p className="text-sky-100 text-lg">Hands-on experience with professional career guidance</p>
               </div>
             </div>
           </div>
@@ -657,10 +657,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-24">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight dynamic-font-heading">
-              간단한 3단계 프로세스
+              Simple 3-Step Process
             </h2>
             <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto">
-              복잡한 절차 없이 <span className="font-bold dynamic-text-primary">편리하고 똑똑한 시스템</span>
+              No complicated procedures - just a <span className="font-bold dynamic-text-primary">convenient and smart system</span>
             </p>
           </div>
           
@@ -669,9 +669,9 @@ export default function Home() {
               <div className="w-32 h-32 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
                 <span className="text-white text-4xl font-bold">1</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">스마트 가입</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">Smart Sign-Up</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
-                개인 맞춤형 프로필 생성으로 빠른 시작
+                Create your personalized profile and get started quickly
               </p>
               {/* Connection Line */}
               <div className="hidden md:block absolute top-16 left-full w-full h-1 bg-gradient-to-r from-sky-300 to-transparent -translate-x-1/2 z-0"></div>
@@ -681,9 +681,9 @@ export default function Home() {
               <div className="w-32 h-32 dynamic-gradient-accent rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl relative z-10">
                 <span className="text-white text-4xl font-bold">2</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">똑똑한 매칭</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">Smart Matching</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
-                정확한 알고리즘이 찾아주는 완벽한 기회들
+                Our precise algorithm finds the perfect opportunities for you
               </p>
               {/* Connection Line */}
               <div className="hidden md:block absolute top-16 left-full w-full h-1 bg-gradient-to-r from-sky-300 to-transparent -translate-x-1/2 z-0"></div>
@@ -693,9 +693,9 @@ export default function Home() {
               <div className="w-32 h-32 dynamic-gradient-primary rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
                 <span className="text-white text-4xl font-bold">3</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">성공적인 연결</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dynamic-font-heading">Successful Connections</h3>
               <p className="text-gray-600 text-lg sm:text-xl leading-relaxed">
-                실시간 알림으로 놓치지 않는 기회들
+                Real-time notifications ensure you never miss an opportunity
               </p>
             </div>
           </div>
@@ -715,15 +715,15 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 sm:mb-8 leading-tight">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-200 via-sky-100 to-white">
-              당신의 미래가
+              Your future
             </span>
             <span className="block text-white mt-2">
-              여기서 시작됩니다
+              starts here
             </span>
           </h2>
           <p className="text-lg sm:text-2xl md:text-3xl text-sky-100 mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed">
-            뉴브런즈윅의 모든 학생들이 성공할 수 있도록 
-            <span className="font-bold text-white">전문 기술과 서비스</span>로 지원합니다
+            Supporting every New Brunswick student&apos;s success with 
+            <span className="font-bold text-white">professional technology and services</span>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center mb-12 sm:mb-16">
@@ -733,7 +733,7 @@ export default function Home() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-sky-300 to-sky-400 rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
               <Sparkles size={28} className="sm:w-8 sm:h-8 relative z-10" />
-              <span className="relative z-10">지금 시작하기</span>
+              <span className="relative z-10">Get Started Now</span>
               <ArrowRight size={28} className="sm:w-8 sm:h-8 relative z-10 group-hover:translate-x-2 transition-transform" />
             </Link>
             <Link 
@@ -741,7 +741,7 @@ export default function Home() {
               className="group bg-white/10 backdrop-blur-sm text-white px-10 sm:px-16 py-6 sm:py-8 rounded-2xl font-bold text-lg sm:text-2xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-2xl border-2 border-white/30 flex items-center justify-center space-x-3 sm:space-x-4"
             >
               <Trophy size={28} className="sm:w-8 sm:h-8 text-yellow-300" />
-              <span>문의하기</span>
+              <span>Contact Us</span>
             </Link>
           </div>
 

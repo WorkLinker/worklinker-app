@@ -22,13 +22,13 @@ export default function Navigation() {
 
   const isActive = (path: string) => pathname === path;
 
-  // 인증 상태 감지
+  // Track authentication state
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((user) => {
       setUser(user);
-      console.log('👤 인증 상태 변화:', user ? `${user.email} 로그인` : '로그아웃');
+      console.log('👤 Authentication state changed:', user ? `${user.email} logged in` : 'logged out');
       
-      // 사용자가 로그인했을 때 프로필 이미지 로드
+      // Load profile image when user logs in
       if (user && user.email) {
         loadProfileImage(user.email);
       } else {
@@ -39,7 +39,7 @@ export default function Navigation() {
     return () => unsubscribe();
   }, []);
 
-  // 프로필 이미지 로드 함수
+  // Load profile image function
   const loadProfileImage = (userEmail: string) => {
     const savedImage = localStorage.getItem(`profileImage_${userEmail}`);
     if (savedImage) {
@@ -47,7 +47,7 @@ export default function Navigation() {
     }
   };
 
-  // 프로필 이미지 변경 감지 (localStorage 변경 이벤트)
+  // Listen for profile image changes
   useEffect(() => {
     const handleCustomProfileUpdate = () => {
       if (user && user.email) {
@@ -61,7 +61,7 @@ export default function Navigation() {
     };
   }, [user]);
 
-  // 외부 클릭 감지
+  // Handle outside clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showUserDropdown) {
@@ -83,10 +83,10 @@ export default function Navigation() {
       setUser(null);
       setProfileImage(null);
       setShowUserDropdown(false);
-      console.log('✅ 로그아웃 성공');
+      console.log('✅ Successfully logged out');
       router.push('/');
     } catch (error) {
-      console.error('❌ 로그아웃 오류:', error);
+      console.error('❌ Logout error:', error);
     } finally {
       setAuthLoading(false);
     }
@@ -102,19 +102,19 @@ export default function Navigation() {
               <div className="flex items-center justify-center">
                 <Image 
                   src="/favicon-96x96.png" 
-                  alt="HSJ 로고" 
+                  alt="NB Student Hub Logo" 
                   width={80} 
                   height={80} 
                   className="w-10 h-10 sm:w-16 sm:h-16" 
                 />
               </div>
               <div className="flex flex-col">
-                {/* 모바일에서는 짧은 텍스트, 데스크톱에서는 긴 텍스트 */}
+                {/* Mobile: shorter text, Desktop: longer text */}
                 <span className="text-sm sm:text-2xl font-bold text-white block sm:hidden">
-                  학생플랫폼
+                  NB Jobs
                 </span>
                 <span className="text-lg sm:text-2xl font-bold text-white hidden sm:block">
-                  캐나다 학생 플랫폼
+                  NB Student Hub
                 </span>
               </div>
             </Link>
@@ -127,7 +127,7 @@ export default function Navigation() {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-lg font-semibold whitespace-nowrap text-white hover:bg-white/20 hover:text-white"
             >
               <Home size={20} />
-              <span>홈</span>
+              <span>Home</span>
             </Link>
             <Link
               href="/events"
@@ -138,7 +138,7 @@ export default function Navigation() {
               }`}
             >
               <Calendar size={20} />
-              <span>이벤트</span>
+              <span>Events</span>
             </Link>
             <Link
               href="/student-profiles"
@@ -149,7 +149,7 @@ export default function Navigation() {
               }`}
             >
               <Users size={20} />
-              <span>학생 프로필</span>
+              <span>Student Profiles</span>
             </Link>
             <Link
               href="/job-postings"
@@ -160,7 +160,7 @@ export default function Navigation() {
               }`}
             >
               <Building size={20} />
-              <span>기업 채용</span>
+              <span>Post a Job</span>
             </Link>
             <Link
               href="/references"
@@ -171,7 +171,7 @@ export default function Navigation() {
               }`}
             >
               <FileText size={20} />
-              <span>추천서</span>
+              <span>References</span>
             </Link>
             <Link
               href="/volunteer-listings"
@@ -182,7 +182,7 @@ export default function Navigation() {
               }`}
             >
               <Heart size={20} />
-              <span>봉사활동</span>
+              <span>Volunteer</span>
             </Link>
             <Link
               href="/community"
@@ -193,7 +193,7 @@ export default function Navigation() {
               }`}
             >
               <MessageSquare size={20} />
-              <span>자유게시판</span>
+              <span>Community</span>
             </Link>
             <Link
               href="/contact"
@@ -204,7 +204,7 @@ export default function Navigation() {
               }`}
             >
               <Mail size={20} />
-              <span>문의</span>
+              <span>Contact</span>
             </Link>
 
           </div>
@@ -219,12 +219,12 @@ export default function Navigation() {
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
                     className="flex items-center space-x-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200 border border-white/30 hover:border-white/50"
                   >
-                    {/* 프로필 이미지 또는 기본 아이콘 */}
+                    {/* Profile image or default icon */}
                     {profileImage ? (
                       <div className="w-6 h-6 rounded-full overflow-hidden bg-white border border-gray-200">
                         <Image 
                           src={profileImage} 
-                          alt="프로필" 
+                          alt="Profile" 
                           width={24}
                           height={24}
                           className="w-full h-full object-cover"
@@ -242,10 +242,10 @@ export default function Navigation() {
                     />
                   </button>
 
-                  {/* 드롭다운 메뉴 */}
+                  {/* Dropdown menu */}
                   {showUserDropdown && (
-                                          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                        {/* 관리자인 경우 관리자 페이지 표시 */}
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        {/* Show admin page for administrators */}
                         {eventService.isAdmin(user.email || '') ? (
                         <Link
                           href="/admin"
@@ -253,7 +253,7 @@ export default function Navigation() {
                           className="flex items-center space-x-3 px-4 py-2 text-orange-600 hover:bg-orange-50 transition-colors"
                         >
                           <Settings size={18} />
-                          <span>👨‍💼 관리자 페이지</span>
+                          <span>👨‍💼 Admin Dashboard</span>
                         </Link>
                       ) : (
                       <Link
@@ -262,7 +262,7 @@ export default function Navigation() {
                         className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <UserCircle size={18} />
-                        <span>마이페이지</span>
+                        <span>My Profile</span>
                       </Link>
                       )}
                       <div className="border-t border-gray-100 my-1"></div>
@@ -275,7 +275,7 @@ export default function Navigation() {
                         className="flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors w-full text-left disabled:opacity-50"
                       >
                         <LogOut size={18} />
-                        <span>{authLoading ? '로그아웃 중...' : '로그아웃'}</span>
+                        <span>{authLoading ? 'Signing out...' : 'Sign Out'}</span>
                       </button>
                     </div>
                   )}
@@ -290,7 +290,7 @@ export default function Navigation() {
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-white hover:bg-white/20 hover:text-white text-lg font-semibold border border-white/30 hover:border-white/50"
                   >
                     <LogIn size={20} />
-                    <span>로그인</span>
+                    <span>Sign In</span>
                   </button>
 
                 </div>
@@ -319,7 +319,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Home size={20} />
-                <span>홈</span>
+                <span>Home</span>
               </Link>
               <Link
                 href="/events"
@@ -331,7 +331,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Calendar size={20} />
-                <span>이벤트</span>
+                <span>Events</span>
               </Link>
               <Link
                 href="/student-profiles"
@@ -343,7 +343,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Users size={20} />
-                <span>학생 프로필</span>
+                <span>Student Profiles</span>
               </Link>
               <Link
                 href="/job-postings"
@@ -355,7 +355,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Building size={20} />
-                <span>기업 채용</span>
+                <span>Post a Job</span>
               </Link>
               <Link
                 href="/references"
@@ -367,7 +367,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <FileText size={20} />
-                <span>추천서</span>
+                <span>References</span>
               </Link>
               <Link
                 href="/volunteer-listings"
@@ -379,7 +379,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Heart size={20} />
-                <span>봉사활동</span>
+                <span>Volunteer</span>
               </Link>
               <Link
                 href="/community"
@@ -391,7 +391,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <MessageSquare size={20} />
-                <span>자유게시판</span>
+                <span>Community</span>
               </Link>
               <Link
                 href="/contact"
@@ -403,7 +403,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 <Mail size={20} />
-                <span>문의</span>
+                <span>Contact</span>
               </Link>
 
               
@@ -418,7 +418,7 @@ export default function Navigation() {
                       </span>
                     </div>
                     
-                                          {/* 관리자인 경우 관리자 페이지, 일반 사용자인 경우 마이페이지 */}
+                    {/* Show admin page for administrators, my profile for regular users */}
                       {eventService.isAdmin(user.email || '') ? (
                       <Link
                         href="/admin"
@@ -426,7 +426,7 @@ export default function Navigation() {
                         className="flex items-center space-x-3 px-3 py-2 text-orange-300 hover:bg-orange-600/20 hover:text-orange-200 rounded-lg transition-all duration-200 w-full"
                       >
                         <Settings size={20} />
-                        <span>👨‍💼 관리자 페이지</span>
+                        <span>👨‍💼 Admin Dashboard</span>
                       </Link>
                     ) : (
                     <Link
@@ -435,7 +435,7 @@ export default function Navigation() {
                       className="flex items-center space-x-3 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200 w-full"
                     >
                       <UserCircle size={20} />
-                      <span>마이페이지</span>
+                      <span>My Profile</span>
                     </Link>
                     )}
                     
@@ -448,7 +448,7 @@ export default function Navigation() {
                       className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-red-300 hover:bg-red-500/20 hover:text-red-200 text-base font-semibold border border-red-300/30 hover:border-red-300/50 w-full disabled:opacity-50"
                     >
                       <LogOut size={20} />
-                      <span>{authLoading ? '로그아웃 중...' : '로그아웃'}</span>
+                      <span>{authLoading ? 'Signing out...' : 'Sign Out'}</span>
                     </button>
                   </div>
                 ) : (
@@ -462,7 +462,7 @@ export default function Navigation() {
                       className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-white hover:bg-white/20 hover:text-white text-base font-semibold border border-white/30 hover:border-white/50 w-full"
                     >
                       <LogIn size={20} />
-                      <span>로그인</span>
+                      <span>Sign In</span>
                     </button>
 
                   </div>
@@ -487,7 +487,7 @@ export default function Navigation() {
   );
 }
 
-// 로그인/회원가입 모달 컴포넌트
+// Login/Signup Modal Component
 function AuthModal({ 
   isOpen, 
   onClose, 
@@ -516,12 +516,12 @@ function AuthModal({
     setError('');
 
     try {
-              if (isSignUp) {
+      if (isSignUp) {
           await authService.signUpWithEmail(email, password, displayName);
-        console.log('✅ 회원가입 성공!');
+        console.log('✅ Registration successful!');
       } else {
         await authService.signInWithEmail(email, password);
-        console.log('✅ 로그인 성공!');
+        console.log('✅ Login successful!');
       }
       
       onClose();
@@ -529,8 +529,8 @@ function AuthModal({
       setPassword('');
       setDisplayName('');
       
-      // 🏠 메인 홈으로 이동
-      console.log('🏠 메인 홈으로 이동합니다...');
+      // Navigate to main home
+      console.log('🏠 Redirecting to home page...');
       router.push('/');
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setError(error.message);
@@ -545,11 +545,11 @@ function AuthModal({
 
     try {
       await authService.signInWithGoogle();
-      console.log('✅ 구글 로그인 성공!');
+      console.log('✅ Google login successful!');
       onClose();
       
-      // 🏠 메인 홈으로 이동
-      console.log('🏠 메인 홈으로 이동합니다...');
+      // Navigate to main home
+      console.log('🏠 Redirecting to home page...');
       router.push('/');
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setError(error.message);
@@ -560,7 +560,7 @@ function AuthModal({
 
   const handlePasswordReset = async () => {
     if (!email) {
-      setError('비밀번호 재설정을 위해 이메일을 입력해주세요.');
+      setError('Please enter your email address to reset your password.');
       return;
     }
 
@@ -568,9 +568,9 @@ function AuthModal({
     setError('');
     setResetSuccess('');
 
-          try {
+    try {
         await authService.sendPasswordResetEmail(email);
-      setResetSuccess('비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해주세요.');
+      setResetSuccess('Password reset email sent! Please check your email.');
       setShowForgotPassword(false);
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setError(error.message);
@@ -586,7 +586,7 @@ function AuthModal({
       <div className="bg-white rounded-2xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            {isSignUp ? '회원가입' : '로그인'}
+            {isSignUp ? 'Create Account' : 'Sign In'}
           </h2>
           <button
             onClick={onClose}
@@ -612,14 +612,14 @@ function AuthModal({
           {isSignUp && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                이름
+                Full Name
               </label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                placeholder="홍길동"
+                placeholder="John Smith"
                 required
               />
             </div>
@@ -627,14 +627,14 @@ function AuthModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              이메일
+              Email Address
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              placeholder="your@email.com"
+              placeholder="john@example.com"
               required
             />
           </div>
@@ -642,7 +642,7 @@ function AuthModal({
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
-              비밀번호
+              Password
             </label>
               {!isSignUp && (
                 <button
@@ -650,7 +650,7 @@ function AuthModal({
                   onClick={() => setShowForgotPassword(true)}
                   className="text-xs text-sky-500 hover:text-sky-600"
                 >
-                  비밀번호를 잊으셨나요?
+                  Forgot password?
                 </button>
               )}
             </div>
@@ -670,7 +670,7 @@ function AuthModal({
             disabled={loading}
             className="w-full px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
           >
-            {loading ? '처리 중...' : (isSignUp ? '회원가입' : '로그인')}
+            {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 
@@ -680,7 +680,7 @@ function AuthModal({
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">또는</span>
+              <span className="px-2 bg-white text-gray-500">or</span>
             </div>
           </div>
 
@@ -690,7 +690,7 @@ function AuthModal({
             className="w-full mt-4 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
           >
             <span>🔍</span>
-            <span>{loading ? '처리 중...' : '구글로 계속하기'}</span>
+            <span>{loading ? 'Processing...' : 'Continue with Google'}</span>
           </button>
         </div>
 
@@ -700,18 +700,18 @@ function AuthModal({
             className="text-sky-500 hover:text-sky-600 font-medium"
           >
             {isSignUp 
-              ? '이미 계정이 있으신가요? 로그인' 
-              : '계정이 없으신가요? 회원가입'
+              ? 'Already have an account? Sign in' 
+              : "Don't have an account? Sign up"
             }
           </button>
         </div>
 
-        {/* 비밀번호 재설정 모달 */}
+        {/* Password Reset Modal */}
         {showForgotPassword && (
           <div className="absolute inset-0 bg-white rounded-2xl p-6 z-10">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">
-                비밀번호 재설정
+                Reset Password
               </h3>
               <button
                 onClick={() => setShowForgotPassword(false)}
@@ -722,19 +722,19 @@ function AuthModal({
             </div>
 
             <p className="text-gray-600 mb-4">
-              가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.
+              Enter your email address and we&apos;ll send you a link to reset your password.
             </p>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                이메일 주소
+                Email Address
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                placeholder="your@email.com"
+                placeholder="john@example.com"
                 required
               />
             </div>
@@ -744,14 +744,14 @@ function AuthModal({
                 onClick={() => setShowForgotPassword(false)}
                 className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                취소
+                Cancel
               </button>
               <button
                 onClick={handlePasswordReset}
                 disabled={loading}
                 className="flex-1 px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
               >
-                {loading ? '발송 중...' : '재설정 링크 발송'}
+                {loading ? 'Sending...' : 'Send Reset Link'}
               </button>
             </div>
           </div>
