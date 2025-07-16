@@ -18,7 +18,10 @@ import {
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { jobPostingService } from '@/lib/firebase-services';
+import { jobPostingService, eventService } from '@/lib/firebase-services';
+import { authService } from '@/lib/auth-service';
+import { User as FirebaseUser } from 'firebase/auth';
+import AdminFileUpload from '@/components/AdminFileUpload';
 
 export default function JobListingsPage() {
   const [jobPostings, setJobPostings] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -29,6 +32,7 @@ export default function JobListingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6); // 6 items per page
   const [pageInput, setPageInput] = useState('');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const router = useRouter();
 
   // Industry list definition
@@ -51,6 +55,14 @@ export default function JobListingsPage() {
   // Load job posting data when component mounts
   useEffect(() => {
     loadJobPostings();
+  }, []);
+
+  // Check user authentication state
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChange((currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadJobPostings = async () => {
@@ -538,6 +550,19 @@ export default function JobListingsPage() {
           )}
         </div>
       </div>
+
+      {/* 관리자 파일 업로드 섹션 */}
+      {user && eventService.isAdmin(user.email || '') && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AdminFileUpload 
+              title="구인공고 관련 파일 업로드"
+              category="job-listings"
+              showTitle={true}
+            />
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>

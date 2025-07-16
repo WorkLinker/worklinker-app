@@ -1,11 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
-import { fileService } from '@/lib/supabase-services';
-import { supabase } from '@/lib/supabase';
-import { Upload, Download, Trash2, File, Image, FileText, Archive, Music, Video, RefreshCw } from 'lucide-react';
+import { 
+  Upload, 
+  Download, 
+  Trash2, 
+  FileText, 
+  Image as ImageIcon, 
+  File as FileIcon,
+  Search,
+  Filter,
+  AlertCircle,
+  CheckCircle,
+  X
+} from 'lucide-react';
+import { storage, db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 interface FileItem {
   id: string;
@@ -13,329 +24,222 @@ interface FileItem {
   originalName: string;
   size: number;
   type: string;
-  createdAt: string;
-  updatedAt: string;
-  path: string;
-  publicUrl: string;
-  category?: string;
-  categoryId?: string;
+  downloadURL: string;
+  uploadedAt: any;
+  category: string;
 }
 
-// Upload category definitions
-const UPLOAD_CATEGORIES = [
-  { id: 'job-resumes', name: 'Job Seeker Resumes', folder: 'job-resumes' },
-  { id: 'company-docs', name: 'Company Documents', folder: 'company-documents' },
-  { id: 'event-images', name: 'Event Images', folder: 'event-images' },
-  { id: 'announcements', name: 'Announcement Attachments', folder: 'announcements' },
-  { id: 'volunteer-docs', name: 'Volunteer Documents', folder: 'volunteer-documents' },
-  { id: 'admin-files', name: 'Administrator Files', folder: 'admin-files' },
-  { id: 'misc', name: 'Other Documents', folder: 'miscellaneous' }
-];
-
 export default function FileManager() {
-  const [user] = useAuthState(auth);
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('admin-files');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+
+  const categories = [
+    { value: 'all', label: 'All Files' },
+    { value: 'resumes', label: 'Resumes' },
+    { value: 'references', label: 'References' },
+    { value: 'documents', label: 'Documents' },
+    { value: 'images', label: 'Images' },
+    { value: 'admin', label: 'Admin Files' }
+  ];
 
   useEffect(() => {
-    if (user) {
-      loadFiles();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  // Supabase Storage bucket auto-creation function
-  const createBucketIfNotExists = async () => {
-    try {
-      console.log('🔧 Attempting to create profile-images bucket...');
-      
-      // Attempt to create bucket
-      const { error } = await supabase.storage.createBucket('profile-images', {
-        public: true,
-        allowedMimeTypes: ['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-        fileSizeLimit: 5242880 // 5MB
-      });
-      
-      if (error && !error.message.includes('already exists')) {
-        console.error('❌ Bucket creation failed:', error);
-        return false;
-      }
-      
-      console.log('✅ profile-images bucket ready');
-      
-      // Check and set Storage policies (resolve permission issues)
-      try {
-        console.log('🔐 Checking Storage policies...');
-        
-        // Simple test file upload to check permissions
-        const testBlob = new Blob(['test'], { type: 'text/plain' });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const testFile = new (File as any)([testBlob], 'test-permissions.txt', { type: 'text/plain' });
-        
-        const { error: testError } = await supabase.storage
-          .from('profile-images')
-          .upload('test/test-permissions.txt', testFile);
-        
-        if (testError) {
-          console.warn('⚠️ Storage policy issue detected:', testError.message);
-          alert('⚠️ File upload permissions are not configured. Please go to Supabase Dashboard → Storage → profile-images → Policies and set upload/download policies to "Allow all operations".');
-        } else {
-          console.log('✅ Storage permissions verified');
-          // Delete test file
-          await supabase.storage.from('profile-images').remove(['test/test-permissions.txt']);
-        }
-      } catch (policyError) {
-        console.warn('⚠️ Storage policy test failed:', policyError);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('❌ Error during bucket creation:', error);
-      return false;
-    }
-  };
+    loadFiles();
+  }, []);
 
   const loadFiles = async () => {
-    if (!user) return;
-    
-    setLoading(true);
     try {
-      // Check Supabase connection status
-      console.log('🔍 Checking Supabase connection...');
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      setLoading(true);
+      console.log('📁 Loading files from Firebase...');
       
-      if (bucketError) {
-        console.warn('⚠️ Supabase Storage connection failed:', bucketError.message);
-        alert('⚠️ Cannot connect to file system. Please check your network.');
-        setFiles([]);
-        return;
-      }
+      const q = query(collection(db, 'uploadedFiles'), orderBy('uploadedAt', 'desc'));
+      const querySnapshot = await getDocs(q);
       
-      console.log('✅ Supabase Storage connection successful, bucket list:', buckets?.map((b: {name: string}) => b.name));
+      const fileList: FileItem[] = [];
+      querySnapshot.forEach((doc) => {
+        fileList.push({
+          id: doc.id,
+          ...doc.data()
+        } as FileItem);
+      });
       
-      // Check if profile-images bucket exists
-      const profileImagesBucket = buckets?.find((bucket: {name: string}) => bucket.name === 'profile-images');
-      if (!profileImagesBucket) {
-        console.warn('❌ profile-images bucket does not exist. Attempting auto-creation...');
-        
-        const bucketCreated = await createBucketIfNotExists();
-        if (!bucketCreated) {
-          alert('⚠️ Cannot create file storage. Please manually create "profile-images" bucket in Supabase Dashboard.');
-          setFiles([]);
-          return;
-        }
-      }
-      
-      console.log('✅ profile-images bucket verified');
-      
-      // Fetch files from all categories
-      const allFiles: FileItem[] = [];
-      
-      for (const category of UPLOAD_CATEGORIES) {
-        try {
-          console.log(`📁 Searching for files in ${category.name} folder...`);
-          const response = await fileService.getUserFiles(category.folder);
-          if (response.success && response.files) {
-            const filesWithCategory = response.files.map((file: {name: string, url: string, size: number, lastModified: string}) => ({
-              ...file,
-              category: category.name,
-              categoryId: category.id
-            }));
-            allFiles.push(...filesWithCategory);
-            console.log(`✅ ${category.name}: ${response.files.length} files found`);
-          }
-        } catch (error) {
-          console.log(`⚠️ Error loading files from category ${category.name}:`, error);
-        }
-      }
-      
-      console.log(`📁 Total ${allFiles.length} files loaded`);
-      setFiles(allFiles);
-      
-      if (allFiles.length === 0) {
-        console.log('💡 No files found. Try uploading your first file!');
-      }
-      
+      setFiles(fileList);
+      console.log(`✅ Loaded ${fileList.length} files`);
     } catch (error) {
-      console.error('❌ Critical error loading file list:', error);
-      alert(`❌ File system error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setFiles([]);
+      console.error('❌ Error loading files:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile || !user) return;
-
-    const selectedCategoryData = UPLOAD_CATEGORIES.find(cat => cat.id === selectedCategory);
-    if (!selectedCategoryData) return;
+  const handleFileUpload = async (uploadFiles: FileList | File[]) => {
+    if (!uploadFiles || uploadFiles.length === 0) return;
 
     setUploading(true);
+    
     try {
-      console.log(`📤 Starting file upload: ${selectedFile.name} → ${selectedCategoryData.name}`);
+      const fileArray = Array.from(uploadFiles);
       
-      // Check file size
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        alert('⚠️ File size exceeds the 5MB limit. Please choose a smaller file.');
-        return;
-      }
-      
-      // Check file type
-      const allowedTypes = ['image/', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument'];
-      const isAllowed = allowedTypes.some(type => selectedFile.type.startsWith(type));
-      if (!isAllowed) {
-        alert('⚠️ This file format is not supported. Please upload images, PDF, or Word documents only.');
-        return;
-      }
-      
-      const response = await fileService.uploadFile(selectedFile, selectedCategoryData.folder);
-      
-      if (response.success) {
-        setSelectedFile(null);
-        // Reset file input
-        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+      for (const file of fileArray) {
+        // File size validation (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+          continue;
+        }
+
+        // Determine category based on file type
+        let category = 'documents';
+        if (file.type.startsWith('image/')) {
+          category = 'images';
+        } else if (file.name.toLowerCase().includes('resume') || file.name.toLowerCase().includes('cv')) {
+          category = 'resumes';
+        } else if (file.name.toLowerCase().includes('reference')) {
+          category = 'references';
+        }
+
+        // Upload to Firebase Storage
+        const timestamp = Date.now();
+        const fileName = `${category}/${timestamp}_${file.name}`;
+        const fileRef = ref(storage, `admin-files/${fileName}`);
         
-        await loadFiles(); // Refresh file list
+        console.log(`📤 Uploading ${file.name}...`);
+        const snapshot = await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
         
-        console.log('✅ File upload successful:', response.data?.publicUrl);
-        alert(`✅ Great! Your file has been uploaded to the "${selectedCategoryData.name}" category successfully.`);
-      } else {
-        throw new Error('Upload response is not successful.');
+        // Save metadata to Firestore
+        await addDoc(collection(db, 'uploadedFiles'), {
+          name: fileName,
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          downloadURL,
+          category,
+          uploadedAt: serverTimestamp()
+        });
+        
+        console.log(`✅ ${file.name} uploaded successfully`);
       }
       
+      await loadFiles();
+      alert(`🎉 ${fileArray.length} file(s) uploaded successfully!`);
     } catch (error) {
-      console.error('❌ File upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      if (errorMessage.includes('policy')) {
-        alert('❌ Upload permission denied. Please contact the administrator to check storage policies.');
-      } else if (errorMessage.includes('bucket')) {
-        alert('❌ Storage configuration error. Please contact technical support.');
-      } else {
-        alert(`❌ Upload failed: ${errorMessage}`);
-      }
+      console.error('❌ Upload error:', error);
+      alert('Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDownload = async (filePath: string, fileName: string) => {
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleFileUpload(files);
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragActive(false);
+    
+    const files = event.dataTransfer.files;
+    if (files) {
+      handleFileUpload(files);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragActive(false);
+  };
+
+  const handleDownload = async (file: FileItem) => {
     try {
-      console.log('📥 Starting file download:', fileName);
+      console.log(`📥 Downloading ${file.originalName}...`);
       
-      const response = await fileService.getDownloadUrl(filePath);
-      if (!response || !response.success || !response.signedUrl) {
-        throw new Error(response?.error || 'Failed to generate download URL');
-      }
+      const response = await fetch(file.downloadURL);
+      if (!response.ok) throw new Error('Download failed');
       
-      // Fetch file data
-      const fileResponse = await fetch(response.signedUrl);
-      if (!fileResponse.ok) {
-        throw new Error('Failed to fetch file data');
-      }
-      
-      // Convert to Blob
-      const blob = await fileResponse.blob();
-      
-      // Force download
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      link.style.display = 'none';
       
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = file.originalName;
+      document.body.appendChild(a);
+      a.click();
       
-      // Clean up memory
       window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
-      console.log('✅ File download completed:', fileName);
+      console.log(`✅ ${file.originalName} downloaded successfully`);
     } catch (error) {
-      console.error('❌ File download error:', error);
-      alert('❌ Download failed. Please check your network connection and try again.');
+      console.error('❌ Download error:', error);
+      alert('Download failed. Please try again.');
     }
   };
 
-  const handleDelete = async (filePath: string) => {
-    if (!confirm('⚠️ Are you sure you want to delete this file? This action cannot be undone.')) return;
-
+  const handleDeleteFile = async (file: FileItem) => {
+    if (!confirm(`Are you sure you want to delete "${file.originalName}"?`)) {
+      return;
+    }
+    
     try {
-      await fileService.deleteFile(filePath);
-      await loadFiles(); // Refresh file list
-      alert('✅ File has been deleted successfully.');
+      console.log(`🗑️ Deleting ${file.originalName}...`);
+      
+      // Delete from Firebase Storage
+      const fileRef = ref(storage, `admin-files/${file.name}`);
+      await deleteObject(fileRef);
+      
+      // Delete from Firestore
+      await deleteDoc(doc(db, 'uploadedFiles', file.id));
+      
+      await loadFiles();
+      console.log(`✅ ${file.originalName} deleted successfully`);
     } catch (error) {
-      console.error('File deletion error:', error);
-      alert('❌ Failed to delete the file. Please try again.');
+      console.error('❌ Delete error:', error);
+      alert('Delete failed. Please try again.');
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (!confirm('⚠️ CAUTION: This will permanently delete ALL uploaded files! Are you absolutely sure you want to continue?')) return;
-
+  const handleBulkDelete = async () => {
+    if (selectedFiles.length === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${selectedFiles.length} selected file(s)?`)) {
+      return;
+    }
+    
     try {
-      setLoading(true);
-      
-      // Delete all files one by one
-      for (const file of files) {
-        await fileService.deleteFile(file.path);
+      for (const fileId of selectedFiles) {
+        const file = files.find(f => f.id === fileId);
+        if (file) {
+          const fileRef = ref(storage, `admin-files/${file.name}`);
+          await deleteObject(fileRef);
+          await deleteDoc(doc(db, 'uploadedFiles', file.id));
+        }
       }
       
-      await loadFiles(); // Refresh file list
-      alert('✅ All files have been deleted successfully!');
+      setSelectedFiles([]);
+      await loadFiles();
+      alert(`✅ ${selectedFiles.length} file(s) deleted successfully!`);
     } catch (error) {
-      console.error('Bulk deletion error:', error);
-      alert('❌ Some files could not be deleted. Please try again or contact support.');
-    } finally {
-      setLoading(false);
+      console.error('❌ Bulk delete error:', error);
+      alert('Bulk delete failed. Please try again.');
     }
   };
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    const iconClass = "w-6 h-6";
-
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-      case 'webp':
-        return <Image className={`${iconClass} text-green-500`} />;
-      case 'pdf':
-        return <FileText className={`${iconClass} text-red-500`} />;
-      case 'doc':
-      case 'docx':
-        return <FileText className={`${iconClass} text-blue-500`} />;
-      case 'zip':
-      case 'rar':
-      case '7z':
-        return <Archive className={`${iconClass} text-orange-500`} />;
-      case 'mp3':
-      case 'wav':
-      case 'flac':
-        return <Music className={`${iconClass} text-purple-500`} />;
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-        return <Video className={`${iconClass} text-pink-500`} />;
-      default:
-        return <File className={`${iconClass} text-gray-500`} />;
-    }
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return <ImageIcon size={20} className="text-blue-500" />;
+    if (type.includes('pdf')) return <FileText size={20} className="text-red-500" />;
+    return <FileIcon size={20} className="text-gray-500" />;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -346,207 +250,314 @@ export default function FileManager() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-CA');
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Unknown';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  // Filtered file list
-  const filteredFiles = filterCategory === 'all' 
-    ? files 
-    : files.filter(file => file.categoryId === filterCategory);
+  const filteredFiles = files.filter(file => {
+    const matchesSearch = file.originalName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || file.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-  if (!user) {
+  const toggleFileSelection = (fileId: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileId) 
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  const selectAllFiles = () => {
+    if (selectedFiles.length === filteredFiles.length) {
+      setSelectedFiles([]);
+    } else {
+      setSelectedFiles(filteredFiles.map(f => f.id));
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Login required.</p>
+      <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-6"></div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading Files...</h3>
+        <p className="text-gray-600">Please wait while we load your files.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* File Upload Section */}
+      {/* Header */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-          <Upload className="w-6 h-6 mr-2 text-blue-600" />
-          File Upload
-        </h2>
-        
-        <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <label htmlFor="category-select" className="block text-sm font-medium text-gray-700 mb-2">
-              Select Upload Category
-            </label>
-            <select
-              id="category-select"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-            >
-              {UPLOAD_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  📁 {category.name}
-                </option>
-              ))}
-            </select>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Upload size={28} className="mr-3 text-green-600" />
+              File Management System
+            </h2>
+            <p className="text-gray-600 mt-2">
+              Upload, manage, and download files securely with Firebase Storage
+            </p>
           </div>
+          <div className="mt-4 md:mt-0 text-sm text-gray-500">
+            {files.length} total files • {filteredFiles.length} visible
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Zone */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-300 hover:border-green-400'
+          }`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          <input
+            type="file"
+            id="file-upload"
+            multiple
+            onChange={handleFileInput}
+            className="hidden"
+            disabled={uploading}
+          />
           
-          <div>
-            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-              Select File to Upload
-            </label>
-            <div className="relative">
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileSelect}
-                className="hidden"
-                accept="image/*,.pdf,.doc,.docx"
-              />
-              <label
-                htmlFor="file-upload"
-                className="block w-full cursor-pointer border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors"
-              >
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-700">
-                  {selectedFile ? selectedFile.name : 'Choose File or Drag Here'}
-                </span>
-                <p className="text-xs text-gray-500 mt-1">
-                  Images, PDF, Word documents (Max 5MB)
-                </p>
-              </label>
+          <label htmlFor="file-upload" className="cursor-pointer">
+            <Upload size={48} className={`mx-auto mb-4 ${dragActive ? 'text-green-500' : 'text-gray-400'}`} />
+            <div className="text-lg font-medium text-gray-900 mb-2">
+              {uploading ? 'Uploading files...' : 'Click to upload files or drag and drop'}
             </div>
-          </div>
+            <div className="text-sm text-gray-500">
+              Maximum file size: 10MB • All file types supported
+            </div>
+          </label>
           
-          {selectedFile && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {getFileIcon(selectedFile.name)}
-                  <div>
-                    <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                    <p className="text-sm text-gray-500">{formatFileSize(selectedFile.size)}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                >
-                  {uploading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      <span>Upload</span>
-                    </>
-                  )}
-                </button>
-              </div>
+          {uploading && (
+            <div className="mt-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
             </div>
           )}
         </div>
       </div>
 
-      {/* File List Section */}
+      {/* Search and Filter */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-            <File className="w-6 h-6 mr-2 text-green-600" />
-            Uploaded Files ({filteredFiles.length})
-          </h2>
-          <div className="flex items-center space-x-3">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
             <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-              <option value="all">📂 All Categories</option>
-              {UPLOAD_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  📁 {category.name}
-                </option>
+              {categories.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
-            <button
-              onClick={handleDeleteAll}
-              disabled={loading || files.length === 0}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center space-x-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete All</span>
-            </button>
-            <button
-              onClick={loadFiles}
-              disabled={loading}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center space-x-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
+            
+            {/* 전체 선택/해제 버튼 */}
+            {filteredFiles.length > 0 && (
+              <button
+                onClick={selectAllFiles}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <CheckCircle size={16} className="mr-1" />
+                {selectedFiles.length === filteredFiles.length ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+            
+            {selectedFiles.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center shadow-lg"
+              >
+                <Trash2 size={16} className="mr-1" />
+                Delete ({selectedFiles.length}) Selected
+              </button>
+            )}
           </div>
         </div>
+        
+        {/* 파일 개수 및 선택 정보 */}
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+          <div>
+            Total {filteredFiles.length} files • {selectedFiles.length} selected
+          </div>
+          {selectedFiles.length > 0 && (
+            <div className="text-red-600 font-medium">
+              {selectedFiles.length} file(s) ready for deletion
+            </div>
+          )}
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-        ) : filteredFiles.length === 0 ? (
-          <div className="text-center py-12">
-            <File className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg font-medium mb-2">
-              {filterCategory === 'all' 
-                ? 'No files uploaded yet' 
-                : 'No files in this category'}
+      {/* Files Table */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        {filteredFiles.length === 0 ? (
+          <div className="p-12 text-center">
+            <FileIcon size={48} className="text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No files found</h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm || selectedCategory !== 'all' 
+                ? 'Try adjusting your search or filter criteria'
+                : 'Upload your first file to get started'
+              }
             </p>
-            <p className="text-gray-400 text-sm">
-              Upload your first file using the form above
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredFiles.map((file, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    {getFileIcon(file.name)}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{file.name}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>{formatFileSize(file.size)}</span>
-                        {file.category && (
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
-                            📁 {file.category}
-                          </span>
-                        )}
-                        <span>Uploaded: {formatDate(file.createdAt)}</span>
-                      </div>
-                    </div>
+            {!(searchTerm || selectedCategory !== 'all') && (
+              <div className="max-w-md mx-auto text-sm text-gray-500 space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <p className="font-medium text-gray-700 mb-1">✨ 업로드 후 가능한 기능:</p>
+                    <ul className="space-y-1">
+                      <li>• 파일 다운로드</li>
+                      <li>• 개별 파일 삭제</li>
+                    </ul>
                   </div>
-                  <div className="flex items-center space-x-2 flex-shrink-0">
-                    <button
-                      onClick={() => handleDownload(file.path, file.name)}
-                      className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(file.path)}
-                      className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div>
+                    <p className="font-medium text-gray-700 mb-1">🗑️ 삭제 방법:</p>
+                    <ul className="space-y-1">
+                      <li>• Delete 버튼 클릭</li>
+                      <li>• 여러 파일 선택 후 일괄 삭제</li>
+                    </ul>
                   </div>
                 </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-blue-800 text-xs">
+                    💡 파일을 업로드하면 각 파일 옆에 <span className="font-bold text-red-600">Delete</span> 버튼이 나타납니다
+                  </p>
+                </div>
               </div>
-            ))}
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.length === filteredFiles.length && filteredFiles.length > 0}
+                      onChange={selectAllFiles}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    File
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Size
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Uploaded
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredFiles.map((file) => (
+                  <tr key={file.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedFiles.includes(file.id)}
+                        onChange={() => toggleFileSelection(file.id)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        {getFileIcon(file.type)}
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                            {file.originalName}
+                          </div>
+                          <div className="text-sm text-gray-500">{file.type}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                        {file.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {formatFileSize(file.size)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(file.uploadedAt)}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleDownload(file)}
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-green-600 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200 hover:text-green-700 transition-colors"
+                          title="Download"
+                        >
+                          <Download size={14} className="mr-1" />
+                          Download
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFile(file)}
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-100 border border-red-200 rounded-lg hover:bg-red-200 hover:text-red-700 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} className="mr-1" />
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
+      </div>
+
+      {/* Stats */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {categories.slice(1).map(category => {
+            const count = files.filter(f => f.category === category.value).length;
+            return (
+              <div key={category.value} className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{count}</div>
+                <div className="text-sm text-gray-500">{category.label}</div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

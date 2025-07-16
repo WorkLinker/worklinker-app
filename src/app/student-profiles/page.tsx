@@ -311,7 +311,7 @@ Thank you.`;
           }`}>
             <div className="relative h-full">
               <Image
-                src="/images/학생구직.png"
+                src="/images/student-jobs.png"
                 alt="Student job search"
                 fill
                 className="object-cover"
@@ -360,7 +360,7 @@ Thank you.`;
           }`}>
             <div className="relative h-full">
               <Image
-                src="/images/학생프로필.png"
+                src="/images/student-profiles.png"
                 alt="Student profile"
                 fill
                 className="object-cover"

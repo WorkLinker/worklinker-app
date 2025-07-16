@@ -97,19 +97,22 @@ export default function Home() {
   // Default slides (used while Firestore is loading)
   const defaultSlides = [
     {
-      image: '/images/메인홈1.png',
+      image: '/images/main-home-1.png',
       title: 'Your First Step to Career Success',
-      subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
+      subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience',
+      alt: 'New Brunswick Student Hub - Career Success Platform for Students'
     },
     {
-      image: '/images/메인홈2.jpg',
+      image: '/images/main-home-2.jpg',
       title: 'Discover the Talented Students of Tomorrow',
-      subtitle: 'Connect with the future leaders of New Brunswick'
+      subtitle: 'Connect with the future leaders of New Brunswick',
+      alt: 'Canadian Students - Future Leaders and Talented Youth'
     },
     {
-      image: '/images/메인홈3.png',
+      image: '/images/main-home-3.png',
       title: 'Innovative Education Platform',
-      subtitle: 'Where technology meets education to unlock new possibilities'
+      subtitle: 'Where technology meets education to unlock new possibilities',
+      alt: 'Innovative Educational Technology Platform for Career Development'
     }
   ];
 
@@ -175,15 +178,21 @@ export default function Home() {
   }, []);
 
   // Current slides to use (always use defaultSlides with English content)
-  const slides = defaultSlides.map((slide, index) => ({
-    ...slide,
-    image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || slide.image
-  }));
+  const slides = defaultSlides.map((slide, index) => {
+    const designImage = designSettings?.images?.heroSlides?.[`slide${index + 1}`];
+    // Only use design image if it's not a Korean filename
+    const useDesignImage = designImage && !designImage.includes('메인홈') && !designImage.includes('%');
+    return {
+      ...slide,
+      image: useDesignImage ? designImage : slide.image,
+      alt: slide.alt || slide.title
+    };
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 10000); // 10초로 늘림 (더 여유롭게)
     return () => clearInterval(timer);
   }, [slides.length]);
 
@@ -290,20 +299,33 @@ export default function Home() {
         
         {/* Slideshow Background */}
         <div className="absolute inset-0">
-          {slides.map((slide: {title: string, subtitle: string, image: string}, index: number) => (
+          {slides.map((slide: {title: string, subtitle: string, image: string, alt?: string}, index: number) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              className={`absolute inset-0 slide-transition ${
+                index === currentSlide 
+                  ? 'opacity-100 scale-100' 
+                  : 'opacity-0 scale-110'
               }`}
+              style={{
+                filter: index === currentSlide ? 'blur(0px)' : 'blur(2px)',
+                transform: index === currentSlide 
+                  ? 'scale(1) translateX(0)' 
+                  : 'scale(1.08) translateX(0)'
+              }}
             >
               <Image
                 src={slide.image}
-                alt={`Main slide ${index + 1}`}
+                alt={slide.alt || slide.title}
                 fill
                 sizes="100vw"
-                className="object-cover"
+                className="object-cover object-center"
                 priority={index === 0}
+                quality={85}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                onError={(e) => {
+                  console.error(`Failed to load slide image: ${slide.image}`);
+                }}
               />
               <div className="absolute inset-0 bg-black/30"></div>
             </div>
@@ -313,15 +335,15 @@ export default function Home() {
         {/* Slide Navigation Buttons */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 z-40 bg-white/20 backdrop-blur-sm rounded-full p-4 md:p-3 hover:bg-white/30 transition-all"
+          className="absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 z-40 bg-white/20 backdrop-blur-sm rounded-full p-4 md:p-3 hover:bg-white/40 hover:scale-110 transition-all duration-300 ease-out shadow-lg hover:shadow-xl"
         >
-          <ChevronLeft size={24} className="text-white" />
+          <ChevronLeft size={24} className="text-white transition-transform duration-300 hover:-translate-x-1" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-40 bg-white/20 backdrop-blur-sm rounded-full p-4 md:p-3 hover:bg-white/30 transition-all"
+          className="absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-40 bg-white/20 backdrop-blur-sm rounded-full p-4 md:p-3 hover:bg-white/40 hover:scale-110 transition-all duration-300 ease-out shadow-lg hover:shadow-xl"
         >
-          <ChevronRight size={24} className="text-white" />
+          <ChevronRight size={24} className="text-white transition-transform duration-300 hover:translate-x-1" />
         </button>
 
         {/* Slide Indicators */}
@@ -331,8 +353,10 @@ export default function Home() {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
+              className={`rounded-full transition-all duration-700 ease-out transform hover:scale-125 ${
+                index === currentSlide 
+                  ? 'w-8 h-3 bg-white shadow-lg' 
+                  : 'w-3 h-3 bg-white/50 hover:bg-white/70'
               }`}
             />
           ))}
@@ -431,7 +455,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.student || "/images/7번.png"}
+                  src={designSettings?.images?.featureCards?.student || "/images/student-opportunities.png"}
                   alt="Student job search"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -472,7 +496,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.reference || "/images/4번.png"}
+                  src={designSettings?.images?.featureCards?.reference || "/images/reference-support.png"}
                   alt="Reference support"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -513,7 +537,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.company || "/images/3번.png"}
+                  src={designSettings?.images?.featureCards?.company || "/images/company-recruitment.png"}
                   alt="Employer hiring"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -554,7 +578,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.events || "/images/교육이벤트.png"}
+                  src={designSettings?.images?.featureCards?.events || "/images/education-events.png"}
                   alt="Learning events"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"

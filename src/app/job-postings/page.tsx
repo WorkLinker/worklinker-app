@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,9 +8,10 @@ import Image from 'next/image';
 import { Building, DollarSign, CheckCircle, Plus, Search } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { jobPostingService } from '@/lib/firebase-services';
-// import { authService } from '@/lib/auth-service';
-// import { User as FirebaseUser } from 'firebase/auth';
+import { jobPostingService, eventService } from '@/lib/firebase-services';
+import { authService } from '@/lib/auth-service';
+import { User as FirebaseUser } from 'firebase/auth';
+import AdminFileUpload from '@/components/AdminFileUpload';
 
 const JobPostingSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -34,15 +35,15 @@ export default function JobPostingsPage() {
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
 
-  // // Check user authentication state
-  // useEffect(() => {
-  //   const unsubscribe = authService.onAuthStateChange((currentUser) => {
-  //     setUser(currentUser);
-  //   });
-  //   return () => unsubscribe();
-  // }, []);
+  // Check user authentication state
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChange((currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const {
     register,
@@ -125,7 +126,7 @@ export default function JobPostingsPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/기업채용.png"
+            src="/images/job-postings.png"
             alt="Company hiring"
             fill
             sizes="100vw"
@@ -478,6 +479,19 @@ export default function JobPostingsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 관리자 파일 업로드 섹션 */}
+      {user && eventService.isAdmin(user.email || '') && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AdminFileUpload 
+              title="구인구직 관련 파일 업로드"
+              category="job-postings"
+              showTitle={true}
+            />
+          </div>
+        </section>
       )}
 
       <Footer />

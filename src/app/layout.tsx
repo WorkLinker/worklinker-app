@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import DynamicStyleLoader from "@/components/DynamicStyleLoader";
 
 export const metadata: Metadata = {
   title: "NB Student Hub",
@@ -48,7 +47,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50 dynamic-font-body">
-        <DynamicStyleLoader />
         {children}
       </body>
     </html>

@@ -89,7 +89,7 @@ export default function ReferencesPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/추천서지원.png"
+            src="/images/references.png"
             alt="Reference letter support"
             fill
             sizes="100vw"

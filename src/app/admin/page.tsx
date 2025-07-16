@@ -34,23 +34,24 @@ import {
   Palette,
   Image as ImageIcon,
   Type,
-  Upload
+  Upload,
+  Phone
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService, volunteerService, designService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 // import { User as SupabaseUser } from '@supabase/supabase-js';
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
-import { supabase } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase'; // 제거됨
 import { User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management';
+type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management';
 
 // 비밀번호 변경 모달 컴포넌트
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -1078,6 +1079,14 @@ export default function AdminPage() {
   const [volunteerLoading, setVolunteerLoading] = useState(false);
   const [volunteerUpdating, setVolunteerUpdating] = useState<string | null>(null);
   
+  // 문의사항 관리 관련 상태
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [allContacts, setAllContacts] = useState<any[]>([]);
+  const [contactSearchTerm, setContactSearchTerm] = useState('');
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactUpdating, setContactUpdating] = useState<string | null>(null);
+  const [contactDeleting, setContactDeleting] = useState<string | null>(null);
+  
   const router = useRouter();
 
   // 봉사자 데이터 로딩 함수들
@@ -1090,6 +1099,50 @@ export default function AdminPage() {
       console.error('❌ Error loading volunteer opportunities:', error);
     } finally {
       setVolunteerLoading(false);
+    }
+  };
+
+  // 문의사항 데이터 로딩 함수들
+  const loadAllContacts = async () => {
+    try {
+      setContactLoading(true);
+      const contacts = await contactService.getAllContacts();
+      setAllContacts(contacts);
+    } catch (error) {
+      console.error('❌ Error loading contacts:', error);
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
+  const handleContactStatusUpdate = async (contactId: string, resolved: boolean) => {
+    try {
+      setContactUpdating(contactId);
+      await contactService.updateContactStatus(contactId, resolved);
+      await loadAllContacts();
+      alert(resolved ? '✅ 문의사항이 해결됨으로 표시되었습니다.' : '✅ 문의사항이 미해결로 표시되었습니다.');
+    } catch (error) {
+      console.error('❌ Error updating contact status:', error);
+      alert('❌ 상태 변경 중 오류가 발생했습니다.');
+    } finally {
+      setContactUpdating(null);
+    }
+  };
+
+  const handleContactDelete = async (contactId: string) => {
+    try {
+      const confirmed = confirm('Are you sure you want to delete this inquiry? This action cannot be undone.');
+      if (!confirmed) return;
+
+      setContactDeleting(contactId);
+      await contactService.deleteContact(contactId);
+      await loadAllContacts();
+      alert('✅ Inquiry has been deleted successfully.');
+    } catch (error) {
+      console.error('❌ Error deleting contact:', error);
+      alert('❌ An error occurred while deleting the inquiry.');
+    } finally {
+      setContactDeleting(null);
     }
   };
 
@@ -1142,7 +1195,8 @@ export default function AdminPage() {
         loadPendingApplications(),
         loadSiteContent(),
         loadPendingVolunteerPostings(),
-        loadDesignSettings()
+        loadDesignSettings(),
+        loadAllContacts()
       ]);
     } else {
       router.push('/');
@@ -1183,24 +1237,7 @@ const loadSiteContent = async () => {
     }
   };
 
-  // Reset content to English
-  const handleResetToEnglish = async () => {
-    if (!confirm('🔄 Are you sure you want to reset all content to English? This will overwrite current content.')) {
-      return;
-    }
 
-    try {
-      setContentSaving(true);
-      await contentService.resetToEnglishContent(user?.email || 'Unknown Admin');
-      alert('✅ Content successfully reset to English!');
-      await loadSiteContent(); // Reload updated content
-    } catch (error) {
-      console.error('❌ Content reset error:', error);
-      alert('❌ Content reset failed.');
-    } finally {
-      setContentSaving(false);
-    }
-  };
 
   // 디자인 설정 로드
   const loadDesignSettings = async () => {
@@ -1242,32 +1279,35 @@ const loadSiteContent = async () => {
       try {
         setIsImageUploading(`${category}-${imageName}`);
         
-        // Supabase Storage에 업로드
-        const timestamp = Date.now();
-        const fileExtension = file.name.split('.').pop();
-        const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
+        // 현재 이미지 업로드 기능은 비활성화됨
+        alert('⚠️ Image upload feature is temporarily disabled.');
         
-        // Supabase 업로드
-        const { error } = await supabase.storage
-          .from('profile-images')
-          .upload(`design-assets/${fileName}`, file);
+        // Supabase Storage에 업로드 (현재 비활성화)
+        // const timestamp = Date.now();
+        // const fileExtension = file.name.split('.').pop();
+        // const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
         
-        if (error) throw error;
+        // Supabase 업로드 (현재 비활성화)
+        // const { error } = await supabase.storage
+        //   .from('profile-images')
+        //   .upload(`design-assets/${fileName}`, file);
         
-        // 공개 URL 얻기
-        const { data: urlData } = supabase.storage
-          .from('profile-images')
-          .getPublicUrl(`design-assets/${fileName}`);
+        // if (error) throw error;
         
-        if (urlData?.publicUrl) {
-          // Firebase Firestore에 이미지 정보 저장 (기존 방식 유지)
-          await designService.updateActiveImage(category, imageName, urlData.publicUrl);
-          
-          // 디자인 설정 다시 로드
-          await loadDesignSettings();
-          
-          alert('✅ Image has been successfully uploaded!');
-        }
+        // 공개 URL 얻기 (현재 비활성화)
+        // const { data: urlData } = supabase.storage
+        //   .from('profile-images')
+        //   .getPublicUrl(`design-assets/${fileName}`);
+        
+        // if (urlData?.publicUrl) {
+        //   // Firebase Firestore에 이미지 정보 저장 (기존 방식 유지)
+        //   await designService.updateActiveImage(category, imageName, urlData.publicUrl);
+        //   
+        //   // 디자인 설정 다시 로드
+        //   await loadDesignSettings();
+        //   
+        //   alert('✅ Image has been successfully uploaded!');
+        // }
       } catch (error) {
         console.error('❌ Image upload error:', error);
         alert('❌ Error occurred while uploading image.');
@@ -1564,6 +1604,12 @@ const loadSiteContent = async () => {
       name: 'File Management',
       icon: Upload,
       description: 'File upload and download management'
+    },
+    {
+      id: 'contact-management' as TabType,
+      name: 'Contact Management',
+      icon: Mail,
+      description: 'Manage customer inquiries and support requests'
     }
   ];
 
@@ -1905,39 +1951,15 @@ const loadSiteContent = async () => {
 
         return (
           <div className="space-y-8">
-            {/* Header with Reset Button */}
+            {/* Header */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <Edit size={28} className="mr-3 text-blue-600" />
-                    Content Editing
-                  </h2>
-                  <p className="text-gray-600 mt-2">
-                    Edit website text and sections
-                  </p>
-                </div>
-                <button
-                  onClick={handleResetToEnglish}
-                  disabled={contentSaving}
-                  className="mt-4 md:mt-0 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {contentSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Resetting...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={16} className="mr-2" />
-                      🔄 Reset to English
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-blue-800 text-sm">
-                  💡 <strong>Tip:</strong> If you see Korean text in the fields below, click "Reset to English" button to update all content to English automatically.
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <Edit size={28} className="mr-3 text-blue-600" />
+                  Content Editing
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  Edit website text and sections
                 </p>
               </div>
             </div>
@@ -2283,7 +2305,7 @@ const loadSiteContent = async () => {
                       </div>
                       <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
                         <Image 
-                          src={`/images/메인홈${slideNum}.${slideNum === 2 ? 'jpg' : 'png'}`}
+                          src={`/images/main-home-${slideNum}.${slideNum === 2 ? 'jpg' : 'png'}`}
                           alt={`Main slide ${slideNum}`}
                           className="w-full h-full object-cover"
                           fill
@@ -2300,10 +2322,10 @@ const loadSiteContent = async () => {
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">Feature Card Images</h4>
                                       {[
-                      { name: 'Student Jobs', file: '7번.png', key: 'student' },
-                      { name: 'Reference Support', file: '4번.png', key: 'reference' },
-                      { name: 'Company Recruitment', file: '3번.png', key: 'company' },
-                      { name: 'Learning Events', file: '교육이벤트.png', key: 'events' }
+                      { name: 'Student Jobs', file: 'student-opportunities.png', key: 'student' },
+                      { name: 'Reference Support', file: 'reference-support.png', key: 'reference' },
+                      { name: 'Company Recruitment', file: 'company-recruitment.png', key: 'company' },
+                      { name: 'Learning Events', file: 'education-events.png', key: 'events' }
                   ].map((card, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -2824,6 +2846,156 @@ const loadSiteContent = async () => {
 
       case 'file-management':
         return <FileManager />;
+
+      case 'contact-management':
+        return (
+          <div className="space-y-6">
+            {/* 헤더 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Mail size={28} className="mr-3 text-blue-600" />
+                📧 Contact Management
+              </h2>
+              <p className="text-gray-600 mt-2">
+                Manage customer inquiries and support requests.
+              </p>
+            </div>
+
+            {/* 검색 및 필터 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, email, or message..."
+                      value={contactSearchTerm}
+                      onChange={(e) => setContactSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={loadAllContacts}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                >
+                  <Filter size={18} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 문의사항 목록 */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  All Inquiries ({allContacts.length})
+                </h3>
+                <div className="text-sm text-gray-600">
+                  Resolved: {allContacts.filter(c => c.resolved).length} • 
+                  Pending: {allContacts.filter(c => !c.resolved).length}
+                </div>
+              </div>
+
+              {contactLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading contacts...</p>
+                </div>
+              ) : allContacts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Mail size={48} className="text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
+                  <p className="text-gray-500">No customer inquiries have been submitted yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {allContacts
+                    .filter(contact => 
+                      !contactSearchTerm || 
+                      contact.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                      contact.email?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                      contact.message?.toLowerCase().includes(contactSearchTerm.toLowerCase())
+                    )
+                    .map((contact) => (
+                      <div key={contact.id} className="border border-gray-200 rounded-lg p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900">{contact.name}</h4>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                contact.resolved 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {contact.resolved ? 'Resolved' : 'Pending'}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                              <div className="flex items-center">
+                                <Mail size={14} className="mr-1" />
+                                <span>{contact.email}</span>
+                              </div>
+                              {contact.phone && (
+                                <div className="flex items-center">
+                                  <Phone size={14} className="mr-1" />
+                                  <span>{contact.phone}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center">
+                                <Clock size={14} className="mr-1" />
+                                <span>{formatDate(contact.createdAt)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleContactStatusUpdate(contact.id, !contact.resolved)}
+                              disabled={contactUpdating === contact.id}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                contact.resolved
+                                  ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                                  : 'bg-green-100 text-green-800 hover:bg-green-200'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {contactUpdating === contact.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                contact.resolved ? 'Mark as Pending' : 'Mark as Resolved'
+                              )}
+                            </button>
+                            <a
+                              href={`mailto:${contact.email}?subject=Re: Your inquiry&body=Hello ${contact.name},%0D%0A%0D%0AThank you for contacting us.%0D%0A%0D%0ABest regards,%0D%0ANB Student Hub Team`}
+                              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+                            >
+                              Reply
+                            </a>
+                            <button
+                              onClick={() => handleContactDelete(contact.id)}
+                              disabled={contactDeleting === contact.id}
+                              className="px-3 py-2 bg-red-100 text-red-800 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {contactDeleting === contact.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                'Delete'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h5 className="font-medium text-gray-900 mb-2">Message:</h5>
+                          <p className="text-gray-700 whitespace-pre-wrap">{contact.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
 
       default:
         return null;

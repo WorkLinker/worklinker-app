@@ -127,7 +127,7 @@ export default function JobSeekersPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/학생구직.png"
+            src="/images/student-jobs.png"
             alt="Student job search"
             fill
             sizes="100vw"

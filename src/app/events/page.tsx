@@ -301,7 +301,7 @@ export default function EventsPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/5번.jpg"
+                          src="/images/events.jpg"
             alt="Educational Events"
             fill
             sizes="100vw"

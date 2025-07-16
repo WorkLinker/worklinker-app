@@ -9,27 +9,54 @@ const FROM_NAME = process.env.MAILERSEND_FROM_NAME || 'NB High School Jobs Platf
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nbhighschooljobs@gmail.com';
 
 // MailerSend 인스턴스 생성
-const mailerSend = new MailerSend({
-  apiKey: MAILERSEND_API_KEY,
-});
+let mailerSend: MailerSend | null = null;
+
+// API 키가 있는 경우에만 MailerSend 인스턴스 생성
+if (MAILERSEND_API_KEY) {
+  try {
+    mailerSend = new MailerSend({
+      apiKey: MAILERSEND_API_KEY,
+    });
+  } catch (error) {
+    console.error('❌ MailerSend initialization failed:', error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // 환경변수 디버깅 (보안상 일부만 표시)
-    console.log('🔍 환경변수 체크:');
-    console.log('- API_KEY 존재:', !!MAILERSEND_API_KEY);
-    console.log('- API_KEY 길이:', MAILERSEND_API_KEY?.length || 0);
+    // Environment variables debugging (partial display for security)
+    console.log('🔍 Environment variables check:');
+    console.log('- API_KEY exists:', !!MAILERSEND_API_KEY);
+    console.log('- API_KEY length:', MAILERSEND_API_KEY?.length || 0);
+    console.log('- API_KEY prefix:', MAILERSEND_API_KEY ? MAILERSEND_API_KEY.substring(0, 8) + '...' : 'none');
     console.log('- FROM_EMAIL:', FROM_EMAIL);
     console.log('- FROM_NAME:', FROM_NAME);
     console.log('- ADMIN_EMAIL:', ADMIN_EMAIL);
+    console.log('- MailerSend instance:', !!mailerSend);
 
-    // API 키 검증
-    if (!MAILERSEND_API_KEY) {
-      console.error('❌ MailerSend API 키가 설정되지 않았습니다.');
+    // API key validation
+    if (!MAILERSEND_API_KEY || MAILERSEND_API_KEY.length < 10) {
+      console.error('❌ MailerSend API key is not properly configured.');
       return NextResponse.json(
-        { error: 'MailerSend API 키가 설정되지 않았습니다.' },
+        { 
+          success: false,
+          error: 'MailerSend API key is not properly configured.',
+          message: 'Please check your MAILERSEND_API_TOKEN environment variable.'
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!mailerSend) {
+      console.error('❌ MailerSend instance is not available.');
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'MailerSend service is not available.',
+          message: 'Email service initialization failed.'
+        },
         { status: 500 }
       );
     }
@@ -44,123 +71,205 @@ export async function POST(request: NextRequest) {
       switch (body.type) {
         case 'contact_form':
           to = ADMIN_EMAIL;
-          subject = `새로운 문의사항: ${body.data.name}님으로부터`;
-          text = `이름: ${body.data.name}\n이메일: ${body.data.email}\n전화번호: ${body.data.phone}\n\n문의내용:\n${body.data.message}`;
+          subject = `New inquiry from: ${body.data.name}`;
+          text = `Name: ${body.data.name}\nEmail: ${body.data.email}\nPhone: ${body.data.phone}\n\nMessage:\n${body.data.message}`;
           html = generateContactEmailHTML(body.data);
           break;
 
         case 'job_application':
           to = ADMIN_EMAIL;
-          subject = `새로운 구직신청: ${body.data.name}님 (${body.data.jobTitle || '직무 미명시'})`;
-          text = `지원자: ${body.data.name}\n이메일: ${body.data.email}\n지원직무: ${body.data.jobTitle || '미명시'}`;
+          subject = `New job application: ${body.data.name} (${body.data.jobTitle || 'No job title specified'})`;
+          text = `Applicant: ${body.data.name}\nEmail: ${body.data.email}\nJob Title: ${body.data.jobTitle || 'Not specified'}`;
           html = generateJobApplicationEmailHTML(body.data);
           break;
 
         case 'job_posting_notification':
           to = body.adminEmail || ADMIN_EMAIL;
-          subject = `새로운 구인공고 등록: ${body.data.title}`;
-          text = `회사: ${body.data.company}\n직무: ${body.data.title}\n위치: ${body.data.location}`;
+          subject = `New job posting registered: ${body.data.title}`;
+          text = `Company: ${body.data.company}\nJob Title: ${body.data.title}\nLocation: ${body.data.location}`;
           html = generateJobPostingNotificationHTML(body.data);
           break;
 
         default:
           return NextResponse.json(
-            { error: '지원하지 않는 이메일 타입입니다.' },
+            { 
+              success: false,
+              error: 'Unsupported email type.',
+              message: `Email type '${body.type}' is not supported.`
+            },
             { status: 400 }
           );
       }
     }
     // 새로운 직접 방식 (to, subject, text/html이 직접 제공되는 경우)
     else if (body.to && body.subject && (body.text || body.html)) {
-      // ⚠️ Trial 계정 제한: 모든 이메일을 관리자 이메일로 전송
+      // ⚠️ Trial account limitation: Send all emails to admin email
+      const originalTo = body.to;
       to = ADMIN_EMAIL;
-      subject = `[원래받을사람: ${body.to}] ${body.subject}`;
+      subject = `[Original recipient: ${originalTo}] ${body.subject}`;
       text = body.text || '';
       html = body.html || body.text;
       
-      console.log(`🔄 Trial 제한으로 인해 ${body.to} → ${ADMIN_EMAIL}로 리다이렉트`);
+      console.log(`🔄 Trial limitation: redirecting ${originalTo} → ${ADMIN_EMAIL}`);
     }
-    // 필수 필드 누락
+    // Missing required fields
     else {
       return NextResponse.json(
-        { error: '필수 필드가 누락되었습니다. (type+data 또는 to+subject+text/html)' },
+        { 
+          success: false,
+          error: 'Required fields are missing.',
+          message: 'Please provide either (type + data) or (to + subject + text/html)'
+        },
         { status: 400 }
       );
     }
 
-    // 발신자 설정
+    console.log('📧 Preparing email:', { to, subject: subject.substring(0, 50) + '...' });
+
+    // Sender configuration validation
+    if (!FROM_EMAIL || !FROM_EMAIL.includes('@')) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid sender email configuration.',
+          message: 'Please check MAILERSEND_FROM_EMAIL environment variable.'
+        },
+        { status: 500 }
+      );
+    }
+
+    // Recipient validation
+    if (!to || !to.includes('@')) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid recipient email.',
+          message: 'Recipient email address is not valid.'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Sender configuration
     const sentFrom = new Sender(FROM_EMAIL, FROM_NAME);
 
-    // 수신자 설정 (배열로 처리)
+    // Recipient configuration (handle as array)
     const recipients = Array.isArray(to) 
       ? to.map(email => new Recipient(email)) 
       : [new Recipient(to)];
 
-    // 이메일 매개변수 구성
+    // Email parameters configuration
     const emailParams = new EmailParams()
       .setFrom(sentFrom)
       .setTo(recipients)
       .setSubject(subject)
-      .setHtml(html)
+      .setHtml(html || `<p>${text}</p>`)
       .setText(text);
 
-    // MailerSend로 이메일 전송
+    console.log('🚀 Sending email via MailerSend...');
+
+    // Send email with MailerSend
     const response = await mailerSend.email.send(emailParams);
 
-    console.log('✅ 이메일 전송 성공:', {
+    console.log('✅ Email sent successfully:', {
       to: to,
-      subject: subject,
-      status: response.statusCode
+      subject: subject.substring(0, 50) + '...',
+      status: response.statusCode,
+      response: response
     });
 
     return NextResponse.json({
       success: true,
-      message: '이메일이 성공적으로 전송되었습니다.',
-      status: response.statusCode
+      message: 'Email has been sent successfully.',
+      statusCode: response.statusCode,
+      messageId: response?.body?.data?.[0]?.message_id || 'unknown'
     });
 
   } catch (error: unknown) {
-    console.error('❌ 이메일 전송 실패:', error);
+    console.error('❌ Email sending failed - Full error:', error);
 
-    // MailerSend 에러 처리
-    if (error && typeof error === 'object' && 'response' in error) {
-      const mailerSendError = error as { 
-        response?: { 
-          data?: unknown; 
-          status?: number; 
-          statusText?: string;
-        }; 
-        message?: string; 
-      };
+    // MailerSend error handling
+    if (error && typeof error === 'object') {
+      // Type-safe error handling
+      const anyError = error as any;
       
-      console.error('MailerSend 에러:', mailerSendError.response?.data);
-      
-      // Trial 계정 제한 에러 특별 처리
-      const errorData = JSON.stringify(mailerSendError.response?.data || '');
-      if (errorData.includes('Trial accounts') || errorData.includes('MS42225')) {
+      if (anyError.response) {
+        const errorData = anyError.response.data;
+        const errorStatus = anyError.response.status;
+        const errorStatusText = anyError.response.statusText;
+        
+        console.error('MailerSend API error:', {
+          status: errorStatus,
+          statusText: errorStatusText,
+          data: errorData
+        });
+        
+        // Special handling for Trial account limitation error
+        const errorString = JSON.stringify(errorData || '');
+        if (errorString.includes('Trial accounts') || 
+            errorString.includes('MS42225') ||
+            errorString.includes('email address is not verified') ||
+            errorString.includes('domain is not verified')) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: '⚠️ MailerSend Trial Account Limitation',
+              message: 'Can only send to verified email addresses.',
+              details: 'Please verify your domain or email addresses in MailerSend dashboard.',
+              helpUrl: 'https://app.mailersend.com/domains',
+              errorData: errorData
+            },
+            { status: 422 }
+          );
+        }
+
+        // Handle authentication errors
+        if (errorStatus === 401 || errorStatus === 403) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'MailerSend authentication failed',
+              message: 'Please check your API key and permissions.',
+              details: errorData
+            },
+            { status: 401 }
+          );
+        }
+        
         return NextResponse.json(
           { 
             success: false,
-            error: '⚠️ MailerSend Trial 계정 제한',
-            message: '인증된 이메일 주소로만 전송 가능합니다.',
-            details: '해결방법: MailerSend에서 도메인 또는 이메일 주소를 인증해주세요.',
-            helpUrl: 'https://app.mailersend.com/domains'
+            error: 'MailerSend API error occurred.',
+            message: 'An error occurred while sending the email.',
+            details: errorData,
+            status: errorStatus
           },
-          { status: 422 }
+          { status: errorStatus || 500 }
         );
       }
-      
-      return NextResponse.json(
-        { 
-          error: '이메일 전송 중 오류가 발생했습니다.',
-          details: mailerSendError.response?.data || mailerSendError.message
-        },
-        { status: mailerSendError.response?.status || 500 }
-      );
+
+      // Handle network or other errors
+      if (anyError.message) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Email service error',
+            message: anyError.message,
+            details: 'Please check your network connection and MailerSend service status.'
+          },
+          { status: 500 }
+        );
+      }
     }
 
+    // Fallback error handling
     return NextResponse.json(
-      { error: '서버 내부 오류가 발생했습니다.' },
+      { 
+        success: false,
+        error: 'Internal server error occurred.',
+        message: 'An unexpected error occurred while sending the email.',
+        details: String(error)
+      },
       { status: 500 }
     );
   }

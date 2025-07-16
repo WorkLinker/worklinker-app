@@ -273,7 +273,7 @@ export default function MyPage() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {user.displayName || user.email?.split('@')[0]}'s Profile
+                  {user.displayName === '시스템 관리자' ? 'System Administrator' : (user.displayName || user.email?.split('@')[0])}&apos;s Profile
                 </h1>
                 <p className="text-lg text-gray-600 mb-4">{user.email}</p>
                 <div className="flex items-center space-x-4 mb-2">

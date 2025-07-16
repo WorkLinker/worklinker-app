@@ -16,6 +16,7 @@ import Image from 'next/image';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { sendContactEmail, ContactFormData } from '@/lib/email-service';
+import { contactService } from '@/lib/firebase-services';
 
 // Get contact information from environment variables
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';
@@ -41,17 +42,27 @@ export default function ContactPage() {
     setError(null);
 
     try {
-      const result = await sendContactEmail(formData);
+      console.log('📝 Submitting contact form...');
       
-      if (result.success) {
+      // Step 1: Save inquiry to Firebase (always executed)
+      const firebaseResult = await contactService.submitContact(formData);
+      
+      if (firebaseResult.success) {
+        console.log('✅ Contact saved to Firebase successfully');
+        
+        // Step 2: Email sending disabled - using Firebase only for maximum reliability
+        console.log('📧 Email sending disabled - all inquiries saved to Firebase database');
+        console.log('📝 Admin can view all inquiries in the admin dashboard Contact Management section');
+        
+        // Process as success if Firebase save succeeded
         setSubmitted(true);
         setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
-        setError(result.message || 'An error occurred while sending your inquiry.');
+        setError('An error occurred while saving your inquiry. Please try again.');
       }
     } catch (err) {
-      setError('An error occurred while sending your inquiry. Please try again.');
-      console.error('Contact form submission error:', err);
+      console.error('❌ Contact form submission error:', err);
+      setError('An error occurred while submitting your inquiry. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +84,7 @@ export default function ContactPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/2번.jpg"
+                            src="/images/contact-us.jpg"
             alt="Contact Us"
             fill
             sizes="100vw"
@@ -201,10 +212,10 @@ export default function ContactPage() {
               <div className="text-center py-8">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Your inquiry has been sent successfully!
+                  Your inquiry has been submitted successfully!
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  We&apos;ll respond within 24 hours.
+                  Your inquiry has been saved to our system and we will respond within 24 hours.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button

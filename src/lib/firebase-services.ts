@@ -19,6 +19,7 @@ import {
   getDocs, 
   doc, 
   updateDoc, 
+  deleteDoc,
   query, 
   orderBy, 
   where,
@@ -612,6 +613,61 @@ export const contactService = {
       return { success: true, id: docRef.id };
     } catch (error) {
       console.error('❌ 문의사항 제출 오류:', error);
+      throw error;
+    }
+  },
+
+  // 관리자용: 모든 문의사항 조회
+  async getAllContacts() {
+    if (!isFirebaseAvailable()) {
+      console.warn('Firebase not available - returning empty contacts list');
+      return [];
+    }
+    
+    try {
+      const q = query(
+        collection(db, 'contacts'),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const contacts = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('✅ 모든 문의사항 조회 성공:', contacts.length, '개');
+      return contacts;
+    } catch (error) {
+      console.error('❌ 문의사항 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 문의사항 해결 상태 업데이트
+  async updateContactStatus(contactId: string, resolved: boolean) {
+    try {
+      await updateDoc(doc(db, 'contacts', contactId), {
+        resolved,
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('✅ 문의사항 상태 업데이트 성공:', contactId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ 문의사항 상태 업데이트 오류:', error);
+      throw error;
+    }
+  },
+
+  // 문의사항 삭제
+  async deleteContact(contactId: string) {
+    try {
+      await deleteDoc(doc(db, 'contacts', contactId));
+      
+      console.log('✅ 문의사항 삭제 성공:', contactId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ 문의사항 삭제 오류:', error);
       throw error;
     }
   }
@@ -1491,15 +1547,15 @@ export const designService = {
           },
           images: {
             heroSlides: {
-              slide1: '/images/메인홈1.png',
-              slide2: '/images/메인홈2.jpg',
-              slide3: '/images/메인홈3.png'
+              slide1: '/images/main-home-1.png',
+              slide2: '/images/main-home-2.jpg',
+              slide3: '/images/main-home-3.png'
             },
             featureCards: {
-              student: '/images/7번.png',
-              reference: '/images/4번.png',
-              company: '/images/3번.png',
-              events: '/images/교육이벤트.png'
+              student: '/images/student-opportunities.png',
+              reference: '/images/reference-support.png',
+              company: '/images/company-recruitment.png',
+              events: '/images/education-events.png'
             }
           }
         };
@@ -1540,15 +1596,15 @@ export const designService = {
           },
           images: {
             heroSlides: {
-              slide1: '/images/메인홈1.png',
-              slide2: '/images/메인홈2.jpg',
-              slide3: '/images/메인홈3.png'
+              slide1: '/images/main-home-1.png',
+              slide2: '/images/main-home-2.jpg',
+              slide3: '/images/main-home-3.png'
             },
             featureCards: {
-              student: '/images/7번.png',
-              reference: '/images/4번.png',
-              company: '/images/3번.png',
-              events: '/images/교육이벤트.png'
+              student: '/images/student-opportunities.png',
+              reference: '/images/reference-support.png',
+              company: '/images/company-recruitment.png',
+              events: '/images/education-events.png'
             }
           }
         });

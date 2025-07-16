@@ -388,3 +388,52 @@
   color: rgba(255, 255, 255, 0.88);
   text-shadow: 0px 1px 3px rgba(0,0,0,0.35);
 }
+
+/* 🎬 부드러운 슬라이드 애니메이션 */
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.05) translateX(30px);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.7;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes slideOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0);
+  }
+  50% {
+    opacity: 0.3;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1) translateX(-30px);
+    filter: blur(4px);
+  }
+}
+
+/* 부드러운 이미지 전환 효과 */
+.slide-transition {
+  transition: all 2000ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform, filter;
+}
+
+.slide-enter {
+  animation: slideIn 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slide-exit {
+  animation: slideOut 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

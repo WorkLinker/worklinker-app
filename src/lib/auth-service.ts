@@ -40,10 +40,11 @@ const initializePersistence = async () => {
 };
 
 // 앱 시작 시 persistence 설정 (클라이언트 사이드에서만)
-let persistenceInitialized = false;
+// let persistenceInitialized = false; // 사용하지 않음
 if (typeof window !== 'undefined') {
   initializePersistence().then((success) => {
-    persistenceInitialized = success;
+    // persistenceInitialized = success; // 사용하지 않음
+    console.log('Firebase persistence initialized:', success);
   });
 }
 
@@ -52,21 +53,21 @@ export const authService = {
   // 이메일/비밀번호 회원가입
   async signUpWithEmail(email: string, password: string, displayName: string) {
     if (!auth) {
-      throw new Error('Firebase not configured');
+      throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
     }
 
     try {
-      console.log('📝 이메일 회원가입 시작...', email);
+      console.log('📝 Starting email signup...', email);
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // 사용자 프로필 업데이트
+      // Update user profile
       await updateProfile(user, {
         displayName: displayName
       });
       
-      console.log('✅ 회원가입 성공 (로그인 상태 유지됨):', user.uid);
+      console.log('✅ Signup successful (login state maintained):', user.uid);
       return { 
         success: true, 
         user: {
@@ -76,20 +77,23 @@ export const authService = {
         }
       };
     } catch (error: unknown) {
-      console.error('❌ 회원가입 오류:', error);
+      console.error('❌ Signup error:', error);
       
-      let errorMessage = '회원가입 중 오류가 발생했습니다.';
+      let errorMessage = 'An error occurred during signup.';
       
       const firebaseError = error as { code?: string };
       switch (firebaseError.code) {
         case 'auth/email-already-in-use':
-          errorMessage = '이미 사용 중인 이메일 주소입니다.';
+          errorMessage = 'This email address is already in use.';
           break;
         case 'auth/weak-password':
-          errorMessage = '비밀번호가 너무 약합니다. (최소 6자)';
+          errorMessage = 'Password is too weak. (minimum 6 characters)';
           break;
         case 'auth/invalid-email':
-          errorMessage = '올바르지 않은 이메일 주소입니다.';
+          errorMessage = 'Invalid email address.';
+          break;
+        case 'auth/api-key-not-valid':
+          errorMessage = 'Firebase configuration error. Please check your settings.';
           break;
       }
       
@@ -100,16 +104,16 @@ export const authService = {
   // 이메일/비밀번호 로그인
   async signInWithEmail(email: string, password: string) {
     if (!auth) {
-      throw new Error('Firebase not configured');
+      throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
     }
 
     try {
-      console.log('🔑 이메일 로그인 시작...', email);
+      console.log('🔑 Starting email login...', email);
       
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      console.log('✅ 로그인 성공 (상태 유지됨):', user.uid);
+      console.log('✅ Login successful (state maintained):', user.uid);
       return { 
         success: true, 
         user: {
@@ -119,23 +123,29 @@ export const authService = {
         }
       };
     } catch (error: unknown) {
-      console.error('❌ 로그인 오류:', error);
+      console.error('❌ Login error:', error);
       
-      let errorMessage = '로그인 중 오류가 발생했습니다.';
+      let errorMessage = 'An error occurred during login.';
       
       const firebaseError = error as { code?: string };
       switch (firebaseError.code) {
         case 'auth/user-not-found':
-          errorMessage = '등록되지 않은 이메일 주소입니다.';
+          errorMessage = 'No user found with this email address.';
           break;
         case 'auth/wrong-password':
-          errorMessage = '비밀번호가 올바르지 않습니다.';
+          errorMessage = 'Incorrect password.';
           break;
         case 'auth/invalid-email':
-          errorMessage = '올바르지 않은 이메일 주소입니다.';
+          errorMessage = 'Invalid email address.';
           break;
         case 'auth/too-many-requests':
-          errorMessage = '너무 많은 로그인 시도입니다. 잠시 후 다시 시도해주세요.';
+          errorMessage = 'Too many login attempts. Please try again later.';
+          break;
+        case 'auth/api-key-not-valid':
+          errorMessage = 'Firebase configuration error. Please check your settings.';
+          break;
+        case 'auth/invalid-credential':
+          errorMessage = 'Invalid login credentials. Please check your email and password.';
           break;
       }
       
@@ -146,17 +156,17 @@ export const authService = {
   // 구글 로그인
   async signInWithGoogle() {
     if (!auth) {
-      throw new Error('Firebase not configured');
+      throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
     }
 
     try {
-      console.log('🔍 구글 로그인 시작...');
+      console.log('🔍 Starting Google login...');
       
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
       
-      console.log('✅ 구글 로그인 성공 (상태 유지됨):', user.uid);
+      console.log('✅ Google login successful (state maintained):', user.uid);
       return { 
         success: true, 
         user: {
@@ -167,13 +177,15 @@ export const authService = {
         }
       };
     } catch (error: unknown) {
-      console.error('❌ 구글 로그인 오류:', error);
+      console.error('❌ Google login error:', error);
       
-      let errorMessage = '구글 로그인 중 오류가 발생했습니다.';
+      let errorMessage = 'An error occurred during Google login.';
       
       const firebaseError = error as { code?: string };
       if (firebaseError.code === 'auth/popup-closed-by-user') {
-        errorMessage = '로그인이 취소되었습니다.';
+        errorMessage = 'Login was cancelled.';
+      } else if (firebaseError.code === 'auth/api-key-not-valid') {
+        errorMessage = 'Firebase configuration error. Please check your settings.';
       }
       
       throw new Error(errorMessage);
@@ -189,11 +201,11 @@ export const authService = {
 
     try {
       await signOut(auth);
-      console.log('✅ 로그아웃 성공');
+      console.log('✅ Logout successful');
       return { success: true };
     } catch (error) {
-      console.error('❌ 로그아웃 오류:', error);
-      throw new Error('로그아웃 중 오류가 발생했습니다.');
+      console.error('❌ Logout error:', error);
+      throw new Error('An error occurred during logout.');
     }
   },
 
@@ -223,9 +235,9 @@ export const authService = {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         unsubscribe();
         if (user) {
-          console.log('✅ 기존 로그인 상태 확인됨:', user.email);
+          console.log('✅ Existing login state confirmed:', user.email);
         } else {
-          console.log('❌ 로그인 상태 없음');
+          console.log('❌ No login state found');
         }
         resolve(user);
       });
@@ -236,7 +248,7 @@ export const authService = {
   isLoggedIn(): boolean {
     const user = auth.currentUser;
     if (user) {
-      console.log('👤 현재 로그인 사용자:', user.email);
+      console.log('👤 Current logged in user:', user.email);
       return true;
     }
     return false;
@@ -247,51 +259,54 @@ export const authService = {
     try {
       const user = auth.currentUser;
       if (!user) {
-        throw new Error('로그인이 필요합니다.');
+        throw new Error('Login is required.');
       }
 
       await sendEmailVerification(user, {
-        url: window.location.origin, // 인증 후 돌아올 URL
+        url: window.location.origin, // URL to return to after verification
         handleCodeInApp: true
       });
 
-      console.log('✅ 이메일 인증 발송 성공:', user.email);
-      return { success: true, message: '인증 이메일이 발송되었습니다.' };
+      console.log('✅ Email verification sent successfully:', user.email);
+      return { success: true, message: 'Verification email has been sent.' };
     } catch (error: unknown) {
-      console.error('❌ 이메일 인증 발송 오류:', error);
-      throw new Error('이메일 인증 발송 중 오류가 발생했습니다.');
+      console.error('❌ Email verification sending error:', error);
+      throw new Error('An error occurred while sending email verification.');
     }
   },
 
   // 비밀번호 재설정 이메일 발송
   async sendPasswordResetEmail(email: string) {
     try {
-      console.log('📧 비밀번호 재설정 이메일 발송...', email);
+      console.log('📧 Sending password reset email...', email);
       
       await sendPasswordResetEmail(auth, email, {
-        url: window.location.origin // 재설정 후 돌아올 URL
+        url: window.location.origin // URL to return to after reset
       });
 
-      console.log('✅ 비밀번호 재설정 이메일 발송 성공');
+      console.log('✅ Password reset email sent successfully');
       return { 
         success: true, 
-        message: '비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.' 
+        message: 'Password reset email has been sent. Please check your email.' 
       };
     } catch (error: unknown) {
-      console.error('❌ 비밀번호 재설정 이메일 발송 오류:', error);
+      console.error('❌ Password reset email sending error:', error);
       
-      let errorMessage = '비밀번호 재설정 이메일 발송 중 오류가 발생했습니다.';
+      let errorMessage = 'An error occurred while sending password reset email.';
       
       const firebaseError = error as { code?: string };
       switch (firebaseError.code) {
         case 'auth/user-not-found':
-          errorMessage = '등록되지 않은 이메일 주소입니다.';
+          errorMessage = 'No user found with this email address.';
           break;
         case 'auth/invalid-email':
-          errorMessage = '올바르지 않은 이메일 주소입니다.';
+          errorMessage = 'Invalid email address.';
           break;
         case 'auth/too-many-requests':
-          errorMessage = '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.';
+          errorMessage = 'Too many requests. Please try again later.';
+          break;
+        case 'auth/api-key-not-valid':
+          errorMessage = 'Firebase configuration error. Please check your settings.';
           break;
       }
       

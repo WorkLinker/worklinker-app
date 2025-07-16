@@ -119,7 +119,7 @@ export default function VolunteerListingsPage() {
       {/* Full Screen Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <Image
-          src="/images/봉사활동.png"
+                      src="/images/volunteer.png"
           alt="Volunteer Opportunities"
           fill
           sizes="100vw"

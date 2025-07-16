@@ -177,7 +177,7 @@ export default function CommunityPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/6번.png"
+            src="/images/community.png"
             alt="Community Board"
             fill
             sizes="100vw"
