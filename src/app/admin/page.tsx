@@ -1953,13 +1953,13 @@ const loadSiteContent = async () => {
           <div className="space-y-8">
             {/* Header */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Edit size={28} className="mr-3 text-blue-600" />
-                  Content Editing
-                </h2>
-                <p className="text-gray-600 mt-2">
-                  Edit website text and sections
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <Edit size={28} className="mr-3 text-blue-600" />
+                    Content Editing
+                  </h2>
+                  <p className="text-gray-600 mt-2">
+                    Edit website text and sections
                 </p>
               </div>
             </div>

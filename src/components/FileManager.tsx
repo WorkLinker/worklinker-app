@@ -295,12 +295,12 @@ export default function FileManager() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center">
               <Upload size={28} className="mr-3 text-green-600" />
-              File Management System
+            File Management System
             </h2>
             <p className="text-gray-600 mt-2">
               Upload, manage, and download files securely with Firebase Storage

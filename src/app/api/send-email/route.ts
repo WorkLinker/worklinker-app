@@ -15,8 +15,8 @@ let mailerSend: MailerSend | null = null;
 if (MAILERSEND_API_KEY) {
   try {
     mailerSend = new MailerSend({
-      apiKey: MAILERSEND_API_KEY,
-    });
+  apiKey: MAILERSEND_API_KEY,
+});
   } catch (error) {
     console.error('❌ MailerSend initialization failed:', error);
   }
@@ -198,13 +198,13 @@ export async function POST(request: NextRequest) {
         const errorData = anyError.response.data;
         const errorStatus = anyError.response.status;
         const errorStatusText = anyError.response.statusText;
-        
+      
         console.error('MailerSend API error:', {
           status: errorStatus,
           statusText: errorStatusText,
           data: errorData
         });
-        
+      
         // Special handling for Trial account limitation error
         const errorString = JSON.stringify(errorData || '');
         if (errorString.includes('Trial accounts') || 
@@ -248,19 +248,19 @@ export async function POST(request: NextRequest) {
           { status: errorStatus || 500 }
         );
       }
-
+      
       // Handle network or other errors
       if (anyError.message) {
-        return NextResponse.json(
-          { 
+      return NextResponse.json(
+        { 
             success: false,
             error: 'Email service error',
             message: anyError.message,
             details: 'Please check your network connection and MailerSend service status.'
-          },
+        },
           { status: 500 }
-        );
-      }
+      );
+    }
     }
 
     // Fallback error handling

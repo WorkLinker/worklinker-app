@@ -183,7 +183,7 @@ export default function Home() {
     // Only use design image if it's not a Korean filename
     const useDesignImage = designImage && !designImage.includes('메인홈') && !designImage.includes('%');
     return {
-      ...slide,
+    ...slide,
       image: useDesignImage ? designImage : slide.image,
       alt: slide.alt || slide.title
     };
@@ -323,7 +323,7 @@ export default function Home() {
                 priority={index === 0}
                 quality={85}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                onError={(_) => {
+                onError={() => {
                   console.error(`Failed to load slide image: ${slide.image}`);
                 }}
               />
