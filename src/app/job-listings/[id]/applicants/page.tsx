@@ -105,10 +105,10 @@ export default function JobApplicantsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return '검토 대기';
-      case 'reviewed': return '검토 완료';
-      case 'accepted': return '합격';
-      case 'rejected': return '불합격';
+      case 'pending': return 'Pending Review';
+      case 'reviewed': return 'Reviewed';
+      case 'accepted': return 'Accepted';
+      case 'rejected': return 'Rejected';
       default: return status;
     }
   };
@@ -246,11 +246,11 @@ export default function JobApplicantsPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 >
-                  <option value="all">전체 ({applications.length})</option>
-                  <option value="pending">검토 대기 ({applications.filter(a => a.status === 'pending').length})</option>
-                  <option value="reviewed">검토 완료 ({applications.filter(a => a.status === 'reviewed').length})</option>
-                  <option value="accepted">합격 ({applications.filter(a => a.status === 'accepted').length})</option>
-                  <option value="rejected">불합격 ({applications.filter(a => a.status === 'rejected').length})</option>
+                  <option value="all">All ({applications.length})</option>
+                  <option value="pending">Pending Review ({applications.filter(a => a.status === 'pending').length})</option>
+                  <option value="reviewed">Reviewed ({applications.filter(a => a.status === 'reviewed').length})</option>
+                  <option value="accepted">Accepted ({applications.filter(a => a.status === 'accepted').length})</option>
+                  <option value="rejected">Rejected ({applications.filter(a => a.status === 'rejected').length})</option>
                 </select>
               </div>
               
@@ -354,7 +354,7 @@ export default function JobApplicantsPage() {
                             ) : (
                               <>
                                 <Eye size={12} className="inline mr-1" />
-                                검토 완료
+                                Mark as Reviewed
                               </>
                             )}
                           </button>

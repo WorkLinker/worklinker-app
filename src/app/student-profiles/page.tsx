@@ -320,9 +320,9 @@ Thank you.`;
               <div className="absolute inset-0 bg-black bg-opacity-40" />
               
               {/* Content */}
-              <div className="absolute inset-0 flex items-end pb-24">
+              <div className="absolute inset-0 flex items-end justify-center pb-20">
                 <div className="container mx-auto px-6 text-center">
-                  <h1 className="hero-title hero-title-default mb-4 sm:mb-6">
+                  <h1 className="hero-title hero-title-default mb-4 sm:mb-6 text-center">
                     Stories of talented students with potential and passion
                   </h1>
                   
@@ -369,15 +369,15 @@ Thank you.`;
               <div className="absolute inset-0 bg-black bg-opacity-40" />
               
               {/* Content */}
-              <div className="absolute inset-0 flex items-end pb-24">
+              <div className="absolute inset-0 flex items-end justify-center pb-20">
                 <div className="container mx-auto px-6 text-center">
-                  <h1 className="text-6xl md:text-7xl font-bold text-white mb-6">
+                  <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 text-center">
                     Turn your dreams
                     <span className="block bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
                       into reality
                     </span>
                   </h1>
-                  <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto">
+                  <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto text-center">
                     Upload your resume and enter your basic information.<br/>
                     Help employers discover your talents!
                   </p>

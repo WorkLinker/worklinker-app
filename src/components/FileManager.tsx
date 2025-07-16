@@ -21,15 +21,15 @@ interface FileItem {
   categoryId?: string;
 }
 
-// 업로드 카테고리 정의
+// Upload category definitions
 const UPLOAD_CATEGORIES = [
-  { id: 'job-resumes', name: '구직자 이력서', folder: 'job-resumes' },
-  { id: 'company-docs', name: '회사 문서', folder: 'company-documents' },
-  { id: 'event-images', name: '이벤트 이미지', folder: 'event-images' },
-  { id: 'announcements', name: '공지사항 첨부파일', folder: 'announcements' },
-  { id: 'volunteer-docs', name: '봉사활동 문서', folder: 'volunteer-documents' },
-  { id: 'admin-files', name: '관리자 파일', folder: 'admin-files' },
-  { id: 'misc', name: '기타 문서', folder: 'miscellaneous' }
+  { id: 'job-resumes', name: 'Job Seeker Resumes', folder: 'job-resumes' },
+  { id: 'company-docs', name: 'Company Documents', folder: 'company-documents' },
+  { id: 'event-images', name: 'Event Images', folder: 'event-images' },
+  { id: 'announcements', name: 'Announcement Attachments', folder: 'announcements' },
+  { id: 'volunteer-docs', name: 'Volunteer Documents', folder: 'volunteer-documents' },
+  { id: 'admin-files', name: 'Administrator Files', folder: 'admin-files' },
+  { id: 'misc', name: 'Other Documents', folder: 'miscellaneous' }
 ];
 
 export default function FileManager() {
@@ -48,12 +48,12 @@ export default function FileManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Supabase Storage 버킷 자동 생성 함수
+  // Supabase Storage bucket auto-creation function
   const createBucketIfNotExists = async () => {
     try {
-      console.log('🔧 profile-images 버킷 생성 시도...');
+      console.log('🔧 Attempting to create profile-images bucket...');
       
-      // 버킷 생성 시도
+      // Attempt to create bucket
       const { error } = await supabase.storage.createBucket('profile-images', {
         public: true,
         allowedMimeTypes: ['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
@@ -61,17 +61,17 @@ export default function FileManager() {
       });
       
       if (error && !error.message.includes('already exists')) {
-        console.error('❌ 버킷 생성 실패:', error);
+        console.error('❌ Bucket creation failed:', error);
         return false;
       }
       
-      console.log('✅ profile-images 버킷 준비 완료');
+      console.log('✅ profile-images bucket ready');
       
-      // Storage 정책 확인 및 설정 (권한 문제 해결)
+      // Check and set Storage policies (resolve permission issues)
       try {
-        console.log('🔐 Storage 정책 확인 중...');
+        console.log('🔐 Checking Storage policies...');
         
-        // 간단한 테스트 파일 업로드로 권한 확인
+        // Simple test file upload to check permissions
         const testBlob = new Blob(['test'], { type: 'text/plain' });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const testFile = new (File as any)([testBlob], 'test-permissions.txt', { type: 'text/plain' });
@@ -81,20 +81,20 @@ export default function FileManager() {
           .upload('test/test-permissions.txt', testFile);
         
         if (testError) {
-          console.warn('⚠️ Storage 정책 문제 감지:', testError.message);
-          alert('⚠️ 파일 업로드 권한이 설정되지 않았습니다. Supabase 대시보드 → Storage → profile-images → Policies에서 업로드/다운로드 정책을 "Allow all operations"로 설정해주세요.');
+          console.warn('⚠️ Storage policy issue detected:', testError.message);
+          alert('⚠️ File upload permissions are not configured. Please go to Supabase Dashboard → Storage → profile-images → Policies and set upload/download policies to "Allow all operations".');
         } else {
-          console.log('✅ Storage 권한 확인 완료');
-          // 테스트 파일 삭제
+          console.log('✅ Storage permissions verified');
+          // Delete test file
           await supabase.storage.from('profile-images').remove(['test/test-permissions.txt']);
         }
       } catch (policyError) {
-        console.warn('⚠️ Storage 정책 테스트 실패:', policyError);
+        console.warn('⚠️ Storage policy test failed:', policyError);
       }
       
       return true;
     } catch (error) {
-      console.error('❌ 버킷 생성 중 오류:', error);
+      console.error('❌ Error during bucket creation:', error);
       return false;
     }
   };
@@ -104,40 +104,40 @@ export default function FileManager() {
     
     setLoading(true);
     try {
-      // Supabase 연결 상태 확인
-      console.log('🔍 Supabase 연결 확인 중...');
+      // Check Supabase connection status
+      console.log('🔍 Checking Supabase connection...');
       const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
       
       if (bucketError) {
-        console.warn('⚠️ Supabase Storage 연결 실패:', bucketError.message);
-        alert('⚠️ 파일 시스템에 연결할 수 없습니다. 네트워크를 확인하세요.');
+        console.warn('⚠️ Supabase Storage connection failed:', bucketError.message);
+        alert('⚠️ Cannot connect to file system. Please check your network.');
         setFiles([]);
         return;
       }
       
-      console.log('✅ Supabase Storage 연결 성공, 버킷 목록:', buckets?.map((b: {name: string}) => b.name));
+      console.log('✅ Supabase Storage connection successful, bucket list:', buckets?.map((b: {name: string}) => b.name));
       
-      // profile-images 버킷이 존재하는지 확인
-              const profileImagesBucket = buckets?.find((bucket: {name: string}) => bucket.name === 'profile-images');
+      // Check if profile-images bucket exists
+      const profileImagesBucket = buckets?.find((bucket: {name: string}) => bucket.name === 'profile-images');
       if (!profileImagesBucket) {
-        console.warn('❌ profile-images 버킷이 존재하지 않음. 자동 생성 시도...');
+        console.warn('❌ profile-images bucket does not exist. Attempting auto-creation...');
         
         const bucketCreated = await createBucketIfNotExists();
         if (!bucketCreated) {
-          alert('⚠️ 파일 저장소를 생성할 수 없습니다. Supabase 대시보드에서 수동으로 "profile-images" 버킷을 생성해주세요.');
+          alert('⚠️ Cannot create file storage. Please manually create "profile-images" bucket in Supabase Dashboard.');
           setFiles([]);
           return;
         }
       }
       
-      console.log('✅ profile-images 버킷 확인됨');
+      console.log('✅ profile-images bucket verified');
       
-      // 모든 카테고리의 파일을 가져오기
+      // Fetch files from all categories
       const allFiles: FileItem[] = [];
       
       for (const category of UPLOAD_CATEGORIES) {
         try {
-          console.log(`📁 ${category.name} 폴더에서 파일 검색 중...`);
+          console.log(`📁 Searching for files in ${category.name} folder...`);
           const response = await fileService.getUserFiles(category.folder);
           if (response.success && response.files) {
             const filesWithCategory = response.files.map((file: {name: string, url: string, size: number, lastModified: string}) => ({
@@ -146,23 +146,23 @@ export default function FileManager() {
               categoryId: category.id
             }));
             allFiles.push(...filesWithCategory);
-            console.log(`✅ ${category.name}: ${response.files.length}개 파일 발견`);
+            console.log(`✅ ${category.name}: ${response.files.length} files found`);
           }
         } catch (error) {
-          console.log(`⚠️ 카테고리 ${category.name} 파일 로드 오류:`, error);
+          console.log(`⚠️ Error loading files from category ${category.name}:`, error);
         }
       }
       
-      console.log(`📁 총 ${allFiles.length}개 파일 로드됨`);
+      console.log(`📁 Total ${allFiles.length} files loaded`);
       setFiles(allFiles);
       
       if (allFiles.length === 0) {
-        console.log('💡 파일이 없습니다. 첫 번째 파일을 업로드해보세요!');
+        console.log('💡 No files found. Try uploading your first file!');
       }
       
     } catch (error) {
-      console.error('❌ 파일 목록 로드 치명적 오류:', error);
-      alert(`❌ 파일 시스템 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      console.error('❌ Critical error loading file list:', error);
+      alert(`❌ File system error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setFiles([]);
     } finally {
       setLoading(false);
@@ -184,19 +184,19 @@ export default function FileManager() {
 
     setUploading(true);
     try {
-      console.log(`📤 파일 업로드 시작: ${selectedFile.name} → ${selectedCategoryData.name}`);
+      console.log(`📤 Starting file upload: ${selectedFile.name} → ${selectedCategoryData.name}`);
       
-      // 파일 크기 확인
+      // Check file size
       if (selectedFile.size > 5 * 1024 * 1024) {
-        alert('파일 크기는 5MB 이하여야 합니다.');
+        alert('⚠️ File size exceeds the 5MB limit. Please choose a smaller file.');
         return;
       }
       
-      // 파일 타입 확인
+      // Check file type
       const allowedTypes = ['image/', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument'];
       const isAllowed = allowedTypes.some(type => selectedFile.type.startsWith(type));
       if (!isAllowed) {
-        alert('지원되지 않는 파일 형식입니다. 이미지, PDF, Word 문서만 업로드 가능합니다.');
+        alert('⚠️ This file format is not supported. Please upload images, PDF, or Word documents only.');
         return;
       }
       
@@ -204,28 +204,28 @@ export default function FileManager() {
       
       if (response.success) {
         setSelectedFile(null);
-        // 파일 입력 초기화
+        // Reset file input
         const fileInput = document.getElementById('file-upload') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         
-        await loadFiles(); // 파일 목록 새로고침
+        await loadFiles(); // Refresh file list
         
-        console.log('✅ 파일 업로드 성공:', response.data?.publicUrl);
-        alert(`✅ 파일이 "${selectedCategoryData.name}" 카테고리에 성공적으로 업로드되었습니다!`);
+        console.log('✅ File upload successful:', response.data?.publicUrl);
+        alert(`✅ Great! Your file has been uploaded to the "${selectedCategoryData.name}" category successfully.`);
       } else {
-        throw new Error('업로드 응답이 성공이 아닙니다.');
+        throw new Error('Upload response is not successful.');
       }
       
     } catch (error) {
-      console.error('❌ 파일 업로드 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      console.error('❌ File upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       if (errorMessage.includes('policy')) {
-        alert('❌ 파일 업로드 권한이 없습니다. Supabase 대시보드에서 Storage 정책을 확인해주세요.');
+        alert('❌ Upload permission denied. Please contact the administrator to check storage policies.');
       } else if (errorMessage.includes('bucket')) {
-        alert('❌ 파일 저장소를 찾을 수 없습니다. 버킷이 생성되지 않았을 수 있습니다.');
+        alert('❌ Storage configuration error. Please contact technical support.');
       } else {
-        alert(`❌ 파일 업로드에 실패했습니다: ${errorMessage}`);
+        alert(`❌ Upload failed: ${errorMessage}`);
       }
     } finally {
       setUploading(false);
@@ -234,23 +234,23 @@ export default function FileManager() {
 
   const handleDownload = async (filePath: string, fileName: string) => {
     try {
-      console.log('📥 파일 다운로드 시작:', fileName);
+      console.log('📥 Starting file download:', fileName);
       
       const response = await fileService.getDownloadUrl(filePath);
       if (!response || !response.success || !response.signedUrl) {
-        throw new Error(response?.error || '다운로드 URL 생성 실패');
+        throw new Error(response?.error || 'Failed to generate download URL');
       }
       
-      // Fetch로 파일 데이터 가져오기
+      // Fetch file data
       const fileResponse = await fetch(response.signedUrl);
       if (!fileResponse.ok) {
-        throw new Error('파일 데이터 가져오기 실패');
+        throw new Error('Failed to fetch file data');
       }
       
-      // Blob으로 변환
+      // Convert to Blob
       const blob = await fileResponse.blob();
       
-      // 강제 다운로드 처리
+      // Force download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -261,26 +261,47 @@ export default function FileManager() {
       link.click();
       document.body.removeChild(link);
       
-      // 메모리 정리
+      // Clean up memory
       window.URL.revokeObjectURL(url);
       
-      console.log('✅ 파일 다운로드 완료:', fileName);
+      console.log('✅ File download completed:', fileName);
     } catch (error) {
-      console.error('❌ 파일 다운로드 오류:', error);
-      alert('파일 다운로드에 실패했습니다. 네트워크 상태를 확인해주세요.');
+      console.error('❌ File download error:', error);
+      alert('❌ Download failed. Please check your network connection and try again.');
     }
   };
 
   const handleDelete = async (filePath: string) => {
-    if (!confirm('정말로 이 파일을 삭제하시겠습니까?')) return;
+    if (!confirm('⚠️ Are you sure you want to delete this file? This action cannot be undone.')) return;
 
     try {
       await fileService.deleteFile(filePath);
-      await loadFiles(); // 파일 목록 새로고침
-      alert('파일이 삭제되었습니다.');
+      await loadFiles(); // Refresh file list
+      alert('✅ File has been deleted successfully.');
     } catch (error) {
-      console.error('파일 삭제 오류:', error);
-      alert('파일 삭제에 실패했습니다.');
+      console.error('File deletion error:', error);
+      alert('❌ Failed to delete the file. Please try again.');
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!confirm('⚠️ CAUTION: This will permanently delete ALL uploaded files! Are you absolutely sure you want to continue?')) return;
+
+    try {
+      setLoading(true);
+      
+      // Delete all files one by one
+      for (const file of files) {
+        await fileService.deleteFile(file.path);
+      }
+      
+      await loadFiles(); // Refresh file list
+      alert('✅ All files have been deleted successfully!');
+    } catch (error) {
+      console.error('Bulk deletion error:', error);
+      alert('❌ Some files could not be deleted. Please try again or contact support.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -326,10 +347,10 @@ export default function FileManager() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ko-KR');
+    return new Date(dateString).toLocaleString('en-CA');
   };
 
-  // 필터링된 파일 목록
+  // Filtered file list
   const filteredFiles = filterCategory === 'all' 
     ? files 
     : files.filter(file => file.categoryId === filterCategory);
@@ -337,24 +358,24 @@ export default function FileManager() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">로그인이 필요합니다.</p>
+        <p className="text-gray-500">Login required.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* 파일 업로드 섹션 */}
+      {/* File Upload Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
           <Upload className="w-6 h-6 mr-2 text-blue-600" />
-          파일 업로드
+          File Upload
         </h2>
         
         <div className="space-y-4">
           <div>
             <label htmlFor="category-select" className="block text-sm font-medium text-gray-700 mb-2">
-              업로드 카테고리 선택
+              Select Upload Category
             </label>
             <select
               id="category-select"
@@ -372,14 +393,29 @@ export default function FileManager() {
           
           <div>
             <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-              업로드할 파일 선택
+              Select File to Upload
             </label>
-            <input
-              id="file-upload"
-              type="file"
-              onChange={handleFileSelect}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
+            <div className="relative">
+              <input
+                id="file-upload"
+                type="file"
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <label
+                htmlFor="file-upload"
+                className="block w-full cursor-pointer border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors"
+              >
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedFile ? selectedFile.name : 'Choose File or Drag Here'}
+                </span>
+                <p className="text-xs text-gray-500 mt-1">
+                  Images, PDF, Word documents (Max 5MB)
+                </p>
+              </label>
+            </div>
           </div>
           
           {selectedFile && (
@@ -400,12 +436,12 @@ export default function FileManager() {
                   {uploading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>업로드 중...</span>
+                      <span>Uploading...</span>
                     </>
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      <span>업로드</span>
+                      <span>Upload</span>
                     </>
                   )}
                 </button>
@@ -415,12 +451,12 @@ export default function FileManager() {
         </div>
       </div>
 
-      {/* 파일 목록 섹션 */}
+      {/* File List Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center">
             <File className="w-6 h-6 mr-2 text-green-600" />
-            업로드된 파일 ({filteredFiles.length}개)
+            Uploaded Files ({filteredFiles.length})
           </h2>
           <div className="flex items-center space-x-3">
             <select
@@ -428,7 +464,7 @@ export default function FileManager() {
               onChange={(e) => setFilterCategory(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
             >
-              <option value="all">📂 모든 카테고리</option>
+              <option value="all">📂 All Categories</option>
               {UPLOAD_CATEGORIES.map((category) => (
                 <option key={category.id} value={category.id}>
                   📁 {category.name}
@@ -436,12 +472,20 @@ export default function FileManager() {
               ))}
             </select>
             <button
+              onClick={handleDeleteAll}
+              disabled={loading || files.length === 0}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center space-x-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete All</span>
+            </button>
+            <button
               onClick={loadFiles}
               disabled={loading}
               className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center space-x-2"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>새로고침</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
@@ -453,10 +497,13 @@ export default function FileManager() {
         ) : filteredFiles.length === 0 ? (
           <div className="text-center py-12">
             <File className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-lg font-medium mb-2">
               {filterCategory === 'all' 
-                ? '업로드된 파일이 없습니다.' 
-                : '이 카테고리에 업로드된 파일이 없습니다.'}
+                ? 'No files uploaded yet' 
+                : 'No files in this category'}
+            </p>
+            <p className="text-gray-400 text-sm">
+              Upload your first file using the form above
             </p>
           </div>
         ) : (
@@ -466,31 +513,31 @@ export default function FileManager() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     {getFileIcon(file.name)}
-                                         <div className="flex-1 min-w-0">
-                       <p className="font-medium text-gray-900 truncate">{file.name}</p>
-                       <div className="flex items-center space-x-4 text-sm text-gray-500">
-                         <span>{formatFileSize(file.size)}</span>
-                         {file.category && (
-                           <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
-                             📁 {file.category}
-                           </span>
-                         )}
-                         <span>업로드: {formatDate(file.createdAt)}</span>
-                       </div>
-                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{file.name}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>{formatFileSize(file.size)}</span>
+                        {file.category && (
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                            📁 {file.category}
+                          </span>
+                        )}
+                        <span>Uploaded: {formatDate(file.createdAt)}</span>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2 flex-shrink-0">
                     <button
                       onClick={() => handleDownload(file.path, file.name)}
                       className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors"
-                      title="다운로드"
+                      title="Download"
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(file.path)}
                       className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors"
-                      title="삭제"
+                      title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

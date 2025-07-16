@@ -22,29 +22,41 @@ import {
 const initializePersistence = async () => {
   if (!auth) {
     console.log('Firebase not configured, using Supabase auth');
-    return;
+    return false;
   }
   
   try {
-    await setPersistence(auth, browserLocalPersistence);
-    console.log('Firebase Auth persistence setup complete - login state maintained');
+    // Firebase가 정상적으로 초기화되었는지 확인
+    if (typeof window !== 'undefined' && auth.app) {
+      await setPersistence(auth, browserLocalPersistence);
+      console.log('Firebase Auth persistence setup complete - login state maintained');
+      return true;
+    }
   } catch (error) {
-    console.error('Firebase Auth persistence setup error:', error);
+    console.warn('Firebase Auth persistence setup error:', error);
+    // 에러가 발생해도 앱이 정상 작동하도록 함
   }
+  return false;
 };
 
-// 앱 시작 시 persistence 설정
-initializePersistence();
+// 앱 시작 시 persistence 설정 (클라이언트 사이드에서만)
+let persistenceInitialized = false;
+if (typeof window !== 'undefined') {
+  initializePersistence().then((success) => {
+    persistenceInitialized = success;
+  });
+}
 
 // 🔐 인증 서비스
 export const authService = {
   // 이메일/비밀번호 회원가입
   async signUpWithEmail(email: string, password: string, displayName: string) {
+    if (!auth) {
+      throw new Error('Firebase not configured');
+    }
+
     try {
       console.log('📝 이메일 회원가입 시작...', email);
-      
-      // 회원가입 전 persistence 확인
-      await setPersistence(auth, browserLocalPersistence);
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -87,11 +99,12 @@ export const authService = {
 
   // 이메일/비밀번호 로그인
   async signInWithEmail(email: string, password: string) {
+    if (!auth) {
+      throw new Error('Firebase not configured');
+    }
+
     try {
       console.log('🔑 이메일 로그인 시작...', email);
-      
-      // 로그인 전 persistence 확인
-      await setPersistence(auth, browserLocalPersistence);
       
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -132,11 +145,12 @@ export const authService = {
 
   // 구글 로그인
   async signInWithGoogle() {
+    if (!auth) {
+      throw new Error('Firebase not configured');
+    }
+
     try {
       console.log('🔍 구글 로그인 시작...');
-      
-      // 로그인 전 persistence 확인
-      await setPersistence(auth, browserLocalPersistence);
       
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
@@ -168,11 +182,13 @@ export const authService = {
 
   // 로그아웃
   async signOut() {
+    if (!auth) {
+      console.log('Firebase not configured, using Supabase auth');
+      return { success: true };
+    }
+
     try {
-      console.log('👋 로그아웃 시작...');
-      
       await signOut(auth);
-      
       console.log('✅ 로그아웃 성공');
       return { success: true };
     } catch (error) {
@@ -181,10 +197,10 @@ export const authService = {
     }
   },
 
-  // 현재 사용자 가져오기
-  getCurrentUser(): User | null {
+  // 현재 사용자 정보 가져오기
+  getCurrentUser() {
     if (!auth) {
-      console.log('Using Supabase auth instead of Firebase');
+      console.log('Firebase not configured');
       return null;
     }
     return auth.currentUser;
@@ -192,6 +208,12 @@ export const authService = {
 
   // 인증 상태 변화 감지
   onAuthStateChange(callback: (user: User | null) => void) {
+    if (!auth) {
+      console.log('Firebase not configured, calling callback with null');
+      callback(null);
+      return () => {}; // 빈 unsubscribe 함수 반환
+    }
+    
     return onAuthStateChanged(auth, callback);
   },
 
@@ -347,9 +369,9 @@ export const authService = {
   async createAdminAccounts() {
     try {
       const adminAccounts = [
-        { email: 'admin@example.com', password: 'admin123456', name: '시스템 관리자' },
-        { email: 'manager@jobsprout.ca', password: 'manager123456', name: '매니저' },
-        { email: 'admin@jobsprout.ca', password: 'jobsprout123456', name: 'JobSprout 관리자' }
+        { email: 'admin@example.com', password: 'admin123456', name: 'System Administrator' },
+        { email: 'manager@jobsprout.ca', password: 'manager123456', name: 'Manager' },
+        { email: 'admin@jobsprout.ca', password: 'jobsprout123456', name: 'JobSprout Administrator' }
       ];
 
       const results = [];

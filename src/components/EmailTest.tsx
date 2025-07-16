@@ -15,25 +15,25 @@ export default function EmailTest() {
       },
       body: JSON.stringify({
         to: email,
-        subject: '🧪 MailerSend 테스트 이메일',
+        subject: '🧪 MailerSend Test Email',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
-              🧪 MailerSend 테스트 이메일
+              🧪 MailerSend Test Email
             </h2>
             <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <p>안녕하세요!</p>
-              <p>이 이메일은 MailerSend 이메일 시스템 테스트를 위해 발송되었습니다.</p>
-              <p>이 메시지를 받으셨다면 이메일 시스템이 정상적으로 작동하고 있습니다! 🎉</p>
+              <p>Hello!</p>
+              <p>This email was sent to test the MailerSend email system.</p>
+              <p>If you received this message, the email system is working properly! 🎉</p>
             </div>
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; font-size: 14px;">
-                이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.
+                This message was automatically sent from the Canadian Student Job Platform.
               </p>
             </div>
           </div>
         `,
-        text: 'MailerSend 테스트 이메일입니다. 이 메시지를 받으셨다면 이메일 시스템이 정상적으로 작동하고 있습니다!'
+        text: 'This is a MailerSend test email. If you received this message, the email system is working properly!'
       })
     });
 
@@ -52,25 +52,25 @@ export default function EmailTest() {
       },
       body: JSON.stringify({
         to: email,
-        subject: '✅ 지원서 승인 알림',
+        subject: '✅ Application Approval Notification',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #059669; text-align: center; margin-bottom: 30px;">
-              ✅ 지원서가 승인되었습니다!
+              ✅ Your application has been approved!
             </h2>
             <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #059669;">
-              <p>안녕하세요 ${userName}님,</p>
-              <p>제출해주신 지원서가 <strong>승인</strong>되었습니다!</p>
-              <p>곧 담당자가 연락을 드릴 예정입니다.</p>
+              <p>Hello ${userName},</p>
+              <p>Your submitted application has been <strong>approved</strong>!</p>
+              <p>A representative will contact you soon.</p>
             </div>
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; font-size: 14px;">
-                이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.
+                This message was automatically sent from the Canadian Student Job Platform.
               </p>
             </div>
           </div>
         `,
-        text: `안녕하세요 ${userName}님, 제출해주신 지원서가 승인되었습니다! 곧 담당자가 연락을 드릴 예정입니다.`
+        text: `Hello ${userName}, your submitted application has been approved! A representative will contact you soon.`
       })
     });
 
@@ -89,26 +89,26 @@ export default function EmailTest() {
       },
       body: JSON.stringify({
         to: email,
-        subject: '❌ 지원서 처리 결과 안내',
+        subject: '❌ Application Review Result',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #dc2626; text-align: center; margin-bottom: 30px;">
-              지원서 처리 결과 안내
+              Application Review Result
             </h2>
             <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc2626;">
-              <p>안녕하세요 ${userName}님,</p>
-              <p>제출해주신 지원서를 검토한 결과, 아쉽게도 이번에는 함께할 수 없게 되었습니다.</p>
-              <p><strong>사유:</strong> ${reason}</p>
-              <p>다른 기회에 다시 지원해주시기 바랍니다.</p>
+              <p>Hello ${userName},</p>
+              <p>After reviewing your submitted application, we regret to inform you that we cannot proceed with your application at this time.</p>
+              <p><strong>Reason:</strong> ${reason}</p>
+              <p>We encourage you to apply again for other opportunities.</p>
             </div>
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; font-size: 14px;">
-                이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.
+                This message was automatically sent from the Canadian Student Job Platform.
               </p>
             </div>
           </div>
         `,
-        text: `안녕하세요 ${userName}님, 제출해주신 지원서를 검토한 결과, 아쉽게도 이번에는 함께할 수 없게 되었습니다. 사유: ${reason}`
+        text: `Hello ${userName}, after reviewing your submitted application, we regret to inform you that we cannot proceed with your application at this time. Reason: ${reason}`
       })
     });
 
@@ -121,7 +121,7 @@ export default function EmailTest() {
 
   const handleTestEmail = async () => {
     if (!testEmail) {
-      alert('이메일 주소를 입력해주세요.');
+      alert('Please enter an email address.');
       return;
     }
 
@@ -134,7 +134,7 @@ export default function EmailTest() {
     } catch (error) {
       setResult({
         success: false,
-        message: '테스트 이메일 전송 실패',
+        message: 'Test email sending failed',
         error: error
       });
     } finally {
@@ -144,7 +144,7 @@ export default function EmailTest() {
 
   const handleApprovalTest = async () => {
     if (!testEmail) {
-      alert('이메일 주소를 입력해주세요.');
+      alert('Please enter an email address.');
       return;
     }
 
@@ -152,12 +152,12 @@ export default function EmailTest() {
     setResult(null);
 
     try {
-      const response = await sendApprovalEmail(testEmail, '테스트 사용자');
+      const response = await sendApprovalEmail(testEmail, 'Test User');
       setResult(response);
     } catch (error) {
       setResult({
         success: false,
-        message: '승인 이메일 전송 실패',
+        message: 'Approval email sending failed',
         error: error
       });
     } finally {
@@ -167,7 +167,7 @@ export default function EmailTest() {
 
   const handleRejectionTest = async () => {
     if (!testEmail) {
-      alert('이메일 주소를 입력해주세요.');
+      alert('Please enter an email address.');
       return;
     }
 
@@ -175,12 +175,12 @@ export default function EmailTest() {
     setResult(null);
 
     try {
-      const response = await sendRejectionEmail(testEmail, '테스트 사용자', '테스트 거절 사유입니다.');
+      const response = await sendRejectionEmail(testEmail, 'Test User', 'This is a test rejection reason.');
       setResult(response);
     } catch (error) {
       setResult({
         success: false,
-        message: '거절 이메일 전송 실패',
+        message: 'Rejection email sending failed',
         error: error
       });
     } finally {
@@ -190,11 +190,11 @@ export default function EmailTest() {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h3 className="text-xl font-bold mb-4">📧 이메일 시스템 테스트</h3>
+      <h3 className="text-xl font-bold mb-4">📧 Email System Test</h3>
       
       <div className="mb-4">
         <label htmlFor="testEmail" className="block text-sm font-medium text-gray-700 mb-2">
-          테스트 이메일 주소
+          Test Email Address
         </label>
         <input
           type="email"
@@ -212,7 +212,7 @@ export default function EmailTest() {
           disabled={isLoading}
           className="w-full px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 disabled:bg-gray-400"
         >
-          {isLoading ? '전송 중...' : '🧪 기본 테스트 이메일'}
+          {isLoading ? 'Sending...' : '🧪 Basic Test Email'}
         </button>
         
         <button
@@ -220,7 +220,7 @@ export default function EmailTest() {
           disabled={isLoading}
           className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400"
         >
-          {isLoading ? '전송 중...' : '✅ 승인 이메일 테스트'}
+          {isLoading ? 'Sending...' : '✅ Approval Email Test'}
         </button>
         
         <button
@@ -228,38 +228,38 @@ export default function EmailTest() {
           disabled={isLoading}
           className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400"
         >
-          {isLoading ? '전송 중...' : '❌ 거절 이메일 테스트'}
+          {isLoading ? 'Sending...' : '❌ Rejection Email Test'}
         </button>
       </div>
 
       {result && (
         <div className={`p-4 rounded-md ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border`}>
           <h4 className={`font-semibold ${result.success ? 'text-green-800' : 'text-red-800'}`}>
-            {result.success ? '✅ 성공' : '❌ 실패'}
+            {result.success ? '✅ Success' : '❌ Failed'}
           </h4>
           <p className={`text-sm mt-1 ${result.success ? 'text-green-700' : 'text-red-700'}`}>
             {result.message}
           </p>
           {result.status && (
             <p className="text-xs text-gray-600 mt-2">
-              응답 코드: {result.status}
+              Response Code: {result.status}
             </p>
           )}
           {result.error && (
             <p className="text-xs text-red-600 mt-2">
-              에러: {typeof result.error === 'string' ? result.error : JSON.stringify(result.error)}
+              Error: {typeof result.error === 'string' ? result.error : JSON.stringify(result.error)}
             </p>
           )}
         </div>
       )}
 
       <div className="mt-6 p-4 bg-gray-50 rounded-md">
-        <h4 className="font-semibold text-gray-800 mb-2">📋 사용 방법</h4>
+        <h4 className="font-semibold text-gray-800 mb-2">📋 How to Use</h4>
         <ol className="text-sm text-gray-600 space-y-1">
-          <li>1. MailerSend API 키를 설정하세요</li>
-          <li>2. 테스트 이메일 주소를 입력하세요</li>
-          <li>3. 원하는 이메일 타입을 선택하세요</li>
-          <li>4. 결과를 확인하세요</li>
+          <li>1. Set up your MailerSend API key</li>
+          <li>2. Enter a test email address</li>
+          <li>3. Select the desired email type</li>
+          <li>4. Check the results</li>
         </ol>
       </div>
     </div>

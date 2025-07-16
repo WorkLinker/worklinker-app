@@ -14,15 +14,15 @@ import { authService } from '@/lib/auth-service';
 import { User as FirebaseUser } from 'firebase/auth';
 
 const PostSchema = z.object({
-  title: z.string().min(5, '제목은 5글자 이상이어야 합니다'),
-  content: z.string().min(20, '내용은 20글자 이상이어야 합니다'),
-  author: z.string().min(2, '작성자명을 입력해주세요'),
+  title: z.string().min(5, 'Title must be at least 5 characters'),
+  content: z.string().min(20, 'Content must be at least 20 characters'),
+  author: z.string().min(2, 'Please enter your name'),
   category: z.enum(['general', 'job', 'study', 'life']),
 });
 
 type PostForm = z.infer<typeof PostSchema>;
 
-// 게시물 타입 정의
+// Post type definition
 interface Post {
   id: number;
   title: string;
@@ -35,7 +35,7 @@ interface Post {
   comments: number;
 }
 
-// 실제 게시물은 Firebase에서 불러와서 사용 (샘플 데이터 제거)
+// Posts will be loaded from Firebase (sample data removed)
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function CommunityPage() {
   const [sortBy, setSortBy] = useState('latest');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8); // 페이지당 8개씩 표시
+  const [itemsPerPage] = useState(8); // Show 8 items per page
 
   const {
     register,
@@ -59,7 +59,7 @@ export default function CommunityPage() {
     resolver: zodResolver(PostSchema)
   });
 
-  // 현재 로그인한 사용자 정보 가져오기
+  // Get current logged in user information
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((currentUser) => {
       setUser(currentUser);
@@ -71,25 +71,25 @@ export default function CommunityPage() {
     setIsSubmitting(true);
     
     try {
-      console.log('💬 게시물 작성 시작...');
+      console.log('💬 Starting post creation...');
       
-      // 작성자 이메일 추가
+      // Add author email
       const postDataWithEmail = {
         ...data,
-        authorEmail: user?.email || data.author // 마이페이지 조회용 이메일
+        authorEmail: user?.email || data.author // Email for my page lookup
       };
 
-      // 실제 Firebase에 데이터 저장
+      // Save data to Firebase
       const result = await communityService.createPost(postDataWithEmail);
       
       if (result.success) {
-        console.log('🎉 게시물이 성공적으로 작성되었습니다!');
+        console.log('🎉 Post created successfully!');
         
-        // 임시로 로컬 상태에도 추가 (실시간 업데이트 전까지)
+        // Temporarily add to local state (until real-time updates)
         const newPost = {
-          id: posts.length + 1, // 로컬 표시용 임시 ID
+          id: posts.length + 1, // Temporary ID for local display
           ...data,
-          createdAt: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
+          createdAt: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
           views: 0,
           likes: 0,
           comments: 0
@@ -99,16 +99,16 @@ export default function CommunityPage() {
         setSubmitted(true);
         reset();
         setShowForm(false);
-        setCurrentPage(1); // 새 글 작성 후 첫 페이지로
+        setCurrentPage(1); // Go to first page after new post
         
-        // 3초 후 성공 메시지 제거
+        // Remove success message after 3 seconds
         setTimeout(() => {
           setSubmitted(false);
         }, 3000);
       }
     } catch (error) {
-      console.error('❌ 게시물 작성 오류:', error);
-      alert('게시물 등록 중 오류가 발생했습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      console.error('❌ Post creation error:', error);
+      alert('An error occurred while creating the post. Please check your network connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -116,10 +116,10 @@ export default function CommunityPage() {
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'general': return '일반';
-      case 'job': return '취업';
-      case 'study': return '학습';
-      case 'life': return '일상';
+      case 'general': return 'General';
+      case 'job': return 'Jobs';
+      case 'study': return 'Study';
+      case 'life': return 'Life';
       default: return category;
     }
   };
@@ -156,12 +156,12 @@ export default function CommunityPage() {
     }
   });
 
-  // 페이지네이션 관련 계산
+  // Pagination calculations
   const totalPages = Math.ceil(sortedPosts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentPosts = sortedPosts.slice(startIndex, startIndex + itemsPerPage);
 
-  // 검색이나 필터가 변경될 때 첫 페이지로 이동
+  // Go to first page when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, categoryFilter, sortBy]);
@@ -178,7 +178,7 @@ export default function CommunityPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/6번.png"
-            alt="자유게시판"
+            alt="Community Board"
             fill
             sizes="100vw"
             className="object-cover"
@@ -189,9 +189,9 @@ export default function CommunityPage() {
 
         {/* Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                                      <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
-              모두의 소통 공간입니다
-            </h1>
+          <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
+            Connect with fellow students
+          </h1>
         </div>
       </section>
 
@@ -199,22 +199,22 @@ export default function CommunityPage() {
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
-            자유게시판
+            Community Board
           </h1>
           <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-            캐나다 학생들이 자유롭게 소통하는 공간입니다.
+            A space for New Brunswick students to connect and share freely.
             <br />
-            취업 정보, 학습 팁, 일상 이야기 등을 자유롭게 나누어보세요.
+            Share job info, study tips, daily stories, and more.
           </p>
           <p className="text-lg text-sky-600 font-semibold mb-8">
-            함께 성장하는 학생 커뮤니티
+            Growing together as a student community
           </p>
           
           {submitted && (
             <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle size={20} className="text-green-600" />
-                <span className="text-green-800 font-medium">게시물이 성공적으로 등록되었습니다!</span>
+                <span className="text-green-800 font-medium">Post submitted successfully!</span>
               </div>
             </div>
           )}
@@ -222,7 +222,7 @@ export default function CommunityPage() {
           <button
             onClick={() => {
               if (!user) {
-                alert('게시글 작성을 위해 로그인이 필요합니다.');
+                alert('You need to sign in to create a post.');
                 return;
               }
               setShowForm(true);
@@ -230,7 +230,7 @@ export default function CommunityPage() {
             className="bg-sky-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-sky-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 mx-auto"
           >
             <Plus size={20} />
-            <span>새 게시물 작성</span>
+            <span>Create New Post</span>
           </button>
         </div>
       </section>
@@ -244,7 +244,7 @@ export default function CommunityPage() {
                 <Search size={20} className="absolute left-3 top-3 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="게시물 검색..."
+                  placeholder="Search posts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
@@ -258,11 +258,11 @@ export default function CommunityPage() {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
-                <option value="all">모든 카테고리</option>
-                <option value="general">일반</option>
-                <option value="job">취업</option>
-                <option value="study">학습</option>
-                <option value="life">일상</option>
+                <option value="all">All Categories</option>
+                <option value="general">General</option>
+                <option value="job">Jobs</option>
+                <option value="study">Study</option>
+                <option value="life">Life</option>
               </select>
               
               <select
@@ -270,9 +270,9 @@ export default function CommunityPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
-                <option value="latest">최신순</option>
-                <option value="popular">인기순</option>
-                <option value="views">조회수순</option>
+                <option value="latest">Latest</option>
+                <option value="popular">Popular</option>
+                <option value="views">Most Viewed</option>
               </select>
             </div>
           </div>
@@ -340,16 +340,16 @@ export default function CommunityPage() {
           {currentPosts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-lg">
               <MessageSquare size={48} className="text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">검색 결과가 없습니다.</p>
+              <p className="text-gray-500 text-lg">No posts found.</p>
             </div>
           )}
 
-          {/* 페이지네이션 */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  {sortedPosts.length}개 중 {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedPosts.length)}개 표시
+                  Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedPosts.length)} of {sortedPosts.length}
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -397,7 +397,7 @@ export default function CommunityPage() {
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">새 게시물 작성</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Create New Post</h2>
                 <button
                   onClick={() => setShowForm(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -410,17 +410,17 @@ export default function CommunityPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  카테고리 *
+                  Category *
                 </label>
                 <select
                   {...register('category')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 >
-                  <option value="">카테고리를 선택하세요</option>
-                  <option value="general">일반</option>
-                  <option value="job">취업</option>
-                  <option value="study">학습</option>
-                  <option value="life">일상</option>
+                  <option value="">Select a category</option>
+                  <option value="general">General</option>
+                  <option value="job">Jobs</option>
+                  <option value="study">Study</option>
+                  <option value="life">Life</option>
                 </select>
                 {errors.category && (
                   <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
@@ -429,13 +429,13 @@ export default function CommunityPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  제목 *
+                  Title *
                 </label>
                 <input
                   type="text"
                   {...register('title')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                  placeholder="게시물 제목을 입력하세요"
+                  placeholder="Enter post title"
                 />
                 {errors.title && (
                   <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -444,13 +444,13 @@ export default function CommunityPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  작성자 *
+                  Author *
                 </label>
                 <input
                   type="text"
                   {...register('author')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                  placeholder="닉네임을 입력하세요"
+                  placeholder="Enter your name"
                   defaultValue={user?.displayName || user?.email?.split('@')[0] || ''}
                 />
                 {errors.author && (
@@ -460,13 +460,13 @@ export default function CommunityPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  내용 *
+                  Content *
                 </label>
                 <textarea
                   {...register('content')}
                   rows={8}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                  placeholder="게시물 내용을 입력하세요"
+                  placeholder="Enter post content"
                 />
                 {errors.content && (
                   <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
@@ -479,14 +479,14 @@ export default function CommunityPage() {
                   onClick={() => setShowForm(false)}
                   className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  취소
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="flex-1 px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
                 >
-                  {isSubmitting ? '등록 중...' : '게시물 등록'}
+                  {isSubmitting ? 'Creating...' : 'Create Post'}
                 </button>
               </div>
             </form>

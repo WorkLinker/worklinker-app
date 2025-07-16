@@ -10,10 +10,17 @@ import { contentService, designService } from '@/lib/firebase-services';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVisible, setIsVisible] = useState<{ [key: string]: boolean }>({});
+  const [isVisible, setIsVisible] = useState<{ [key: string]: boolean }>({
+    'card-student': true,
+    'card-reference': true,
+    'card-company': true,
+    'card-events': true,
+    'features-section': true
+  });
   const [clickedElements, setClickedElements] = useState<{ [key: string]: boolean }>({});
   const [isLoading, setIsLoading] = useState<{ [key: string]: boolean }>({});
-  const [siteContent, setSiteContent] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_siteContent, setSiteContent] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [designSettings, setDesignSettings] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const observerRef = useRef<IntersectionObserver | null>(null);
   
@@ -91,17 +98,17 @@ export default function Home() {
   const defaultSlides = [
     {
       image: '/images/메인홈1.png',
-      title: 'Discover the talented students of tomorrow',
-      subtitle: 'Connect with the future leaders of New Brunswick'
-    },
-    {
-      image: '/images/메인홈2.jpg',
-      title: 'Your first step to career success',
+      title: 'Your First Step to Career Success',
       subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
     },
     {
+      image: '/images/메인홈2.jpg',
+      title: 'Discover the Talented Students of Tomorrow',
+      subtitle: 'Connect with the future leaders of New Brunswick'
+    },
+    {
       image: '/images/메인홈3.png',
-      title: 'Innovative education platform',
+      title: 'Innovative Education Platform',
       subtitle: 'Where technology meets education to unlock new possibilities'
     }
   ];
@@ -167,16 +174,11 @@ export default function Home() {
     };
   }, []);
 
-  // Current slides to use (design settings images + Firestore content or defaults)
-  const slides = siteContent?.heroSlides ? 
-    siteContent.heroSlides.map((slide: {title: string, subtitle: string}, index: number) => ({
-      ...slide,
-      image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || defaultSlides[index]?.image || '/images/메인홈1.png'
-    })) : 
-    defaultSlides.map((slide, index) => ({
-      ...slide,
-      image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || slide.image
-    }));
+  // Current slides to use (always use defaultSlides with English content)
+  const slides = defaultSlides.map((slide, index) => ({
+    ...slide,
+    image: designSettings?.images?.heroSlides?.[`slide${index + 1}`] || slide.image
+  }));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -367,7 +369,7 @@ export default function Home() {
                 <>
                   <GraduationCap size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:rotate-12 transition-transform" />
                   <span className="relative z-10">
-                    {siteContent?.ctaButtons?.student || 'Get Started as Student'}
+                    Get Started as Student
                   </span>
                   <ArrowRight size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:translate-x-2 transition-transform" />
                 </>
@@ -388,7 +390,7 @@ export default function Home() {
               ) : (
                 <>
                   <Briefcase size={24} className="sm:w-7 sm:h-7 group-hover:rotate-12 transition-transform" />
-                  <span>{siteContent?.ctaButtons?.company || 'Join as Employer'}</span>
+                  <span>Join as Employer</span>
                   <TrendingUp size={24} className="sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
                 </>
               )}

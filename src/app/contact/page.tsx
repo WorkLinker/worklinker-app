@@ -17,7 +17,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { sendContactEmail, ContactFormData } from '@/lib/email-service';
 
-// 환경변수에서 연락처 정보 가져오기
+// Get contact information from environment variables
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';
 const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '506-429-6148';
 const CONTACT_ADDRESS = process.env.NEXT_PUBLIC_CONTACT_ADDRESS || '122 Brianna Dr, Fredericton NB COA 1N0';
@@ -47,11 +47,11 @@ export default function ContactPage() {
         setSubmitted(true);
         setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
-        setError(result.message || '문의 전송 중 오류가 발생했습니다.');
+        setError(result.message || 'An error occurred while sending your inquiry.');
       }
     } catch (err) {
-      setError('문의 전송 중 오류가 발생했습니다. 다시 시도해주세요.');
-      console.error('문의 전송 오류:', err);
+      setError('An error occurred while sending your inquiry. Please try again.');
+      console.error('Contact form submission error:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +63,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 풀스크린 히어로 섹션 */}
+      {/* Full-screen hero section */}
       <section className="h-screen flex items-center justify-center relative overflow-hidden">
         {/* Navigation overlay */}
         <div className="absolute top-0 left-0 right-0 z-50">
@@ -74,7 +74,7 @@ export default function ContactPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/2번.jpg"
-            alt="문의하기"
+            alt="Contact Us"
             fill
             sizes="100vw"
             className="object-cover"
@@ -83,15 +83,15 @@ export default function ContactPage() {
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
 
-        {/* Hero Content - 하단 오버레이 */}
+        {/* Hero Content - bottom overlay */}
         <div className="absolute inset-0 flex items-end pb-24">
           <div className="container mx-auto px-6 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              문의하기
+              Contact Us
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-              궁금한 점이나 도움이 필요한 사항이 있으시면 언제든지 연락주세요. 
-              성실히 답변해드리겠습니다.
+              Have questions or need assistance? Contact us anytime. 
+              We&apos;ll provide you with a helpful response.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -103,7 +103,7 @@ export default function ContactPage() {
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg"
               >
-                문의 보내기
+                Send Inquiry
               </button>
               <button
                 onClick={() => {
@@ -114,22 +114,22 @@ export default function ContactPage() {
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors backdrop-blur-sm"
               >
-                연락처 정보
+                Contact Info
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 연락처 정보 섹션 */}
+      {/* Contact information section */}
       <section id="info-section" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              연락처 정보
+              Contact Information
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              다양한 방법으로 연락하실 수 있습니다
+              You can reach us through various methods
             </p>
           </div>
 
@@ -138,7 +138,7 @@ export default function ContactPage() {
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">이메일</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
               <a 
                 href={`mailto:${CONTACT_EMAIL}`}
                 className="text-purple-600 hover:text-purple-700 transition-colors"
@@ -151,7 +151,7 @@ export default function ContactPage() {
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">전화번호</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
               <a 
                 href={`tel:${CONTACT_PHONE}`}
                 className="text-blue-600 hover:text-blue-700 transition-colors"
@@ -164,7 +164,7 @@ export default function ContactPage() {
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">주소</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Address</h3>
               <p className="text-gray-600">
                 {CONTACT_ADDRESS.split(', ').map((part, index) => (
                   <span key={index}>
@@ -179,32 +179,32 @@ export default function ContactPage() {
               <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">운영시간</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Business Hours</h3>
               <div className="text-gray-600 space-y-1">
-                <p>평일: 오전 9시 - 오후 6시</p>
-                <p>주말: 오전 10시 - 오후 4시</p>
+                <p>Weekdays: 9 AM - 6 PM</p>
+                <p>Weekends: 10 AM - 4 PM</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 문의 폼 섹션 */}
+      {/* Contact form section */}
       <section id="contact-section" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-sm p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              문의 보내기
+              Send Inquiry
             </h2>
 
             {submitted ? (
               <div className="text-center py-8">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  문의가 성공적으로 전송되었습니다!
+                  Your inquiry has been sent successfully!
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  24시간 내에 답변을 드리겠습니다.
+                  We&apos;ll respond within 24 hours.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
@@ -214,18 +214,18 @@ export default function ContactPage() {
                     }}
                     className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    다시 문의하기
+                    Send Another Inquiry
                   </button>
                   <button
                     onClick={() => router.push('/')}
                     className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    홈으로 돌아가기
+                    Return to Home
                   </button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" lang="en">
                 {error && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center">
@@ -238,7 +238,7 @@ export default function ContactPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이름 *
+                      Name *
                     </label>
                     <input
                       type="text"
@@ -246,14 +246,22 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleChange}
                       required
+                      title="Please enter your name"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="이름을 입력하세요"
+                      placeholder="Enter your name"
+                      onInvalid={(e) => {
+                        e.preventDefault();
+                        (e.target as HTMLInputElement).setCustomValidity('Please enter your name');
+                      }}
+                      onInput={(e) => {
+                        (e.target as HTMLInputElement).setCustomValidity('');
+                      }}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이메일 *
+                      Email *
                     </label>
                     <input
                       type="email"
@@ -261,29 +269,43 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      title="Please enter a valid email address"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="이메일을 입력하세요"
+                      placeholder="Enter your email"
+                      onInvalid={(e) => {
+                        e.preventDefault();
+                        const input = e.target as HTMLInputElement;
+                        if (input.validity.valueMissing) {
+                          input.setCustomValidity('Please enter your email address');
+                        } else if (input.validity.typeMismatch) {
+                          input.setCustomValidity('Please enter a valid email address');
+                        }
+                      }}
+                      onInput={(e) => {
+                        (e.target as HTMLInputElement).setCustomValidity('');
+                      }}
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    전화번호
+                    Phone Number
                   </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    title="Please enter your phone number"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="전화번호를 입력하세요"
+                    placeholder="Enter your phone number"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    문의 내용 *
+                    Message *
                   </label>
                   <textarea
                     name="message"
@@ -291,8 +313,16 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     rows={6}
+                    title="Please provide details about your inquiry"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="문의하실 내용을 자세히 작성해주세요"
+                    placeholder="Please provide details about your inquiry"
+                    onInvalid={(e) => {
+                      e.preventDefault();
+                      (e.target as HTMLTextAreaElement).setCustomValidity('Please provide details about your inquiry');
+                    }}
+                    onInput={(e) => {
+                      (e.target as HTMLTextAreaElement).setCustomValidity('');
+                    }}
                   />
                 </div>
 
@@ -305,12 +335,12 @@ export default function ContactPage() {
                     {isSubmitting ? (
                       <>
                         <Loader className="w-5 h-5 animate-spin" />
-                        <span>전송 중...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
-                        <span>문의 보내기</span>
+                        <span>Send Inquiry</span>
                       </>
                     )}
                   </button>
@@ -321,65 +351,65 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* 자주 묻는 질문 */}
+      {/* Frequently Asked Questions */}
       <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            자주 묻는 질문
+            Frequently Asked Questions
           </h2>
           
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">
-                Q. 회원가입은 어떻게 하나요?
+                Q. How do I sign up?
               </h3>
               <p className="text-gray-600 mb-4">
-                구글 계정을 통해 간편하게 회원가입할 수 있습니다. 
-                학생 구직 또는 기업 채용 페이지에서 시작하세요.
+                You can easily sign up using your Google account. 
+                Start on the Student Job Search or Employer Recruitment page.
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">
-                Q. 구직 신청은 무료인가요?
+                Q. Is job searching free?
               </h3>
               <p className="text-gray-600 mb-4">
-                네, 모든 서비스는 완전 무료입니다. 
-                학생들의 취업 지원을 위한 비영리 플랫폼입니다.
+                Yes, all services are completely free. 
+                This is a non-profit platform supporting student employment.
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">
-                Q. 어떤 종류의 일자리가 있나요?
+                Q. What types of jobs are available?
               </h3>
               <p className="text-gray-600 mb-4">
-                카페, 레스토랑, 소매점, 사무직 등 
-                고등학생이 할 수 있는 다양한 파트타임 일자리가 있습니다.
+                We have various part-time jobs suitable for high school students, 
+                including cafes, restaurants, retail stores, and office work.
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">
-                Q. 답변은 언제 받을 수 있나요?
+                Q. When will I receive a response?
               </h3>
               <p className="text-gray-600 mb-4">
-                문의 접수 후 24시간 내에 답변을 드립니다. 
-                긴급한 경우 전화로 연락 주세요.
+                We respond within 24 hours of receiving your inquiry. 
+                For urgent matters, please call us directly.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 추가 도움 섹션 */}
+      {/* Additional help section */}
       <div className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            추가 도움이 필요하신가요?
+            Need Additional Help?
           </h2>
           <p className="text-gray-600 mb-8">
-            다른 방법으로도 연락하실 수 있습니다
+            You can also contact us through other methods
           </p>
           
           <div className="flex flex-wrap justify-center gap-4">
@@ -388,7 +418,7 @@ export default function ContactPage() {
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
             >
               <Mail className="w-5 h-5" />
-              <span>이메일 보내기</span>
+              <span>Send Email</span>
             </a>
             
             <a
@@ -396,7 +426,7 @@ export default function ContactPage() {
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
             >
               <Phone className="w-5 h-5" />
-              <span>전화 걸기</span>
+              <span>Call Us</span>
             </a>
           </div>
         </div>

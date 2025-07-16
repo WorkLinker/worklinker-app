@@ -21,21 +21,21 @@ export default function VolunteerListingsPage() {
   const itemsPerPage = 6;
 
   const organizationTypes = [
-    '전체',
-    '도서관',
-    '요양원/요양소', 
-    '노인정/복지관',
-    '약국/의료기관',
-    '정부기관/공공기관',
-    '학교/교육기관',
-    '종교기관',
-    '환경단체',
-    '동물보호소',
-    '푸드뱅크/급식소',
-    '기타'
+    'All',
+    'Library',
+    'Nursing Home/Care Facility', 
+    'Senior Center/Welfare Center',
+    'Pharmacy/Medical Facility',
+    'Government/Public Agency',
+    'School/Educational Institution',
+    'Religious Organization',
+    'Environmental Group',
+    'Animal Shelter',
+    'Food Bank/Soup Kitchen',
+    'Other'
   ];
 
-  // 봉사 기회 목록 로드
+  // Load volunteer opportunities list
   useEffect(() => {
     loadVolunteerPostings();
   }, []);
@@ -47,17 +47,17 @@ export default function VolunteerListingsPage() {
       setVolunteerPostings(postings);
       setFilteredPostings(postings);
     } catch (error) {
-      console.error('❌ 봉사 기회 목록 로드 오류:', error);
+      console.error('❌ Volunteer opportunities load error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 검색 및 필터링
+  // Search and filtering
   useEffect(() => {
     let filtered = volunteerPostings;
 
-    // 검색어 필터링
+    // Search term filtering
     if (searchTerm) {
       filtered = filtered.filter(posting =>
         posting.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,16 +66,16 @@ export default function VolunteerListingsPage() {
       );
     }
 
-    // 기관 유형 필터링
-    if (selectedOrganizationType && selectedOrganizationType !== '전체') {
+    // Organization type filtering
+    if (selectedOrganizationType && selectedOrganizationType !== 'All') {
       filtered = filtered.filter(posting => posting.organizationType === selectedOrganizationType);
     }
 
     setFilteredPostings(filtered);
-    setCurrentPage(1); // 필터 변경 시 첫 페이지로 리셋
+    setCurrentPage(1); // Reset to first page when filter changes
   }, [searchTerm, selectedOrganizationType, volunteerPostings]);
 
-  // 페이지네이션 계산
+  // Pagination calculation
   const totalPages = Math.ceil(filteredPostings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentPostings = filteredPostings.slice(startIndex, startIndex + itemsPerPage);
@@ -84,17 +84,17 @@ export default function VolunteerListingsPage() {
 
   const getOrganizationTypeColor = (type: string) => {
     const colors = {
-      '도서관': 'bg-blue-100 text-blue-800',
-      '요양원/요양소': 'bg-pink-100 text-pink-800',
-      '노인정/복지관': 'bg-purple-100 text-purple-800',
-      '약국/의료기관': 'bg-red-100 text-red-800',
-      '정부기관/공공기관': 'bg-gray-100 text-gray-800',
-      '학교/교육기관': 'bg-green-100 text-green-800',
-      '종교기관': 'bg-yellow-100 text-yellow-800',
-      '환경단체': 'bg-emerald-100 text-emerald-800',
-      '동물보호소': 'bg-orange-100 text-orange-800',
-      '푸드뱅크/급식소': 'bg-indigo-100 text-indigo-800',
-      '기타': 'bg-gray-100 text-gray-800'
+      'Library': 'bg-blue-100 text-blue-800',
+      'Nursing Home/Care Facility': 'bg-pink-100 text-pink-800',
+      'Senior Center/Welfare Center': 'bg-purple-100 text-purple-800',
+      'Pharmacy/Medical Facility': 'bg-red-100 text-red-800',
+      'Government/Public Agency': 'bg-gray-100 text-gray-800',
+      'School/Educational Institution': 'bg-green-100 text-green-800',
+      'Religious Organization': 'bg-yellow-100 text-yellow-800',
+      'Environmental Group': 'bg-emerald-100 text-emerald-800',
+      'Animal Shelter': 'bg-orange-100 text-orange-800',
+      'Food Bank/Soup Kitchen': 'bg-indigo-100 text-indigo-800',
+      'Other': 'bg-gray-100 text-gray-800'
     };
     return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -106,7 +106,7 @@ export default function VolunteerListingsPage() {
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">봉사 기회를 불러오는 중...</p>
+            <p className="text-gray-600">Loading volunteer opportunities...</p>
           </div>
         </div>
         <Footer />
@@ -120,7 +120,7 @@ export default function VolunteerListingsPage() {
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <Image
           src="/images/봉사활동.png"
-          alt="봉사 기회"
+          alt="Volunteer Opportunities"
           fill
           sizes="100vw"
           className="object-cover"
@@ -137,12 +137,12 @@ export default function VolunteerListingsPage() {
         <div className="absolute bottom-20 left-0 right-0 z-20 text-center text-white px-4">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              의미 있는<br />
-              <span className="text-green-400">봉사 활동</span> 찾기
+              Find Meaningful<br />
+              <span className="text-green-400">Volunteer Work</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
-              지역사회에 도움이 되는 다양한 봉사 기회를 찾아보세요<br />
-              당신의 작은 관심이 큰 변화를 만듭니다
+              Discover various volunteer opportunities that help your community<br />
+              Your small interest can make a big difference
             </p>
             
             {/* CTA Buttons */}
@@ -152,14 +152,14 @@ export default function VolunteerListingsPage() {
                 className="inline-flex items-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Heart size={20} className="mr-2" />
-                봉사 기회 찾기
+                Find Volunteer Opportunities
               </Link>
               <Link 
                 href="/volunteer-postings"
                 className="inline-flex items-center px-8 py-4 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-2 border-white/30 rounded-full font-semibold text-lg transition-all duration-300"
               >
                 <Plus size={20} className="mr-2" />
-                봉사자 모집하기
+                Recruit Volunteers
               </Link>
             </div>
           </div>
@@ -172,9 +172,9 @@ export default function VolunteerListingsPage() {
           {/* Navigation Breadcrumb */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center text-sm text-gray-600">
-              <Link href="/" className="hover:text-green-600 transition-colors">홈</Link>
+              <Link href="/" className="hover:text-green-600 transition-colors">Home</Link>
               <span className="mx-2 text-gray-400">•</span>
-              <span className="text-green-600 font-medium">봉사 기회</span>
+              <span className="text-green-600 font-medium">Volunteer Opportunities</span>
             </div>
           </div>
 
@@ -184,7 +184,7 @@ export default function VolunteerListingsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="봉사 기회, 기관명으로 검색..."
+                placeholder="Search volunteer opportunities, organization names..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm"
@@ -200,7 +200,7 @@ export default function VolunteerListingsPage() {
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white shadow-sm"
               >
                 {organizationTypes.map((type) => (
-                  <option key={type} value={type === '전체' ? '' : type}>
+                  <option key={type} value={type === 'All' ? '' : type}>
                     {type}
                   </option>
                 ))}
@@ -210,7 +210,7 @@ export default function VolunteerListingsPage() {
           
           {/* Results Summary */}
           <div className="mt-6 text-sm text-gray-600">
-            총 <span className="font-semibold text-green-600">{filteredPostings.length}</span>개의 봉사 기회
+            Total <span className="font-semibold text-green-600">{filteredPostings.length}</span> volunteer opportunities
           </div>
         </div>
       </div>
@@ -222,10 +222,10 @@ export default function VolunteerListingsPage() {
             <div className="text-center py-20">
               <Heart size={64} className="mx-auto text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                검색 조건에 맞는 봉사 기회가 없습니다
+                No volunteer opportunities found matching your criteria
               </h3>
               <p className="text-gray-600 mb-6">
-                다른 검색어나 필터를 시도해보세요
+                Try different search terms or filters
               </p>
               <button
                 onClick={() => {
@@ -234,7 +234,7 @@ export default function VolunteerListingsPage() {
                 }}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
-                전체 봉사 기회 보기
+                View all volunteer opportunities
               </button>
             </div>
           ) : (
@@ -249,7 +249,7 @@ export default function VolunteerListingsPage() {
                       </span>
                       <div className="flex items-center text-sm text-gray-500">
                         <Users size={14} className="mr-1" />
-                        {posting.applicantCount || 0}명 지원
+                        {posting.applicantCount || 0} applicants
                       </div>
                     </div>
                     
@@ -281,7 +281,7 @@ export default function VolunteerListingsPage() {
                       {posting.startDate && (
                         <div className="flex items-center">
                           <Calendar size={14} className="mr-2 text-green-600" />
-                          <span>{posting.startDate} 시작</span>
+                          <span>{posting.startDate} start</span>
                         </div>
                       )}
                     </div>
@@ -294,7 +294,7 @@ export default function VolunteerListingsPage() {
                       className="w-full inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                     >
                       <Heart size={16} className="mr-2" />
-                      봉사 지원하기
+                      Apply for Volunteer
                     </Link>
                   </div>
                 </div>

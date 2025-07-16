@@ -23,7 +23,7 @@ export default function EventsPage() {
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 관리자 이벤트 등록 폼 데이터
+  // Admin event registration form data
   const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
@@ -38,29 +38,29 @@ export default function EventsPage() {
     requirements: ['']
   });
 
-  // 날짜 드롭다운용 상태
+  // Date dropdown states
   const [dateForm, setDateForm] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     day: new Date().getDate()
   });
 
-  // 페이지네이션 관련 계산
+  // Pagination related calculations
   const totalPages = Math.ceil(events.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentEvents = events.slice(startIndex, startIndex + itemsPerPage);
 
-  // 사용자 정보 및 이벤트 실시간 구독
+  // User information and event real-time subscription
   useEffect(() => {
     const unsubscribeAuth = authService.onAuthStateChange((currentUser) => {
       setUser(currentUser);
     });
 
-    // 실시간 이벤트 구독
+    // Real-time event subscription
     const unsubscribeEvents = eventService.subscribeToEvents((eventsData) => {
       setEvents(eventsData);
       setLoading(false);
-      console.log('🔄 실시간 이벤트 업데이트:', eventsData.length, '개');
+              console.log('🔄 Real-time event updates:', eventsData.length, 'events');
     });
 
     return () => {
@@ -71,11 +71,11 @@ export default function EventsPage() {
 
   const getEventTypeLabel = (type: string) => {
     switch (type) {
-      case 'job-fair': return '취업설명회';
-      case 'workshop': return '워크숍';
-      case 'seminar': return '세미나';
-      case 'competition': return '경진대회';
-      case 'experience': return '체험프로그램';
+      case 'job-fair': return 'Job Fair';
+      case 'workshop': return 'Workshop';
+      case 'seminar': return 'Seminar';
+      case 'competition': return 'Competition';
+      case 'experience': return 'Experience Program';
       default: return type;
     }
   };
@@ -93,34 +93,34 @@ export default function EventsPage() {
 
   const handleRegistration = async (eventId: string) => {
     if (!user) {
-      alert('이벤트 참가를 위해 로그인이 필요합니다.');
+      alert('You need to sign in to register for events.');
       return;
     }
 
     setIsRegistering(true);
     
     try {
-      console.log('🎉 이벤트 참가 신청 시작...', eventId);
+      console.log('🎉 Starting event registration...', eventId);
       
       const participantData = {
-        name: user.displayName || user.email?.split('@')[0] || '참가자',
+        name: user.displayName || user.email?.split('@')[0] || 'Participant',
         email: user.email || '',
-        phone: '010-0000-0000', // 실제로는 폼에서 입력받아야 함
-        school: '학교 정보', // 실제로는 폼에서 입력받아야 함
-        grade: '학년 정보', // 실제로는 폼에서 입력받아야 함
-        eventTitle: selectedEvent?.title || '이벤트'
+        phone: '000-000-0000', // Should be input from form in practice
+        school: 'School Information', // Should be input from form in practice
+        grade: 'Grade Information', // Should be input from form in practice
+                  eventTitle: selectedEvent?.title || 'Event'
       };
       
       const result = await eventService.registerForEvent(eventId, participantData);
       
       if (result.success) {
-        console.log('✅ 이벤트 참가 신청이 성공적으로 완료되었습니다!');
+        console.log('✅ Event registration completed successfully!');
         setRegistrationSuccess(true);
         setSelectedEvent(null);
       }
     } catch (error: unknown) {
-      console.error('❌ 이벤트 등록 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '등록 중 오류가 발생했습니다. 다시 시도해주세요.';
+      console.error('❌ Event registration error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during registration. Please try again.';
       alert(errorMessage);
     } finally {
       setIsRegistering(false);
@@ -131,7 +131,7 @@ export default function EventsPage() {
     e.preventDefault();
     
     if (!user || !eventService.isAdmin(user.email || '')) {
-      alert('관리자 권한이 필요합니다.');
+      alert('Administrator privileges required.');
       return;
     }
 
@@ -148,9 +148,9 @@ export default function EventsPage() {
       const result = await eventService.createEvent(eventData, user.email || '');
       
       if (result.success) {
-        alert('이벤트가 성공적으로 등록되었습니다!');
+        alert('Event registered successfully!');
         setShowAdminForm(false);
-        // 폼 초기화
+        // Form reset
         setEventForm({
           title: '',
           description: '',
@@ -164,7 +164,7 @@ export default function EventsPage() {
           benefits: [''],
           requirements: ['']
         });
-        // 날짜 드롭다운도 초기화
+        // Date dropdown also reset
         setDateForm({
           year: new Date().getFullYear(),
           month: new Date().getMonth() + 1,
@@ -172,8 +172,8 @@ export default function EventsPage() {
         });
       }
     } catch (error: unknown) {
-      console.error('❌ 관리자 이벤트 등록 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '이벤트 등록 중 오류가 발생했습니다.';
+      console.error('❌ Admin event registration error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while registering the event.';
       alert(errorMessage);
     } finally {
       setIsRegistering(false);
@@ -196,7 +196,7 @@ export default function EventsPage() {
   //   }));
   // };
 
-  // 날짜 드롭다운 관련 함수들
+  // Date dropdown related functions
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -218,7 +218,7 @@ export default function EventsPage() {
   const handleDateChange = (field: 'year' | 'month' | 'day', value: number) => {
     const newDateForm = { ...dateForm, [field]: value };
     
-    // 날이 해당 월의 최대 일수를 초과하는 경우 조정
+    // Adjust if the day exceeds the maximum days in the month
     if (field === 'year' || field === 'month') {
       const daysInMonth = new Date(newDateForm.year, newDateForm.month, 0).getDate();
       if (newDateForm.day > daysInMonth) {
@@ -228,16 +228,16 @@ export default function EventsPage() {
     
     setDateForm(newDateForm);
     
-    // eventForm의 date도 업데이트
+    // Update eventForm's date
     const formattedDate = `${newDateForm.year}-${String(newDateForm.month).padStart(2, '0')}-${String(newDateForm.day).padStart(2, '0')}`;
     setEventForm(prev => ({ ...prev, date: formattedDate }));
   };
 
   // // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const formatDate = (timestamp: any) => {
-  //   if (!timestamp) return '날짜 정보 없음';
+  //   if (!timestamp) return 'No date information';
   //   
-  //   // Firebase Timestamp 또는 일반 날짜 문자열 처리
+  //   // Firebase Timestamp or general date string processing
   //   let date;
   //   if (timestamp.toDate) {
   //     date = timestamp.toDate();
@@ -262,26 +262,26 @@ export default function EventsPage() {
           <div className="text-center">
             <CheckCircle size={80} className="text-green-500 mx-auto mb-6" />
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              이벤트 등록이 완료되었습니다!
+              Event registration completed!
             </h1>
             <p className="text-lg text-gray-600 mb-8">
-              등록 확인 이메일이 발송되었습니다. 
+              A confirmation email has been sent. 
               <br />
-              이벤트 전에 추가 안내사항을 받으실 수 있습니다.
+              You may receive additional instructions before the event.
             </p>
             <div className="bg-sky-50 rounded-lg p-6 mb-8">
-              <h2 className="text-lg font-semibold text-sky-900 mb-3">다음 단계</h2>
+              <h2 className="text-lg font-semibold text-sky-900 mb-3">Next Steps</h2>
               <ul className="text-sky-800 space-y-2">
-                <li>• 이벤트 전날 리마인더 이메일 발송</li>
-                <li>• 필요한 준비물 및 주의사항 안내</li>
-                <li>• 이벤트 참석 및 네트워킹 기회 활용</li>
+                <li>• Reminder email the day before the event</li>
+                <li>• Necessary preparations and reminders</li>
+                <li>• Utilize event participation and networking opportunities</li>
               </ul>
             </div>
             <button
               onClick={() => setRegistrationSuccess(false)}
               className="btn-primary"
             >
-              다른 이벤트 보기
+              View Other Events
             </button>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function EventsPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/5번.jpg"
-            alt="교육 이벤트"
+            alt="Educational Events"
             fill
             sizes="100vw"
             className="object-cover"
@@ -314,7 +314,7 @@ export default function EventsPage() {
         {/* Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                                       <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
-              특별한 학생 이벤트가 열립니다
+              Special student events are happening
             </h1>
         </div>
       </section>
@@ -323,18 +323,18 @@ export default function EventsPage() {
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
-            이벤트 & 교육
+            Events & Education
           </h1>
           <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-            미래를 준비하는 다양한 교육 프로그램과 취업설명회에 참여하세요.
+            Join diverse educational programs and career fairs to prepare for your future.
             <br />
-            실무 중심의 워크숍과 네트워킹 기회를 제공합니다.
+            We provide hands-on workshops and networking opportunities.
           </p>
           <p className="text-lg text-orange-600 font-semibold mb-8">
-            취업설명회, 면접 스킬 워크숍, 진로 세미나 등 다양한 이벤트
+            Job fairs, interview skills workshops, career seminars, and more diverse events
           </p>
 
-          {/* 관리자 이벤트 등록 버튼 */}
+          {/* Admin event registration button */}
           {user && eventService.isAdmin(user.email || '') && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
               <button
@@ -342,7 +342,7 @@ export default function EventsPage() {
                 className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3"
               >
                 <Plus size={20} />
-                <span>관리자: 이벤트 등록</span>
+                <span>Admin: Create Event</span>
               </button>
 
             </div>
@@ -356,24 +356,24 @@ export default function EventsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-gray-900">
-                다가오는 이벤트
+                Upcoming Events
               </h2>
               <div className="flex items-center bg-orange-100 rounded-full px-4 py-2">
                 <Calendar size={16} className="mr-2 text-orange-600" />
                 <span className="text-orange-600 font-medium text-sm">
-                  총 {events.length}개 이벤트
+                  {events.length} Total Events
                 </span>
               </div>
             </div>
             <p className="text-gray-600 text-lg">
-              전문가들이 기획한 실무 중심의 이벤트들입니다. 모든 이벤트에 참여하실 수 있습니다.
+              Hands-on events designed by experts. All students are welcome to participate.
             </p>
           </div>
 
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-lg text-gray-600">이벤트를 불러오는 중...</p>
+              <p className="text-lg text-gray-600">Loading events...</p>
             </div>
           ) : currentEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -385,7 +385,7 @@ export default function EventsPage() {
                         {getEventTypeLabel(event.type)}
                       </span>
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">참가자</p>
+                        <p className="text-xs text-gray-500">Participants</p>
                         <p className="text-xs font-medium">
                           {event.currentParticipants || 0}/{event.maxParticipants || 0}
                         </p>
@@ -419,14 +419,14 @@ export default function EventsPage() {
                       <div className="flex items-center">
                         <Users size={14} className="mr-1 text-gray-500" />
                         <span className="text-xs text-gray-600">
-                          {event.remainingSlots || 0}자리 남음
+                          {event.remainingSlots || 0} spots remaining
                         </span>
                       </div>
                       <button
                         onClick={() => setSelectedEvent(event)}
                         className="flex items-center text-orange-600 hover:text-orange-800 font-medium text-sm"
                       >
-                        <span>자세히 보기</span>
+                        <span>View Details</span>
                         <ChevronRight size={14} className="ml-1" />
                       </button>
                     </div>
@@ -438,20 +438,20 @@ export default function EventsPage() {
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <Building size={64} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                등록된 이벤트가 없습니다
+                No events registered yet
               </h3>
               <p className="text-gray-600 mb-6">
-                아직 등록된 이벤트가 없습니다. 관리자가 새로운 이벤트를 등록할 때까지 기다려주세요.
+                No events registered yet. Please wait for the administrator to register new events.
               </p>
             </div>
           )}
 
-          {/* 페이지네이션 */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  {events.length}개 중 {startIndex + 1}-{Math.min(startIndex + itemsPerPage, events.length)}개 표시
+                  {events.length} items, showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, events.length)}
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -493,13 +493,13 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* 관리자 이벤트 등록 모달 */}
+      {/* Admin event registration modal */}
       {showAdminForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">관리자: 새 이벤트 등록</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Admin: Create New Event</h2>
                 <button
                   onClick={() => setShowAdminForm(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -512,7 +512,7 @@ export default function EventsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이벤트 제목 *
+                      Event Title *
                     </label>
                     <input
                       type="text"
@@ -520,13 +520,13 @@ export default function EventsPage() {
                       value={eventForm.title}
                       onChange={(e) => setEventForm({...eventForm, title: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="예: 2025 여름방학 취업설명회"
+                      placeholder="e.g. 2025 Summer Job Fair"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이벤트 유형 *
+                      Event Type *
                     </label>
                     <select
                       required
@@ -534,60 +534,60 @@ export default function EventsPage() {
                       onChange={(e) => setEventForm({...eventForm, type: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
-                      <option value="workshop">워크숍</option>
-                      <option value="seminar">세미나</option>
-                      <option value="job-fair">취업설명회</option>
-                      <option value="competition">경진대회</option>
-                      <option value="experience">체험프로그램</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="seminar">Seminar</option>
+                      <option value="job-fair">Job Fair</option>
+                      <option value="competition">Competition</option>
+                      <option value="experience">Experience Program</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      날짜 *
+                      Date *
                     </label>
                     <div className="grid grid-cols-3 gap-2">
-                      {/* 년도 선택 */}
+                      {/* Year selection */}
                       <select
                         value={dateForm.year}
                         onChange={(e) => handleDateChange('year', parseInt(e.target.value))}
                         className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center"
                       >
                         {generateYears().map(year => (
-                          <option key={year} value={year}>{year}년</option>
+                          <option key={year} value={year}>{year}</option>
                         ))}
                       </select>
                       
-                      {/* 월 선택 */}
+                      {/* Month selection */}
                       <select
                         value={dateForm.month}
                         onChange={(e) => handleDateChange('month', parseInt(e.target.value))}
                         className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center"
                       >
                         {generateMonths().map(month => (
-                          <option key={month} value={month}>{month}월</option>
+                          <option key={month} value={month}>{month}</option>
                         ))}
                       </select>
                       
-                      {/* 일 선택 */}
+                      {/* Day selection */}
                       <select
                         value={dateForm.day}
                         onChange={(e) => handleDateChange('day', parseInt(e.target.value))}
                         className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center"
                       >
                         {generateDays().map(day => (
-                          <option key={day} value={day}>{day}일</option>
+                          <option key={day} value={day}>{day}</option>
                         ))}
                       </select>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      선택된 날짜: {dateForm.year}년 {dateForm.month}월 {dateForm.day}일
+                      Selected date: {dateForm.year}/{dateForm.month}/{dateForm.day}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      시간 *
+                      Time *
                     </label>
                     <input
                       type="text"
@@ -595,13 +595,13 @@ export default function EventsPage() {
                       value={eventForm.time}
                       onChange={(e) => setEventForm({...eventForm, time: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="예: 10:00 AM - 4:00 PM"
+                      placeholder="e.g. 10:00 AM - 4:00 PM"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      장소 *
+                      Location *
                     </label>
                     <input
                       type="text"
@@ -609,13 +609,13 @@ export default function EventsPage() {
                       value={eventForm.location}
                       onChange={(e) => setEventForm({...eventForm, location: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="예: Fredericton Convention Centre"
+                      placeholder="e.g. Fredericton Convention Centre"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      최대 참가자 수 *
+                      Max Participants *
                     </label>
                     <input
                       type="number"
@@ -630,7 +630,7 @@ export default function EventsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이벤트 설명 *
+                    Event Description *
                   </label>
                   <textarea
                     required
@@ -638,13 +638,13 @@ export default function EventsPage() {
                     value={eventForm.description}
                     onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="이벤트에 대한 상세한 설명을 입력하세요"
+                    placeholder="Enter a detailed description of the event"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    주최자 *
+                    Organizer *
                   </label>
                   <input
                     type="text"
@@ -652,7 +652,7 @@ export default function EventsPage() {
                     value={eventForm.organizer}
                     onChange={(e) => setEventForm({...eventForm, organizer: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="예: NB High School Jobs"
+                    placeholder="e.g. NB High School Jobs"
                   />
                 </div>
 
@@ -662,14 +662,14 @@ export default function EventsPage() {
                     onClick={() => setShowAdminForm(false)}
                     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    취소
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isRegistering}
                     className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
                   >
-                    {isRegistering ? '등록 중...' : '이벤트 등록'}
+                    {isRegistering ? 'Creating...' : 'Create Event'}
                   </button>
                 </div>
               </form>
@@ -702,7 +702,7 @@ export default function EventsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">이벤트 정보</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Event Information</h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <Calendar size={18} className="mr-3 text-gray-500" />
@@ -718,18 +718,18 @@ export default function EventsPage() {
                     </div>
                     <div className="flex items-center">
                       <Users size={18} className="mr-3 text-gray-500" />
-                      <span>{selectedEvent.currentParticipants || 0}/{selectedEvent.maxParticipants || 0} 명 참가</span>
+                      <span>{selectedEvent.currentParticipants || 0}/{selectedEvent.maxParticipants || 0} participants</span>
                     </div>
                   </div>
 
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">주최</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Organizer</h3>
                     <p className="text-gray-600">{selectedEvent.organizer}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">설명</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
                   <p className="text-gray-600 mb-6">{selectedEvent.description}</p>
                   
                   <div className="flex justify-center">
@@ -744,7 +744,7 @@ export default function EventsPage() {
                       </div>
                       <p className="text-sm text-gray-600 mt-2 text-center">
                         <span className="font-medium text-orange-600">
-                          {selectedEvent.remainingSlots || 0}자리 남음
+                          {selectedEvent.remainingSlots || 0} spots remaining
                         </span>
                       </p>
                     </div>
@@ -756,16 +756,16 @@ export default function EventsPage() {
                 {(selectedEvent.remainingSlots || 0) <= 0 ? (
                   <div className="text-center">
                     <p className="text-red-600 font-medium mb-4">
-                      죄송합니다. 이 이벤트는 정원이 마감되었습니다.
+                      Sorry, this event is fully booked.
                     </p>
                     <p className="text-gray-600 text-sm">
-                      다음 이벤트를 확인해주세요.
+                      Please check out our other upcoming events.
                     </p>
                   </div>
                 ) : !user ? (
                   <div className="text-center">
                     <p className="text-gray-600 font-medium mb-4">
-                      이벤트 참가를 위해 로그인이 필요합니다.
+                      You need to sign in to register for events.
                     </p>
                   </div>
                 ) : (
@@ -775,7 +775,7 @@ export default function EventsPage() {
                     className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px] flex items-center justify-center space-x-2 mx-auto"
                   >
                     <UserPlus size={18} />
-                    <span>{isRegistering ? '등록 중...' : '이벤트 참가 신청'}</span>
+                    <span>{isRegistering ? 'Registering...' : 'Register for Event'}</span>
                   </button>
                 )}
               </div>

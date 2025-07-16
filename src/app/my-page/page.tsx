@@ -40,7 +40,7 @@ export default function MyPage() {
       if (currentUser) {
         setUser(currentUser);
         
-        // 기존에 저장된 프로필 이미지 로드
+        // Load existing saved profile image
         const savedImage = localStorage.getItem(`profileImage_${currentUser.email}`);
         if (savedImage) {
           setProfileImage(savedImage);
@@ -52,10 +52,10 @@ export default function MyPage() {
           setActivities(userActivities);
           setStats(userStats);
         } catch (error) {
-          console.error('활동 내역 로드 오류:', error);
+          console.error('Activity history loading error:', error);
         }
       } else {
-        // 로그인하지 않은 경우 홈으로 리다이렉트
+        // Redirect to home if not logged in
         router.push('/');
       }
       setLoading(false);
@@ -65,7 +65,7 @@ export default function MyPage() {
   }, [router]);
 
   const formatDate = (timestamp: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!timestamp) return '날짜 정보 없음';
+    if (!timestamp) return 'No date information';
     
     let date;
     if (timestamp.toDate) {
@@ -76,7 +76,7 @@ export default function MyPage() {
       date = new Date(timestamp);
     }
     
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -89,47 +89,47 @@ export default function MyPage() {
     return approved ? (
       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
         <CheckCircle size={12} className="mr-1" />
-        승인됨
+        Approved
       </span>
     ) : (
       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
         <Clock size={12} className="mr-1" />
-        검토 중
+        Under Review
       </span>
     );
   };
 
-  // 프로필 이미지 업로드 핸들러
+  // Profile image upload handler
   const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 파일 크기 제한 (5MB)
+    // File size limit (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.');
+      alert('File size must be 5MB or less.');
       return;
     }
 
-    // 파일 형식 확인
+    // File format validation
     if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
+      alert('Only image files can be uploaded.');
       return;
     }
 
     setIsUploading(true);
 
-    // 파일을 base64로 변환하여 미리보기
+    // Convert file to base64 for preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
       setProfileImage(result);
       setIsUploading(false);
       
-      // localStorage에 프로필 이미지 저장 (사용자별로)
+      // Save profile image to localStorage (per user)
       if (user?.email) {
         localStorage.setItem(`profileImage_${user.email}`, result);
         
-        // Navigation 컴포넌트에 변경사항 알리기 (커스텀 이벤트)
+        // Notify Navigation component of changes (custom event)
         window.dispatchEvent(new CustomEvent('profileImageUpdated', {
           detail: {
             userEmail: user.email,
@@ -137,21 +137,21 @@ export default function MyPage() {
           }
         }));
         
-        console.log('프로필 이미지 업로드 및 저장 완료');
+        console.log('Profile image upload and save completed');
       }
     };
     reader.readAsDataURL(file);
   };
 
-  // 프로필 이미지 제거
+  // Remove profile image
   const handleRemoveProfileImage = () => {
     setProfileImage(null);
     
-    // localStorage에서도 제거
+    // Also remove from localStorage
     if (user?.email) {
       localStorage.removeItem(`profileImage_${user.email}`);
       
-      // Navigation 컴포넌트에 변경사항 알리기
+      // Notify Navigation component of changes
       window.dispatchEvent(new CustomEvent('profileImageUpdated', {
         detail: {
           userEmail: user.email,
@@ -159,7 +159,7 @@ export default function MyPage() {
         }
       }));
       
-      console.log('프로필 이미지 제거됨');
+      console.log('Profile image removed');
     }
   };
 
@@ -170,7 +170,7 @@ export default function MyPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-500 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-600">마이페이지를 불러오는 중...</p>
+            <p className="text-lg text-gray-600">Loading my page...</p>
           </div>
         </div>
       </div>
@@ -184,12 +184,12 @@ export default function MyPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-            <p className="text-lg text-gray-600 mb-4">로그인이 필요합니다.</p>
+            <p className="text-lg text-gray-600 mb-4">Login required.</p>
             <button 
               onClick={() => router.push('/')}
               className="btn-primary"
             >
-              홈으로 돌아가기
+              Return to Home
             </button>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function MyPage() {
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 헤더 */}
+          {/* Header */}
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
             <div className="flex items-center justify-between mb-6">
               <button
@@ -211,18 +211,18 @@ export default function MyPage() {
                 className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft size={20} className="mr-2" />
-                이전으로
+                Back
               </button>
             </div>
             
             <div className="flex items-center space-x-6">
-              {/* 프로필 이미지 업로드 섹션 */}
+              {/* Profile image upload section */}
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-sky-400 to-sky-500 flex items-center justify-center relative">
                   {profileImage ? (
                     <Image 
                       src={profileImage} 
-                      alt="프로필 이미지" 
+                      alt="Profile Image" 
                       width={96}
                       height={96}
                       className="w-full h-full object-cover"
@@ -231,7 +231,7 @@ export default function MyPage() {
                     <User size={48} className="text-white" />
                   )}
                   
-                  {/* 업로드 오버레이 */}
+                  {/* Upload overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       {isUploading ? (
@@ -243,7 +243,7 @@ export default function MyPage() {
                   </div>
                 </div>
                 
-                {/* 파일 입력 (숨김) */}
+                {/* Hidden file input */}
                 <input
                   type="file"
                   id="profile-upload"
@@ -253,7 +253,7 @@ export default function MyPage() {
                   disabled={isUploading}
                 />
                 
-                {/* 업로드 버튼 */}
+                {/* Upload button */}
                 <label
                   htmlFor="profile-upload"
                   className="absolute -bottom-2 -right-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors duration-200 group-hover:scale-110"
@@ -261,7 +261,7 @@ export default function MyPage() {
                   <Camera size={16} />
                 </label>
                 
-                {/* 이미지 제거 버튼 (이미지가 있을 때만 표시) */}
+                {/* Remove image button (only shown when image exists) */}
                 {profileImage && (
                   <button
                     onClick={handleRemoveProfileImage}
@@ -273,32 +273,32 @@ export default function MyPage() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {user.displayName || user.email?.split('@')[0]}님의 마이페이지
+                  {user.displayName || user.email?.split('@')[0]}'s Profile
                 </h1>
                 <p className="text-lg text-gray-600 mb-4">{user.email}</p>
                 <div className="flex items-center space-x-4 mb-2">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-100 text-sky-800">
                     <Activity size={16} className="mr-1" />
-                    총 {stats?.totalActivities || 0}개 활동
+                    Total {stats?.totalActivities || 0} Activities
                   </span>
                   <span className="text-sm text-gray-500">
-                    회원가입일: {formatDate(user.metadata?.creationTime)}
+                    Member since: {formatDate(user.metadata?.creationTime)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 flex items-center">
                   <Camera size={14} className="mr-1" />
-                  프로필 사진에 마우스를 올려 업로드하세요
+                  Hover over profile picture to upload
                 </p>
               </div>
             </div>
           </div>
 
-          {/* 활동 요약 통계 */}
+          {/* Activity Summary Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">구직 신청</p>
+                  <p className="text-sm font-medium text-gray-600">Job Applications</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalApplications || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
@@ -310,7 +310,7 @@ export default function MyPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">채용 공고</p>
+                  <p className="text-sm font-medium text-gray-600">Job Postings</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalJobPostings || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -322,7 +322,7 @@ export default function MyPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">게시글</p>
+                  <p className="text-sm font-medium text-gray-600">Posts</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalPosts || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -334,7 +334,7 @@ export default function MyPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">추천서</p>
+                  <p className="text-sm font-medium text-gray-600">References</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalReferences || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -346,7 +346,7 @@ export default function MyPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">문의사항</p>
+                  <p className="text-sm font-medium text-gray-600">Inquiries</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalContacts || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -358,7 +358,7 @@ export default function MyPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">이벤트 참가</p>
+                  <p className="text-sm font-medium text-gray-600">Event Participation</p>
                   <p className="text-2xl font-bold text-gray-900">{stats?.totalEventRegistrations || 0}</p>
                 </div>
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -368,15 +368,15 @@ export default function MyPage() {
             </div>
           </div>
 
-          {/* 탭 네비게이션 */}
+          {/* Tab Navigation */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="border-b border-gray-200">
               <nav className="flex">
                 {[
-                  { id: 'overview', name: '전체 활동', icon: BarChart3 },
-                  { id: 'applications', name: '구직 신청', icon: User },
-                  { id: 'posts', name: '게시글', icon: MessageSquare },
-                  { id: 'contacts', name: '문의사항', icon: Mail }
+                  { id: 'overview', name: 'All Activities', icon: BarChart3 },
+                  { id: 'applications', name: 'Job Applications', icon: User },
+                  { id: 'posts', name: 'Posts', icon: MessageSquare },
+                  { id: 'contacts', name: 'Inquiries', icon: Mail }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -395,29 +395,29 @@ export default function MyPage() {
             </div>
 
             <div className="p-8">
-              {/* 전체 활동 탭 */}
+              {/* All Activities Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">최근 활동 내역</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity History</h3>
                   
-                  {/* 최근 활동들을 시간순으로 정렬해서 표시 */}
+                  {/* Display recent activities sorted by time */}
                   <div className="space-y-4">
                     {activities && Object.entries(activities).some(([, items]: [string, any]) => items.length > 0) ? ( // eslint-disable-line @typescript-eslint/no-explicit-any
-                      // 모든 활동을 하나의 배열로 합치고 시간순 정렬
+                      // Combine all activities into one array and sort by time
                       [
-                        ...activities.jobApplications.map((item: any) => ({ ...item, type: 'job-application', typeName: '구직 신청' })), // eslint-disable-line @typescript-eslint/no-explicit-any
-                        ...activities.jobPostings.map((item: any) => ({ ...item, type: 'job-posting', typeName: '채용 공고' })), // eslint-disable-line @typescript-eslint/no-explicit-any
-                        ...activities.references.map((item: any) => ({ ...item, type: 'reference', typeName: '추천서' })), // eslint-disable-line @typescript-eslint/no-explicit-any
-                        ...activities.contacts.map((item: any) => ({ ...item, type: 'contact', typeName: '문의사항' })), // eslint-disable-line @typescript-eslint/no-explicit-any
-                        ...activities.posts.map((item: any) => ({ ...item, type: 'post', typeName: '게시글' })), // eslint-disable-line @typescript-eslint/no-explicit-any
-                        ...activities.eventRegistrations.map((item: any) => ({ ...item, type: 'event', typeName: '이벤트 참가' })) // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.jobApplications.map((item: any) => ({ ...item, type: 'job-application', typeName: 'Job Application' })), // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.jobPostings.map((item: any) => ({ ...item, type: 'job-posting', typeName: 'Job Posting' })), // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.references.map((item: any) => ({ ...item, type: 'reference', typeName: 'Reference' })), // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.contacts.map((item: any) => ({ ...item, type: 'contact', typeName: 'Inquiry' })), // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.posts.map((item: any) => ({ ...item, type: 'post', typeName: 'Post' })), // eslint-disable-line @typescript-eslint/no-explicit-any
+                        ...activities.eventRegistrations.map((item: any) => ({ ...item, type: 'event', typeName: 'Event Participation' })) // eslint-disable-line @typescript-eslint/no-explicit-any
                       ]
                         .sort((a, b) => {
                           const dateA = a.createdAt?.toDate?.() || a.registeredAt?.toDate?.() || new Date(a.createdAt || a.registeredAt);
                           const dateB = b.createdAt?.toDate?.() || b.registeredAt?.toDate?.() || new Date(b.createdAt || b.registeredAt);
                           return dateB.getTime() - dateA.getTime();
                         })
-                        .slice(0, 10) // 최근 10개만 표시
+                        .slice(0, 10) // Show only recent 10
                         .map((activity, index) => (
                           <div key={`${activity.type}-${index}`} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                             <div className="flex items-center justify-between">
@@ -439,7 +439,7 @@ export default function MyPage() {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-900">
-                                    {activity.typeName}: {activity.title || activity.name || activity.subject || activity.eventTitle || '제목 없음'}
+                                    {activity.typeName}: {activity.title || activity.name || activity.subject || activity.eventTitle || 'No Title'}
                                   </p>
                                   <p className="text-sm text-gray-500">{formatDate(activity.createdAt || activity.registeredAt)}</p>
                                 </div>
@@ -451,34 +451,33 @@ export default function MyPage() {
                     ) : (
                       <div className="text-center py-12">
                         <Activity size={48} className="text-gray-300 mx-auto mb-4" />
-                        <p className="text-lg text-gray-500">아직 활동 내역이 없습니다.</p>
-                        <p className="text-gray-400">다양한 기능을 이용해보세요!</p>
+                        <p className="text-lg text-gray-500">No activities yet.</p>
+                        <p className="text-gray-400">Activities will appear here when you start using the platform.</p>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* 구직 신청 탭 */}
+              {/* Job Applications Tab */}
               {activeTab === 'applications' && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">구직 신청 내역</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Job Application History</h3>
                   {activities?.jobApplications?.length > 0 ? (
                     <div className="space-y-4">
-                      {activities.jobApplications.map((app: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+                      {activities.jobApplications.map((application: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                         <div key={index} className="border border-gray-200 rounded-lg p-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-lg font-semibold text-gray-900">{app.name}</h4>
-                            {getStatusBadge(app.approved)}
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-gray-900">{application.title}</h4>
+                            <div className="flex items-center space-x-2">
+                              {getStatusBadge(application.approved)}
+                              <span className="text-sm text-gray-500">{formatDate(application.createdAt)}</span>
+                            </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                            <p><span className="font-medium">학교:</span> {app.school}</p>
-                            <p><span className="font-medium">학년:</span> {app.grade}</p>
-                            <p><span className="font-medium">기술/경험:</span> {app.skills}</p>
-                            <p><span className="font-medium">지원일:</span> {formatDate(app.createdAt)}</p>
-                            {app.resumeFileName && (
-                              <p><span className="font-medium">첨부파일:</span> {app.resumeFileName}</p>
-                            )}
+                          <p className="text-gray-600 mb-4">{application.description}</p>
+                          <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                            <div><span className="font-medium">Contact:</span> {application.email}</div>
+                            <div><span className="font-medium">Phone:</span> {application.phone}</div>
                           </div>
                         </div>
                       ))}
@@ -486,53 +485,45 @@ export default function MyPage() {
                   ) : (
                     <div className="text-center py-12">
                       <User size={48} className="text-gray-300 mx-auto mb-4" />
-                      <p className="text-lg text-gray-500">구직 신청 내역이 없습니다.</p>
+                      <p className="text-lg text-gray-500">No job applications.</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* 게시글 탭 */}
+              {/* Posts Tab */}
               {activeTab === 'posts' && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">작성한 게시글</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">My Posts</h3>
                   {activities?.posts?.length > 0 ? (
                     <div className="space-y-4">
                       {activities.posts.map((post: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                         <div key={index} className="border border-gray-200 rounded-lg p-6">
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="text-lg font-semibold text-gray-900">{post.title}</h4>
-                            <span className="text-sm text-gray-500">{formatDate(post.createdAt)}</span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-500">{formatDate(post.createdAt)}</span>
+                              <Eye size={16} className="text-gray-400" />
+                              <span className="text-sm text-gray-500">{post.views || 0}</span>
+                            </div>
                           </div>
-                          <p className="text-gray-600 mb-4 line-clamp-3">{post.content}</p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span className="inline-flex items-center">
-                              <Eye size={16} className="mr-1" />
-                              조회 {post.views || 0}
-                            </span>
-                            <span className="px-2 py-1 bg-gray-100 rounded-full">
-                              {post.category === 'general' ? '일반' :
-                               post.category === 'job' ? '취업' :
-                               post.category === 'study' ? '학습' :
-                               post.category === 'life' ? '일상' : post.category}
-                            </span>
-                          </div>
+                          <p className="text-gray-600">{post.content?.substring(0, 200)}...</p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-12">
                       <MessageSquare size={48} className="text-gray-300 mx-auto mb-4" />
-                      <p className="text-lg text-gray-500">작성한 게시글이 없습니다.</p>
+                      <p className="text-lg text-gray-500">No posts written.</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* 문의사항 탭 */}
+              {/* Inquiries Tab */}
               {activeTab === 'contacts' && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">문의사항 내역</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Inquiry History</h3>
                   {activities?.contacts?.length > 0 ? (
                     <div className="space-y-4">
                       {activities.contacts.map((contact: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -543,22 +534,22 @@ export default function MyPage() {
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                 contact.resolved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {contact.resolved ? '답변 완료' : '답변 대기'}
+                                {contact.resolved ? 'Answered' : 'Awaiting Response'}
                               </span>
                               <span className="text-sm text-gray-500">{formatDate(contact.createdAt)}</span>
                             </div>
                           </div>
                           <p className="text-gray-600 mb-4">{contact.message}</p>
                           <div className="text-sm text-gray-500">
-                            <span className="font-medium">분류:</span> {
-                              contact.category === 'general' ? '일반 문의' :
-                              contact.category === 'technical' ? '기술 문제' :
-                              contact.category === 'job-seeker' ? '구직자 문의' :
-                              contact.category === 'employer' ? '기업/고용주 문의' :
-                              contact.category === 'event' ? '이벤트 문의' : contact.category
+                            <span className="font-medium">Category:</span> {
+                              contact.category === 'general' ? 'General Inquiry' :
+                              contact.category === 'technical' ? 'Technical Issue' :
+                              contact.category === 'job-seeker' ? 'Job Seeker Inquiry' :
+                              contact.category === 'employer' ? 'Employer Inquiry' :
+                              contact.category === 'event' ? 'Event Inquiry' : contact.category
                             }
                             {contact.urgent && (
-                              <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">긴급</span>
+                              <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Urgent</span>
                             )}
                           </div>
                         </div>
@@ -567,7 +558,7 @@ export default function MyPage() {
                   ) : (
                     <div className="text-center py-12">
                       <Mail size={48} className="text-gray-300 mx-auto mb-4" />
-                      <p className="text-lg text-gray-500">문의사항이 없습니다.</p>
+                      <p className="text-lg text-gray-500">No inquiries made.</p>
                     </div>
                   )}
                 </div>

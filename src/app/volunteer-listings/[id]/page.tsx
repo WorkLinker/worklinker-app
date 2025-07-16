@@ -205,12 +205,12 @@ export default function VolunteerDetailPage() {
               </p>
               
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-green-800 mb-2">📋 다음 단계</h3>
+                <h3 className="font-semibold text-green-800 mb-2">📋 Next Steps</h3>
                 <ul className="text-sm text-green-700 space-y-1">
-                  <li>• 기관 담당자가 지원서를 검토합니다</li>
-                  <li>• 선발되면 담당자가 직접 연락드립니다</li>
-                  <li>• 봉사 일정 및 세부사항을 안내받습니다</li>
-                  <li>• 봉사 활동 시작!</li>
+                  <li>• The organization coordinator will review your application</li>
+                  <li>• If selected, the coordinator will contact you directly</li>
+                  <li>• You will receive volunteer schedule and details</li>
+                  <li>• Start volunteering!</li>
                 </ul>
               </div>
 

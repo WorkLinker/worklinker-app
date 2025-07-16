@@ -394,10 +394,10 @@ export const eventService = {
   // 관리자 이벤트 등록
   async createEvent(data: any, adminEmail: string) {
     try {
-      // 관리자 권한 확인 (간단한 체크 - 실제로는 더 정교한 권한 시스템 필요)
+      // Admin permission check (simple check - more sophisticated permission system needed in practice)
       const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca'];
       if (!adminEmails.includes(adminEmail)) {
-        throw new Error('관리자 권한이 없습니다.');
+        throw new Error('You do not have administrator permissions.');
       }
 
       const docRef = await addDoc(collection(db, 'events'), {
@@ -648,9 +648,9 @@ export const adminService = {
   }
 };
 
-// 👤 마이페이지 서비스
+// 👤 My Page Service
 export const myPageService = {
-  // 사용자별 모든 활동 내역 조회
+  // Get all user activities by email
   async getUserActivities(userEmail: string) {
     try {
       console.log('👤 사용자 활동 내역 조회 시작:', userEmail);
@@ -744,72 +744,146 @@ export const contentService = {
   async initializeDefaultContent() {
     try {
       const defaultContent = {
-        // 히어로 슬라이드 데이터
+        // Hero slide data
         heroSlides: [
           {
-            title: '미래를 만들어갈 학생 인재들을 만나보세요',
-            subtitle: '뉴브런즈윅의 미래를 이끌어갈 인재들과 함께하세요'
+            title: 'Your First Step to Career Success',
+            subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
           },
           {
-            title: '성공적인 진로를 위한 첫걸음',
-            subtitle: '전문적인 지도와 실무 경험으로 꿈을 현실로 만들어보세요'
+            title: 'Discover the Talented Students of Tomorrow',
+            subtitle: 'Connect with the future leaders of New Brunswick'
           },
           {
-            title: '혁신적인 교육 플랫폼',
-            subtitle: '기술과 교육이 만나 새로운 가능성을 열어갑니다'
+            title: 'Innovative Education Platform',
+            subtitle: 'Where technology meets education to unlock new possibilities'
           }
         ],
-        // CTA 버튼
+        // CTA buttons
         ctaButtons: {
-          student: '학생으로 시작하기',
-          company: '기업으로 참여하기'
+          student: 'Get Started as Student',
+          company: 'Join as Employer'
         },
-        // 메인 섹션
+        // Main section
         mainSection: {
-          badge: '통합 진로 플랫폼',
-          title: '캐나다 학생들을 위한',
-          subtitle: '원스톱 진로 솔루션',
-          description: '뉴브런즈윅 주의 모든 고등학생들이 이용할 수 있는',
-          highlight: '차세대 진로 지원 시스템'
+          badge: 'Our Mission',
+          title: 'For Canadian Students',
+          subtitle: 'Available to all high school students in New Brunswick',
+          description: 'next-generation career support system',
+          highlight: 'An innovative platform for every student\'s success'
         },
-        // 기능 카드들
+        // Feature cards
         featureCards: {
           student: {
-            title: '학생 구직',
-            description: '스마트한 매칭 시스템으로 당신에게 완벽한 일자리를 찾아드립니다',
-            buttonText: '시작하기 →'
+            title: 'Student Jobs',
+            description: 'Smart matching system that finds the perfect job opportunities for you',
+            buttonText: 'Get Started →'
           },
           reference: {
-            title: '추천서 지원',
-            description: '선생님들과 연결되는 디지털 추천서 생태계',
-            buttonText: '참여하기 →'
+            title: 'References',
+            description: 'Digital reference ecosystem connecting students with teachers',
+            buttonText: 'Get Started →'
           },
           company: {
-            title: '기업 채용',
-            description: '우수한 캐나다 인재들과 만나는 스마트 채용 플랫폼',
-            buttonText: '둘러보기 →'
+            title: 'Employer Hub',
+            description: 'Smart hiring platform to connect with talented Canadian students',
+            buttonText: 'Explore →'
           },
           events: {
-            title: '교육 이벤트',
-            description: '미래를 준비하는 실무 중심 교육 프로그램',
-            buttonText: '참가하기 →'
+            title: 'Learning Events',
+            description: 'Hands-on educational programs to prepare for your future',
+            buttonText: 'Join Event →'
           }
         },
-        // 미션 섹션
+        // Mission section
         missionSection: {
-          badge: '우리의 목표',
-          title: '청년 취업의 새로운 패러다임',
-          description: '모든 학생이 꿈꾸는 미래를 실현할 수 있도록 돕겠습니다'
+          badge: 'Our Mission',
+          title: 'An innovative platform for every student\'s success',
+          description: 'We\'re building a world where every New Brunswick student can reach their full potential and make their dreams come true'
         },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
       const docRef = await addDoc(collection(db, 'siteContent'), defaultContent);
-      console.log('✅ 기본 콘텐츠 초기화 완료:', docRef.id);
+      console.log('✅ Default content initialization completed:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 기본 콘텐츠 초기화 오류:', error);
+      console.error('❌ Default content initialization error:', error);
+      throw error;
+    }
+  },
+
+  // 영어 기본 콘텐츠로 재설정
+  async resetToEnglishContent(adminEmail: string) {
+    try {
+      const englishContent = {
+        // Hero slide data
+        heroSlides: [
+          {
+            title: 'Your First Step to Career Success',
+            subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
+          },
+          {
+            title: 'Discover the Talented Students of Tomorrow',
+            subtitle: 'Connect with the future leaders of New Brunswick'
+          },
+          {
+            title: 'Innovative Education Platform',
+            subtitle: 'Where technology meets education to unlock new possibilities'
+          }
+        ],
+        // CTA buttons
+        ctaButtons: {
+          student: 'Get Started as Student',
+          company: 'Join as Employer'
+        },
+        // Main section
+        mainSection: {
+          badge: 'Our Mission',
+          title: 'For Canadian Students',
+          subtitle: 'Available to all high school students in New Brunswick',
+          description: 'next-generation career support system',
+          highlight: 'An innovative platform for every student\'s success'
+        },
+        // Feature cards
+        featureCards: {
+          student: {
+            title: 'Student Jobs',
+            description: 'Smart matching system that finds the perfect job opportunities for you',
+            buttonText: 'Get Started →'
+          },
+          reference: {
+            title: 'References',
+            description: 'Digital reference ecosystem connecting students with teachers',
+            buttonText: 'Get Started →'
+          },
+          company: {
+            title: 'Employer Hub',
+            description: 'Smart hiring platform to connect with talented Canadian students',
+            buttonText: 'Explore →'
+          },
+          events: {
+            title: 'Learning Events',
+            description: 'Hands-on educational programs to prepare for your future',
+            buttonText: 'Join Event →'
+          }
+        },
+        // Mission section
+        missionSection: {
+          badge: 'Our Mission',
+          title: 'An innovative platform for every student\'s success',
+          description: 'We\'re building a world where every New Brunswick student can reach their full potential and make their dreams come true'
+        },
+        updatedAt: serverTimestamp(),
+        updatedBy: adminEmail
+      };
+
+      const docRef = await addDoc(collection(db, 'siteContent'), englishContent);
+      console.log('✅ Content reset to English successfully:', docRef.id);
+      return { success: true, id: docRef.id };
+    } catch (error) {
+      console.error('❌ Content reset error:', error);
       throw error;
     }
   },
@@ -821,8 +895,8 @@ export const contentService = {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        // 콘텐츠가 없으면 기본 콘텐츠 생성
-        console.log('📝 기본 콘텐츠 생성 중...');
+        // Create default content if none exists
+        console.log('📝 Creating default content...');
         await this.initializeDefaultContent();
         return await this.getCurrentContent();
       }
@@ -832,10 +906,10 @@ export const contentService = {
         ...querySnapshot.docs[0].data()
       };
 
-      console.log('✅ 현재 콘텐츠 조회 성공');
+      console.log('✅ Current content retrieval successful');
       return latestContent;
     } catch (error) {
-      console.error('❌ 현재 콘텐츠 조회 오류:', error);
+      console.error('❌ Current content retrieval error:', error);
       throw error;
     }
   },
@@ -902,10 +976,10 @@ export const logService = {
         createdAt: serverTimestamp()
       });
       
-      console.log('✅ 활동 로그 생성 성공:', docRef.id);
+      console.log('✅ Activity log creation successful:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 활동 로그 생성 오류:', error);
+      console.error('❌ Activity log creation error:', error);
       throw error;
     }
   },
@@ -920,14 +994,14 @@ export const logService = {
         contentId: changeData.contentId,
         changes: changeData.changes,
         previousContent: changeData.previousContent,
-        description: '사이트 콘텐츠가 수정되었습니다',
+        description: 'Site content has been modified',
         timestamp: serverTimestamp(),
         createdAt: serverTimestamp()
       };
 
       return await this.createLog(logData);
     } catch (error) {
-      console.error('❌ 콘텐츠 변경 로그 생성 오류:', error);
+      console.error('❌ Content change log creation error:', error);
       throw error;
     }
   },
@@ -942,14 +1016,14 @@ export const logService = {
         targetUserId: actionData.targetUserId,
         targetUserEmail: actionData.targetUserEmail,
         reason: actionData.reason || '',
-        description: `구직 신청이 ${actionData.action === 'approve' ? '승인' : '거절'}되었습니다`,
+        description: `Job application has been ${actionData.action === 'approve' ? 'approved' : 'rejected'}`,
         timestamp: serverTimestamp(),
         createdAt: serverTimestamp()
       };
 
       return await this.createLog(logData);
     } catch (error) {
-      console.error('❌ 사용자 액션 로그 생성 오류:', error);
+      console.error('❌ User action log creation error:', error);
       throw error;
     }
   },
@@ -1430,15 +1504,15 @@ export const designService = {
           }
         };
         
-        console.log('📋 기본 디자인 설정 반환');
+        console.log('📋 Returning default design settings');
         return defaultSettings;
       }
       
       const settings = settingsDoc.docs[0].data();
-      console.log('✅ 현재 디자인 설정 조회 완료');
+      console.log('✅ Current design settings retrieval completed');
       return settings;
     } catch (error) {
-      console.error('❌ 디자인 설정 조회 오류:', error);
+      console.error('❌ Design settings retrieval error:', error);
       throw error;
     }
   },
@@ -1516,14 +1590,14 @@ export const designService = {
       
       const theme = presetThemes[themeName as keyof typeof presetThemes];
       if (!theme) {
-        throw new Error('존재하지 않는 테마입니다.');
+        throw new Error('Theme does not exist.');
       }
       
       await this.saveColorTheme(theme);
-      console.log('✅ 프리셋 테마 적용 완료:', themeName);
+      console.log('✅ Preset theme application completed:', themeName);
       return { success: true, theme };
     } catch (error) {
-      console.error('❌ 프리셋 테마 적용 오류:', error);
+      console.error('❌ Preset theme application error:', error);
       throw error;
     }
   }

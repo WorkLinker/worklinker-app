@@ -23,19 +23,19 @@ import { jobPostingService, jobApplicationService } from '@/lib/firebase-service
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
-const ApplicationSchema = z.object({
-  name: z.string().min(2, '이름은 2글자 이상이어야 합니다'),
-  email: z.string().email('올바른 이메일 주소를 입력해주세요'),
-  phone: z.string().min(10, '올바른 전화번호를 입력해주세요'),
-  grade: z.string().min(1, '학년을 선택해주세요'),
-  school: z.string().min(2, '학교명을 입력해주세요'),
-  experience: z.string().min(10, '경험/기술을 10글자 이상 입력해주세요'),
-  motivation: z.string().min(50, '지원동기를 50글자 이상 입력해주세요'),
-  availability: z.string().min(1, '근무 가능 시간을 입력해주세요'),
+const JobApplicationSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  grade: z.string().min(1, 'Please select your grade'),
+  school: z.string().min(2, 'Please enter your school name'),
+  experience: z.string().min(10, 'Please enter at least 10 characters for experience/skills'),
+  motivation: z.string().min(50, 'Please enter at least 50 characters for your motivation'),
+  availability: z.string().min(1, 'Please enter your available hours'),
   questions: z.string().optional()
 });
 
-type ApplicationForm = z.infer<typeof ApplicationSchema>;
+type ApplicationForm = z.infer<typeof JobApplicationSchema>;
 
 export default function JobApplicationPage() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function JobApplicationPage() {
     setValue,
     reset
   } = useForm<ApplicationForm>({
-    resolver: zodResolver(ApplicationSchema)
+    resolver: zodResolver(JobApplicationSchema)
   });
 
   useEffect(() => {
@@ -203,33 +203,33 @@ export default function JobApplicationPage() {
                 지원이 완료되었습니다!
               </h1>
               <p className="text-lg text-gray-600 mb-4">
-                <strong>&ldquo;{jobPosting.title}&rdquo;</strong> 에 성공적으로 지원되었습니다.
+                You have successfully applied for <strong>&ldquo;{jobPosting.title}&rdquo;</strong>.
               </p>
               <p className="text-gray-600 mb-8">
-                기업에서 검토 후 연락드릴 예정입니다.
+                The company will review your application and contact you.
                 <br />
-                일반적으로 3-5일 내에 답변을 받으실 수 있습니다.
+                You can typically expect a response within 3-5 days.
               </p>
               <div className="bg-green-50 rounded-lg p-6 mb-8">
-                <h2 className="text-lg font-semibold text-green-900 mb-3">다음 단계</h2>
+                <h2 className="text-lg font-semibold text-green-900 mb-3">Next Steps</h2>
                 <ul className="text-green-800 space-y-2 text-left">
-                  <li>• 기업에서 지원서를 검토합니다</li>
-                  <li>• 적합하다고 판단되면 연락을 드립니다</li>
-                  <li>• 마이페이지에서 지원 현황을 확인할 수 있습니다</li>
+                  <li>• The company will review your application</li>
+                  <li>• They will contact you if you&apos;re a good fit</li>
+                  <li>• You can check your application status on My Page</li>
                 </ul>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => router.push('/job-listings')}
-                  className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
                 >
-                  다른 구인공고 보기
+                  View Other Job Listings
                 </button>
                 <button
                   onClick={() => router.push('/my-page')}
                   className="px-6 py-3 border border-purple-500 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
                 >
-                  마이페이지에서 확인하기
+                  Check in My Profile
                 </button>
               </div>
             </div>

@@ -234,7 +234,10 @@ export default function Navigation() {
                       <User size={20} />
                     )}
                     <span className="text-sm font-medium">
-                      {user.displayName || user.email?.split('@')[0]}
+                      {eventService.isAdmin(user.email || '') 
+                        ? 'Admin' 
+                        : user.email || user.displayName || 'User'
+                      }
                     </span>
                     <ChevronDown 
                       size={16} 
@@ -253,7 +256,7 @@ export default function Navigation() {
                           className="flex items-center space-x-3 px-4 py-2 text-orange-600 hover:bg-orange-50 transition-colors"
                         >
                           <Settings size={18} />
-                          <span>👨‍💼 Admin Dashboard</span>
+                          <span>Admin Dashboard</span>
                         </Link>
                       ) : (
                       <Link
@@ -414,7 +417,10 @@ export default function Navigation() {
                     <div className="flex items-center space-x-3 px-3 py-2 text-white">
                       <User size={20} />
                       <span className="text-base font-semibold">
-                        {user.displayName || user.email?.split('@')[0]}
+                        {eventService.isAdmin(user.email || '') 
+                          ? 'Admin' 
+                          : user.email || user.displayName || 'User'
+                        }
                       </span>
                     </div>
                     
@@ -426,7 +432,7 @@ export default function Navigation() {
                         className="flex items-center space-x-3 px-3 py-2 text-orange-300 hover:bg-orange-600/20 hover:text-orange-200 rounded-lg transition-all duration-200 w-full"
                       >
                         <Settings size={20} />
-                        <span>👨‍💼 Admin Dashboard</span>
+                        <span>Admin Dashboard</span>
                       </Link>
                     ) : (
                     <Link
