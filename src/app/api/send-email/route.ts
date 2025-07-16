@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
     // MailerSend error handling
     if (error && typeof error === 'object') {
       // Type-safe error handling
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyError = error as any;
       
       if (anyError.response) {

@@ -15,7 +15,7 @@ import {
 import Image from 'next/image';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { sendContactEmail, ContactFormData } from '@/lib/email-service';
+import { ContactFormData } from '@/lib/email-service';
 import { contactService } from '@/lib/firebase-services';
 
 // Get contact information from environment variables

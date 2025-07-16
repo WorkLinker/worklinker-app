@@ -169,7 +169,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
     console.log('📨 API response status:', response.status);
 
     if (!response.ok) {
-      let errorData: any = {};
+      let errorData: Record<string, unknown> = {};
       let errorText = '';
       
       try {
@@ -187,7 +187,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
       });
 
       // Handle specific MailerSend errors gracefully
-      if (response.status === 422 && errorData.error?.includes('Trial Account')) {
+      if (response.status === 422 && typeof errorData.error === 'string' && errorData.error.includes('Trial Account')) {
         console.log('⚠️ MailerSend trial limitation detected - email saved to database instead');
         return {
           success: true,

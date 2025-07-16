@@ -9,8 +9,6 @@ import {
   Image as ImageIcon, 
   File as FileIcon,
   AlertCircle,
-  CheckCircle,
-  X,
   Shield
 } from 'lucide-react';
 import { storage, db } from '@/lib/firebase';
@@ -27,7 +25,7 @@ interface FileItem {
   size: number;
   type: string;
   downloadURL: string;
-  uploadedAt: any;
+  uploadedAt: Date | { seconds: number; nanoseconds: number };
   category: string;
   uploadedBy: string;
 }
@@ -60,6 +58,7 @@ export default function AdminFileUpload({
     });
 
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadFiles = async () => {
@@ -234,6 +233,7 @@ export default function AdminFileUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);

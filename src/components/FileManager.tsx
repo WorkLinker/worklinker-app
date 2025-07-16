@@ -9,13 +9,10 @@ import {
   Image as ImageIcon, 
   File as FileIcon,
   Search,
-  Filter,
-  AlertCircle,
-  CheckCircle,
-  X
+  CheckCircle
 } from 'lucide-react';
 import { storage, db } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 interface FileItem {
@@ -25,7 +22,7 @@ interface FileItem {
   size: number;
   type: string;
   downloadURL: string;
-  uploadedAt: any;
+  uploadedAt: Date | { seconds: number; nanoseconds: number };
   category: string;
 }
 
@@ -250,6 +247,7 @@ export default function FileManager() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);

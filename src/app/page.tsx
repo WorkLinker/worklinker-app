@@ -323,7 +323,7 @@ export default function Home() {
                 priority={index === 0}
                 quality={85}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                onError={(e) => {
+                onError={(_) => {
                   console.error(`Failed to load slide image: ${slide.image}`);
                 }}
               />
