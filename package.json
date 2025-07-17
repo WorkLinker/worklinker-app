@@ -10,7 +10,8 @@
     "backup:firebase": "ts-node scripts/firebase-backup.ts",
     "migrate:supabase": "ts-node scripts/supabase-migration.ts",
     "export:auth": "ts-node scripts/firebase-auth-export.ts",
-    "generate:pdf": "node scripts/generate-pdf-report.js"
+    "generate:pdf": "node scripts/generate-pdf-report.js",
+    "generate:pdf-en": "node scripts/generate-english-pdf-report.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
