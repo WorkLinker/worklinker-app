@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NB Student Hub",
+  title: "High School Students Jobs",
   description: "Job matching platform for New Brunswick high school students. Full-time during breaks, part-time during school, volunteer opportunities and more.",
   keywords: ["New Brunswick", "high school jobs", "part-time", "full-time", "volunteer", "resume", "Canada", "student jobs", "career", "employment"],
-  authors: [{ name: "NB Student Hub Team" }],
-  creator: "NB Student Hub",
+  authors: [{ name: "High School Students Jobs Team" }],
+  creator: "High School Students Jobs",
   publisher: "Professional Services Team",
   robots: "index, follow",
   
@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_CA",
-    title: "NB Student Hub - Professional Career Support",
+    title: "High School Students Jobs - Professional Career Support",
     description: "Job matching platform for New Brunswick high school students",
-    siteName: "NB Student Hub",
+    siteName: "High School Students Jobs",
   },
   
   twitter: {

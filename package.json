@@ -11,7 +11,8 @@
     "migrate:supabase": "ts-node scripts/supabase-migration.ts",
     "export:auth": "ts-node scripts/firebase-auth-export.ts",
     "generate:pdf": "node scripts/generate-pdf-report.js",
-    "generate:pdf-en": "node scripts/generate-english-pdf-report.js"
+    "generate:pdf-en": "node scripts/generate-english-pdf-report.js",
+    "generate:comprehensive-pdf": "node scripts/generate-comprehensive-report-pdf.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

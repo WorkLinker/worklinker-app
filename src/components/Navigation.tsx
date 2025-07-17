@@ -196,7 +196,7 @@ export default function Navigation() {
               className="rounded-lg"
             />
             <span className="text-xl font-bold text-white hidden sm:block">
-              NB Student Hub
+              High School Students Jobs
             </span>
           </Link>
 

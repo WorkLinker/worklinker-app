@@ -213,7 +213,7 @@ export default function StudentProfilesPage() {
     const subject = `[Job Inquiry] Contacting ${student.name}`;
     const body = `Hello ${student.name},
 
-I found your profile through the NB Student Hub and would like to contact you.
+I found your profile through the High School Students Jobs and would like to contact you.
 
 Grade: Grade ${student.grade}
 School: ${student.school}

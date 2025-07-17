@@ -21,7 +21,7 @@ export default function Footer() {
                 <GraduationCap size={28} className="text-white" />
               </div>
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white">NB Student Hub</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">High School Students Jobs</h3>
               </div>
             </div>
             
@@ -96,7 +96,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-center md:text-left">
               <p className="text-sky-200 text-base sm:text-lg">
-                © 2025 NB Student Hub. All rights reserved.
+                © 2025 High School Students Jobs. All rights reserved.
               </p>
               <p className="text-sky-300 text-sm sm:text-base mt-1 sm:mt-2">
                 A professional platform for New Brunswick student success
