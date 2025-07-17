@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, Home, Users, FileText, Calendar, Mail, MessageSquare, LogIn, LogOut, ChevronDown, UserCircle, Settings, Building, Heart } from 'lucide-react';
 import { authService } from '@/lib/auth-service';
-// import { eventService } from '@/lib/firebase-services'; // 사용하지 않음
 import { User as FirebaseUser } from 'firebase/auth';
 
 export default function Navigation() {
@@ -19,8 +18,6 @@ export default function Navigation() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
-
-  // const isActive = (path: string) => pathname === path; // 사용하지 않음
 
   // Navigation items
   const navigationItems = [

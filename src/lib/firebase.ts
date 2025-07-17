@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 // Firebase 초기화 (중복 초기화 방지)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-
+    
 // Firebase 서비스 인스턴스
 const auth = getAuth(app);
 const db = getFirestore(app);

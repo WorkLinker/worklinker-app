@@ -311,18 +311,21 @@ export const jobPostingService = {
     }
     
     try {
-      // 개발 환경에서는 모든 구인공고 표시 (승인 여부 상관없이)
-      const q = query(
-        collection(db, 'jobPostings'),
-        orderBy('createdAt', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
+      // 인덱스 오류 방지를 위해 단순 쿼리 사용
+      const querySnapshot = await getDocs(collection(db, 'jobPostings'));
       const jobPostings = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      console.log('✅ 채용 공고 목록 조회 성공:', jobPostings.length, '개 (개발모드: 모든 공고 표시)');
+      // 클라이언트 측에서 정렬
+      jobPostings.sort((a, b) => {
+        const timeA = (a as any).createdAt?.toDate?.() || new Date(0);  // eslint-disable-line @typescript-eslint/no-explicit-any
+        const timeB = (b as any).createdAt?.toDate?.() || new Date(0);  // eslint-disable-line @typescript-eslint/no-explicit-any
+        return timeB.getTime() - timeA.getTime();
+      });
+      
+      console.log('✅ 채용 공고 목록 조회 성공:', jobPostings.length, '개 (인덱스 오류 방지 모드)');
       return jobPostings;
     } catch (error) {
       console.error('❌ 채용 공고 목록 조회 오류:', error);
