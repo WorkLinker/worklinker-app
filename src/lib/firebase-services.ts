@@ -320,8 +320,8 @@ export const jobPostingService = {
       
       // 클라이언트 측에서 정렬
       jobPostings.sort((a, b) => {
-        const timeA = (a as any).createdAt?.toDate?.() || new Date(0);  // eslint-disable-line @typescript-eslint/no-explicit-any
-        const timeB = (b as any).createdAt?.toDate?.() || new Date(0);  // eslint-disable-line @typescript-eslint/no-explicit-any
+        const timeA = (a as any)?.createdAt?.toDate?.() || new Date(0);
+        const timeB = (b as any)?.createdAt?.toDate?.() || new Date(0);
         return timeB.getTime() - timeA.getTime();
       });
       

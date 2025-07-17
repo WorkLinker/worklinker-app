@@ -37,7 +37,7 @@ interface AdminFileUploadProps {
 }
 
 export default function AdminFileUpload({ 
-  title = "관리자 파일 업로드", 
+  title = "Admin File Upload", 
   category = "admin", 
   showTitle = true 
 }: AdminFileUploadProps) {
@@ -46,6 +46,10 @@ export default function AdminFileUpload({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  
+  // 파일 업로드 확인 관련 상태
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((currentUser) => {
@@ -93,7 +97,7 @@ export default function AdminFileUpload({
   const handleFileUpload = async (uploadFiles: FileList | File[]) => {
     if (!uploadFiles || uploadFiles.length === 0) return;
     if (!user || !eventService.isAdmin(user.email || '')) {
-      alert('관리자 권한이 필요합니다.');
+      alert('Administrator permission required.');
       return;
     }
 
@@ -105,7 +109,7 @@ export default function AdminFileUpload({
       for (const file of fileArray) {
         // File size validation (10MB limit)
         if (file.size > 10 * 1024 * 1024) {
-          alert(`파일 ${file.name}이 너무 큽니다. 최대 크기는 10MB입니다.`);
+          alert(`File ${file.name} is too large. Maximum size is 10MB.`);
           continue;
         }
 
@@ -134,10 +138,10 @@ export default function AdminFileUpload({
       }
       
       await loadFiles();
-      alert(`🎉 ${fileArray.length}개 파일이 성공적으로 업로드되었습니다!`);
+      alert(`🎉 ${fileArray.length} file(s) uploaded successfully!`);
     } catch (error) {
       console.error('❌ Upload error:', error);
-      alert('업로드에 실패했습니다. 다시 시도해주세요.');
+      alert('Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -145,9 +149,13 @@ export default function AdminFileUpload({
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      handleFileUpload(files);
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files);
+      setPendingFiles(fileArray);
+      setShowConfirmModal(true);
     }
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
   };
 
   const handleDrop = (event: React.DragEvent) => {
@@ -155,8 +163,10 @@ export default function AdminFileUpload({
     setDragActive(false);
     
     const files = event.dataTransfer.files;
-    if (files) {
-      handleFileUpload(files);
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files);
+      setPendingFiles(fileArray);
+      setShowConfirmModal(true);
     }
   };
 
@@ -169,43 +179,57 @@ export default function AdminFileUpload({
     setDragActive(false);
   };
 
+  // 파일 업로드 확인
+  const confirmUpload = async () => {
+    if (pendingFiles.length === 0) return;
+    
+    setShowConfirmModal(false);
+    await handleFileUpload(pendingFiles);
+    setPendingFiles([]);
+  };
+
+  // 파일 업로드 취소
+  const cancelUpload = () => {
+    setPendingFiles([]);
+    setShowConfirmModal(false);
+  };
+
   const handleDownload = async (file: FileItem) => {
     try {
       console.log(`📥 Downloading ${file.originalName}...`);
       
-      const response = await fetch(file.downloadURL);
-      if (!response.ok) throw new Error('Download failed');
+      // Firebase Storage URL을 직접 사용하여 다운로드
+      const link = document.createElement('a');
+      link.href = file.downloadURL;
+      link.download = file.originalName;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // 임시로 DOM에 추가하고 클릭
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = file.originalName;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      console.log(`✅ ${file.originalName} downloaded successfully`);
+      console.log(`✅ ${file.originalName} download initiated successfully`);
     } catch (error) {
       console.error('❌ Download error:', error);
-      alert('다운로드에 실패했습니다. 다시 시도해주세요.');
+      alert('Download failed. Please try again.');
     }
   };
 
   const handleDeleteFile = async (file: FileItem) => {
-    if (!confirm(`"${file.originalName}" 파일을 삭제하시겠습니까?`)) {
+    if (!confirm(`Are you sure you want to delete "${file.originalName}"?`)) {
       return;
     }
     
     try {
       console.log(`🗑️ Deleting ${file.originalName}...`);
       
-      // Delete from Firebase Storage
-      const fileRef = ref(storage, `admin-files/${file.name}`);
+      // Delete from Firebase Storage - file.name already includes category
+      const storagePath = `admin-files/${file.name}`;
+      const fileRef = ref(storage, storagePath);
+      console.log('🗑️ Deleting from Storage path:', storagePath);
+      
       await deleteObject(fileRef);
       
       // Delete from Firestore
@@ -215,7 +239,16 @@ export default function AdminFileUpload({
       console.log(`✅ ${file.originalName} deleted successfully`);
     } catch (error) {
       console.error('❌ Delete error:', error);
-      alert('삭제에 실패했습니다. 다시 시도해주세요.');
+      
+      // If Storage delete fails, still try to delete from Firestore
+      try {
+        await deleteDoc(doc(db, 'uploadedFiles', file.id));
+        await loadFiles();
+        console.log(`⚠️ ${file.originalName} deleted from database (Storage may have failed)`);
+      } catch (firestoreError) {
+        console.error('❌ Firestore delete also failed:', firestoreError);
+        alert('Delete failed. Please try again.');
+      }
     }
   };
 
@@ -237,7 +270,7 @@ export default function AdminFileUpload({
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -282,10 +315,10 @@ export default function AdminFileUpload({
       >
         <Upload size={48} className="text-gray-400 mx-auto mb-4" />
         <h4 className="text-lg font-semibold text-gray-900 mb-2">
-          파일을 드래그하거나 클릭하여 업로드
+          Drag files here or click to upload
         </h4>
         <p className="text-gray-600 mb-4">
-          최대 10MB까지 업로드 가능합니다. 업로드 후 다운로드/삭제 가능합니다.
+          Maximum 10MB file size. Files can be downloaded/deleted after upload.
         </p>
         
         <input
@@ -308,12 +341,12 @@ export default function AdminFileUpload({
           {uploading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              업로드 중...
+              Uploading...
             </>
           ) : (
             <>
               <Upload size={18} className="mr-2" />
-              파일 선택
+              Select Files
             </>
           )}
         </label>
@@ -324,10 +357,10 @@ export default function AdminFileUpload({
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-semibold text-gray-900">
-              업로드된 파일 ({files.length}개)
+              Uploaded Files ({files.length})
             </h4>
             <div className="text-sm text-red-600 font-medium">
-              🗑️ 각 파일 옆 Delete 버튼으로 삭제 가능
+              🗑️ Delete files using Delete button next to each file
             </div>
           </div>
           <div className="space-y-3">
@@ -346,7 +379,7 @@ export default function AdminFileUpload({
                   <button
                     onClick={() => handleDownload(file)}
                     className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 border border-blue-200 rounded-md hover:bg-blue-200 transition-colors"
-                    title="다운로드"
+                    title="Download"
                   >
                     <Download size={12} className="mr-1" />
                     Download
@@ -354,7 +387,7 @@ export default function AdminFileUpload({
                   <button
                     onClick={() => handleDeleteFile(file)}
                     className="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition-colors"
-                    title="삭제"
+                    title="Delete"
                   >
                     <Trash2 size={12} className="mr-1" />
                     Delete
@@ -371,10 +404,69 @@ export default function AdminFileUpload({
         <div className="flex items-center">
           <AlertCircle size={16} className="text-blue-600 mr-2" />
           <p className="text-sm text-blue-800">
-            관리자 전용 기능입니다. 업로드된 파일은 관리자 대시보드에서도 관리할 수 있습니다.
+            Administrator-only feature. Uploaded files can also be managed from the admin dashboard.
           </p>
         </div>
       </div>
+
+      {/* Upload Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                <Shield size={20} className="inline mr-2 text-blue-600" />
+                Admin File Upload
+              </h3>
+              <button
+                onClick={cancelUpload}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center text-sm text-blue-700 bg-blue-50 p-3 rounded-lg mb-3">
+                <AlertCircle size={16} className="mr-2" />
+                Files will be uploaded to: <strong className="ml-1">{category}</strong> category
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Files to Upload ({pendingFiles.length}):
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                {pendingFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between py-1">
+                    <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {(file.size / 1024 / 1024).toFixed(1)}MB
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={cancelUpload}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUpload}
+                disabled={uploading}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {uploading ? 'Uploading...' : 'Upload Files'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

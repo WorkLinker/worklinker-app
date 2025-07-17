@@ -34,6 +34,11 @@ export default function FileManager() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [uploadCategory, setUploadCategory] = useState('documents'); // 업로드 카테고리 상태 추가
+  
+  // 파일 업로드 확인 관련 상태
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const categories = [
     { value: 'all', label: 'All Files' },
@@ -88,14 +93,18 @@ export default function FileManager() {
           continue;
         }
 
-        // Determine category based on file type
-        let category = 'documents';
-        if (file.type.startsWith('image/')) {
-          category = 'images';
-        } else if (file.name.toLowerCase().includes('resume') || file.name.toLowerCase().includes('cv')) {
-          category = 'resumes';
-        } else if (file.name.toLowerCase().includes('reference')) {
-          category = 'references';
+        // 사용자가 선택한 카테고리 사용
+        let category = uploadCategory;
+        
+        // 파일 타입에 따른 자동 분류 (사용자 선택이 documents인 경우에만)
+        if (uploadCategory === 'documents') {
+          if (file.type.startsWith('image/')) {
+            category = 'images';
+          } else if (file.name.toLowerCase().includes('resume') || file.name.toLowerCase().includes('cv')) {
+            category = 'resumes';
+          } else if (file.name.toLowerCase().includes('reference')) {
+            category = 'references';
+          }
         }
 
         // Upload to Firebase Storage
@@ -133,9 +142,13 @@ export default function FileManager() {
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      handleFileUpload(files);
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files);
+      setPendingFiles(fileArray);
+      setShowConfirmModal(true);
     }
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
   };
 
   const handleDrop = (event: React.DragEvent) => {
@@ -143,8 +156,10 @@ export default function FileManager() {
     setDragActive(false);
     
     const files = event.dataTransfer.files;
-    if (files) {
-      handleFileUpload(files);
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files);
+      setPendingFiles(fileArray);
+      setShowConfirmModal(true);
     }
   };
 
@@ -157,27 +172,38 @@ export default function FileManager() {
     setDragActive(false);
   };
 
+  // 파일 업로드 확인
+  const confirmUpload = async () => {
+    if (pendingFiles.length === 0) return;
+    
+    setShowConfirmModal(false);
+    await handleFileUpload(pendingFiles);
+    setPendingFiles([]);
+  };
+
+  // 파일 업로드 취소
+  const cancelUpload = () => {
+    setPendingFiles([]);
+    setShowConfirmModal(false);
+  };
+
   const handleDownload = async (file: FileItem) => {
     try {
       console.log(`📥 Downloading ${file.originalName}...`);
       
-      const response = await fetch(file.downloadURL);
-      if (!response.ok) throw new Error('Download failed');
+      // Firebase Storage URL을 직접 사용하여 다운로드
+      const link = document.createElement('a');
+      link.href = file.downloadURL;
+      link.download = file.originalName;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // 임시로 DOM에 추가하고 클릭
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = file.originalName;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      console.log(`✅ ${file.originalName} downloaded successfully`);
+      console.log(`✅ ${file.originalName} download initiated successfully`);
     } catch (error) {
       console.error('❌ Download error:', error);
       alert('Download failed. Please try again.');
@@ -192,18 +218,31 @@ export default function FileManager() {
     try {
       console.log(`🗑️ Deleting ${file.originalName}...`);
       
-      // Delete from Firebase Storage
-      const fileRef = ref(storage, `admin-files/${file.name}`);
+      // Delete from Firebase Storage - file.name already includes category
+      const storagePath = `admin-files/${file.name}`;
+      const fileRef = ref(storage, storagePath);
+      console.log('🗑️ Deleting from Storage path:', storagePath);
+      
       await deleteObject(fileRef);
       
       // Delete from Firestore
       await deleteDoc(doc(db, 'uploadedFiles', file.id));
       
+      // Reload files list
       await loadFiles();
       console.log(`✅ ${file.originalName} deleted successfully`);
     } catch (error) {
       console.error('❌ Delete error:', error);
-      alert('Delete failed. Please try again.');
+      
+      // If Storage delete fails, still try to delete from Firestore
+      try {
+        await deleteDoc(doc(db, 'uploadedFiles', file.id));
+        await loadFiles();
+        console.log(`⚠️ ${file.originalName} deleted from database (Storage may have failed)`);
+      } catch (firestoreError) {
+        console.error('❌ Firestore delete also failed:', firestoreError);
+        alert('Delete failed. Please try again.');
+      }
     }
   };
 
@@ -215,18 +254,40 @@ export default function FileManager() {
     }
     
     try {
+      let successCount = 0;
       for (const fileId of selectedFiles) {
         const file = files.find(f => f.id === fileId);
         if (file) {
-          const fileRef = ref(storage, `admin-files/${file.name}`);
-          await deleteObject(fileRef);
-          await deleteDoc(doc(db, 'uploadedFiles', file.id));
+          try {
+            // Use correct Storage path - file.name already includes category
+            const storagePath = `admin-files/${file.name}`;
+            const fileRef = ref(storage, storagePath);
+            console.log(`🗑️ Bulk deleting from Storage: ${storagePath}`);
+            
+            await deleteObject(fileRef);
+            await deleteDoc(doc(db, 'uploadedFiles', file.id));
+            successCount++;
+          } catch (fileError) {
+            console.error(`❌ Failed to delete ${file.originalName}:`, fileError);
+            // Try to delete from Firestore even if Storage fails
+            try {
+              await deleteDoc(doc(db, 'uploadedFiles', file.id));
+              successCount++;
+            } catch (firestoreError) {
+              console.error(`❌ Firestore delete also failed for ${file.originalName}:`, firestoreError);
+            }
+          }
         }
       }
       
       setSelectedFiles([]);
       await loadFiles();
-      alert(`✅ ${selectedFiles.length} file(s) deleted successfully!`);
+      
+      if (successCount === selectedFiles.length) {
+        alert(`✅ ${successCount} file(s) deleted successfully!`);
+      } else {
+        alert(`⚠️ ${successCount} out of ${selectedFiles.length} file(s) deleted. Some files may have already been removed.`);
+      }
     } catch (error) {
       console.error('❌ Bulk delete error:', error);
       alert('Bulk delete failed. Please try again.');
@@ -314,6 +375,28 @@ export default function FileManager() {
 
       {/* Upload Zone */}
       <div className="bg-white rounded-xl shadow-lg p-6">
+        {/* Category Selection */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload Category
+          </label>
+          <select
+            value={uploadCategory}
+            onChange={(e) => setUploadCategory(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            disabled={uploading}
+          >
+            {categories.filter(cat => cat.value !== 'all').map(category => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select where to organize your uploaded files
+          </p>
+        </div>
+
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive
@@ -430,23 +513,23 @@ export default function FileManager() {
               <div className="max-w-md mx-auto text-sm text-gray-500 space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-left">
                   <div>
-                    <p className="font-medium text-gray-700 mb-1">✨ 업로드 후 가능한 기능:</p>
+                    <p className="font-medium text-gray-700 mb-1">✨ Available Features:</p>
                     <ul className="space-y-1">
-                      <li>• 파일 다운로드</li>
-                      <li>• 개별 파일 삭제</li>
+                      <li>• Download files</li>
+                      <li>• Delete individual files</li>
                     </ul>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700 mb-1">🗑️ 삭제 방법:</p>
+                    <p className="font-medium text-gray-700 mb-1">🗑️ How to Delete:</p>
                     <ul className="space-y-1">
-                      <li>• Delete 버튼 클릭</li>
-                      <li>• 여러 파일 선택 후 일괄 삭제</li>
+                      <li>• Click Delete button</li>
+                      <li>• Select multiple & bulk delete</li>
                     </ul>
                   </div>
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-blue-800 text-xs">
-                    💡 파일을 업로드하면 각 파일 옆에 <span className="font-bold text-red-600">Delete</span> 버튼이 나타납니다
+                    💡 After uploading files, <span className="font-bold text-red-600">Delete</span> buttons will appear next to each file
                   </p>
                 </div>
               </div>
@@ -557,6 +640,74 @@ export default function FileManager() {
           })}
         </div>
       </div>
+
+      {/* Upload Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Confirm File Upload
+              </h3>
+              <button
+                onClick={cancelUpload}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload to Category:
+              </label>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="documents">Documents</option>
+                <option value="resumes">Resumes</option>
+                <option value="references">References</option>
+                <option value="images">Images</option>
+                <option value="admin">Admin Files</option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Files to Upload ({pendingFiles.length}):
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                {pendingFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between py-1">
+                    <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {(file.size / 1024 / 1024).toFixed(1)}MB
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={cancelUpload}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUpload}
+                disabled={uploading}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {uploading ? 'Uploading...' : 'Upload Files'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

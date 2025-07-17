@@ -227,7 +227,7 @@ Thank you.`;
     window.open(mailtoLink);
   };
 
-  // Download resume (forced download method)
+  // Download resume (Firebase Storage direct link method)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDownloadResume = async (student: any) => {
     try {
@@ -244,33 +244,22 @@ Thank you.`;
 
       console.log('📥 Starting resume download:', student.resumeFileName);
 
-      // Fetch file data with forced download method
-      const response = await fetch(student.resumeUrl);
-      if (!response.ok) {
-        throw new Error('Failed to fetch file data');
-      }
-
-      // Convert to Blob
-      const blob = await response.blob();
-      
       // Set filename (with fallback)
       const fileName = student.resumeFileName || `${student.name}_resume.pdf`;
       
-      // Force download processing
-      const url = window.URL.createObjectURL(blob);
+      // Firebase Storage URL을 직접 사용하여 다운로드
       const link = document.createElement('a');
-      link.href = url;
+      link.href = student.resumeUrl;
       link.download = fileName;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.style.display = 'none';
       
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      // Memory cleanup
-      window.URL.revokeObjectURL(url);
-      
-      console.log('✅ Resume download completed:', fileName);
+      console.log('✅ Resume download initiated successfully:', fileName);
     } catch (error) {
       console.error('❌ Resume download error:', error);
       alert('An error occurred while downloading the resume. Please check your network connection.');
