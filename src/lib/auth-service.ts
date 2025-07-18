@@ -380,62 +380,13 @@ export const authService = {
     }
   },
 
-  // 관리자 계정 생성 (개발/테스트용)
+  // 🔒 보안상 관리자 계정 생성 기능을 제거
   async createAdminAccounts() {
-    try {
-      const adminAccounts = [
-        { email: 'admin@example.com', password: 'admin123456', name: 'System Administrator' },
-        { email: 'manager@jobsprout.ca', password: 'manager123456', name: 'Manager' },
-        { email: 'admin@jobsprout.ca', password: 'jobsprout123456', name: 'JobSprout Administrator' }
-      ];
-
-      const results = [];
-      for (const account of adminAccounts) {
-        try {
-          // 로그아웃 상태에서 계정 생성
-          await this.signOut();
-          
-          const userCredential = await createUserWithEmailAndPassword(auth, account.email, account.password);
-          
-          // 사용자 프로필 업데이트
-          await updateProfile(userCredential.user, {
-            displayName: account.name
-          });
-
-          results.push({ 
-            success: true, 
-            email: account.email, 
-            password: account.password,
-            name: account.name 
-          });
-          
-          console.log(`✅ 관리자 계정 생성 성공: ${account.email}`);
-        } catch (error: unknown) {
-          const firebaseError = error as { code?: string; message?: string };
-          if (firebaseError.code === 'auth/email-already-in-use') {
-            results.push({ 
-              success: true, 
-              email: account.email, 
-              password: account.password,
-              name: account.name,
-              note: '이미 존재하는 계정' 
-            });
-            console.log(`ℹ️ 이미 존재하는 관리자 계정: ${account.email}`);
-          } else {
-            results.push({ 
-              success: false, 
-              email: account.email, 
-              error: firebaseError.message || '계정 생성 중 오류가 발생했습니다.' 
-            });
-            console.error(`❌ 관리자 계정 생성 실패: ${account.email}`, error);
-          }
-        }
-      }
-
-      return { success: true, accounts: results };
-    } catch (error: unknown) {
-      console.error('❌ 관리자 계정 생성 오류:', error);
-      throw error;
-    }
+    console.log('⚠️ Admin accounts should be created manually in Firebase Console for security');
+    console.log('📧 Recommended admin emails: admin@example.com, manager@jobsprout.ca, admin@jobsprout.ca');
+    return { 
+      success: false, 
+      message: 'For security reasons, please create admin accounts manually in Firebase Console'
+    };
   }
 }; 
