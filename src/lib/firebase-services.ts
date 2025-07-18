@@ -13,11 +13,15 @@ import { db, storage } from './firebase';
 const isFirebaseAvailable = () => {
   return !!db && !!storage;
 };
+
+
 import { 
   collection, 
   addDoc, 
   getDocs, 
   doc, 
+  getDoc,
+  setDoc,
   updateDoc, 
   deleteDoc,
   query, 
@@ -976,6 +980,11 @@ export const contentService = {
   // 콘텐츠 업데이트
   async updateContent(updates: any, adminEmail: string) {
     try {
+      // Firebase 연결 상태 확인
+      if (!db) {
+        throw new Error('Firebase database is not initialized');
+      }
+      
       // 현재 콘텐츠 가져오기 (변경 내역 로그용)
       const currentContent = await this.getCurrentContent();
       
@@ -983,7 +992,7 @@ export const contentService = {
       const newContent = {
         ...currentContent,
         ...updates,
-        updatedAt: serverTimestamp(),
+        updatedAt: new Date().toISOString(),
         updatedBy: adminEmail
       };
       
@@ -1000,11 +1009,13 @@ export const contentService = {
         adminEmail,
         changeType: 'content_update'
       });
-
-      console.log('✅ 콘텐츠 업데이트 성공:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 콘텐츠 업데이트 오류:', error);
+      console.error('❌ 콘텐츠 업데이트 오류 (상세):', {
+        error,
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   },
@@ -1409,15 +1420,19 @@ export const designService = {
   // 현재 활성 이미지 URL 업데이트
   async updateActiveImage(category: string, imageName: string, newUrl: string) {
     try {
-      console.log('🔄 활성 이미지 업데이트:', category, imageName, newUrl);
+      console.log('🔄 활성 이미지 업데이트 시작:', { category, imageName, newUrl });
       
       // 기존 설정 조회
+      console.log('📖 기존 설정 조회 중...');
       const settingsRef = doc(db, 'siteSettings', 'design');
-      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      const settingsSnap = await getDoc(settingsRef);
       
       let currentSettings: any = {};
-      if (!settingsDoc.empty) {
-        currentSettings = settingsDoc.docs[0].data();
+      if (settingsSnap.exists()) {
+        currentSettings = settingsSnap.data();
+        console.log('📖 기존 설정 찾음:', currentSettings);
+      } else {
+        console.log('📖 기존 설정이 없음, 새로 생성');
       }
       
       // 이미지 URL 업데이트
@@ -1430,20 +1445,26 @@ export const designService = {
             [imageName]: newUrl
           }
         },
-        updatedAt: serverTimestamp()
+        updatedAt: new Date().toISOString()
       };
       
-      // Firestore에 저장
-      if (settingsDoc.empty) {
-        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
-      } else {
-        await updateDoc(settingsRef, updatedSettings);
-      }
+      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
+      console.log('💾 Firestore에 저장 중...', updatedSettings);
+      await setDoc(settingsRef, updatedSettings, { merge: true });
+      console.log('💾 Firestore 저장 완료');
       
       console.log('✅ 활성 이미지 업데이트 완료');
+      console.log('📄 Updated settings:', updatedSettings);
       return { success: true };
     } catch (error) {
-      console.error('❌ 활성 이미지 업데이트 오류:', error);
+      console.error('❌ 활성 이미지 업데이트 오류 (상세):', {
+        error,
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        stack: error instanceof Error ? error.stack : undefined,
+        category,
+        imageName,
+        newUrl
+      });
       throw error;
     }
   },
@@ -1454,11 +1475,11 @@ export const designService = {
       console.log('🎨 색상 테마 저장:', colors);
       
       const settingsRef = doc(db, 'siteSettings', 'design');
-      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      const settingsSnap = await getDoc(settingsRef);
       
       let currentSettings = {};
-      if (!settingsDoc.empty) {
-        currentSettings = settingsDoc.docs[0].data();
+      if (settingsSnap.exists()) {
+        currentSettings = settingsSnap.data();
       }
       
       const updatedSettings = {
@@ -1468,16 +1489,13 @@ export const designService = {
           secondary: colors.secondary,
           accent: colors.accent,
           background: colors.background,
-          lastUpdated: serverTimestamp()
+          lastUpdated: new Date().toISOString()
         },
-        updatedAt: serverTimestamp()
+        updatedAt: new Date().toISOString()
       };
       
-      if (settingsDoc.empty) {
-        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
-      } else {
-        await updateDoc(settingsRef, updatedSettings);
-      }
+      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
+      await setDoc(settingsRef, updatedSettings, { merge: true });
       
       console.log('✅ 색상 테마 저장 완료');
       return { success: true };
@@ -1493,11 +1511,11 @@ export const designService = {
       console.log('✍️ 폰트 설정 저장:', fonts);
       
       const settingsRef = doc(db, 'siteSettings', 'design');
-      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      const settingsSnap = await getDoc(settingsRef);
       
       let currentSettings = {};
-      if (!settingsDoc.empty) {
-        currentSettings = settingsDoc.docs[0].data();
+      if (settingsSnap.exists()) {
+        currentSettings = settingsSnap.data();
       }
       
       const updatedSettings = {
@@ -1508,16 +1526,13 @@ export const designService = {
           bodySize: fonts.bodySize,
           headingSize: fonts.headingSize,
           lineHeight: fonts.lineHeight,
-          lastUpdated: serverTimestamp()
+          lastUpdated: new Date().toISOString()
         },
-        updatedAt: serverTimestamp()
+        updatedAt: new Date().toISOString()
       };
       
-      if (settingsDoc.empty) {
-        await addDoc(collection(db, 'siteSettings'), { id: 'design', ...updatedSettings });
-      } else {
-        await updateDoc(settingsRef, updatedSettings);
-      }
+      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
+      await setDoc(settingsRef, updatedSettings, { merge: true });
       
       console.log('✅ 폰트 설정 저장 완료');
       return { success: true };
@@ -1530,9 +1545,10 @@ export const designService = {
   // 현재 디자인 설정 조회
   async getCurrentDesignSettings() {
     try {
-      const settingsDoc = await getDocs(query(collection(db, 'siteSettings'), where('__name__', '==', 'design')));
+      const settingsRef = doc(db, 'siteSettings', 'design');
+      const settingsSnap = await getDoc(settingsRef);
       
-      if (settingsDoc.empty) {
+      if (!settingsSnap.exists()) {
         // 기본 설정 반환
         const defaultSettings = {
           colors: {
@@ -1567,7 +1583,7 @@ export const designService = {
         return defaultSettings;
       }
       
-      const settings = settingsDoc.docs[0].data();
+      const settings = settingsSnap.data();
       console.log('✅ Current design settings retrieval completed');
       return settings;
     } catch (error) {
@@ -1578,10 +1594,10 @@ export const designService = {
 
   // 디자인 설정 실시간 구독
   subscribeToDesignSettings(callback: (settings: any) => void) {
-    const settingsQuery = query(collection(db, 'siteSettings'), where('__name__', '==', 'design'));
+    const settingsRef = doc(db, 'siteSettings', 'design');
     
-    return onSnapshot(settingsQuery, (snapshot) => {
-      if (snapshot.empty) {
+    return onSnapshot(settingsRef, (snapshot) => {
+      if (!snapshot.exists()) {
         // 기본 설정 반환
         callback({
           colors: {
@@ -1612,7 +1628,7 @@ export const designService = {
           }
         });
       } else {
-        callback(snapshot.docs[0].data());
+        callback(snapshot.data());
       }
     });
   },

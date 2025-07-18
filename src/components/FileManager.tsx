@@ -56,7 +56,6 @@ export default function FileManager() {
   const loadFiles = async () => {
     try {
       setLoading(true);
-      console.log('📁 Loading files from Firebase...');
       
       const q = query(collection(db, 'uploadedFiles'), orderBy('uploadedAt', 'desc'));
       const querySnapshot = await getDocs(q);

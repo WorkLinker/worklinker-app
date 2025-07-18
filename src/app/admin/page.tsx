@@ -48,6 +48,8 @@ import { jobSeekerService, eventService, contentService, logService, volunteerSe
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
 // import { supabase } from '@/lib/supabase'; // 제거됨
 import { User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
@@ -1025,7 +1027,7 @@ export default function AdminPage() {
   const [contentSaving, setContentSaving] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   
-  // 디자인 편집 관련 상태
+  // Design editing related state
   interface DesignSettings {
     colors: {
       primary: string;
@@ -1055,7 +1057,7 @@ export default function AdminPage() {
     };
   }
   
-  const [, setDesignSettings] = useState<DesignSettings | null>(null);
+  const [designSettings, setDesignSettings] = useState<DesignSettings | null>(null);
   const [isImageUploading, setIsImageUploading] = useState<string | null>(null);
   const [isDesignSaving, setIsDesignSaving] = useState(false);
   const [currentColors, setCurrentColors] = useState({
@@ -1239,14 +1241,16 @@ const loadSiteContent = async () => {
 
 
 
-  // 디자인 설정 로드
+
+
+      // Load design settings
   const loadDesignSettings = async () => {
     try {
       console.log('🎨 Loading design settings...');
       const settings = await designService.getCurrentDesignSettings();
       setDesignSettings(settings as DesignSettings);
       
-      // 현재 색상과 폰트 설정 업데이트
+      // Update current colors and font settings
       if (settings.colors) {
         setCurrentColors(settings.colors);
       }
@@ -1254,9 +1258,9 @@ const loadSiteContent = async () => {
         setCurrentFonts(settings.fonts);
       }
       
-      console.log('✅ 디자인 설정 로드 완료');
+              console.log('✅ Design settings loaded successfully');
     } catch (error) {
-      console.error('❌ 디자인 설정 로드 오류:', error);
+              console.error('❌ Design settings load error:', error);
     }
   };
 
@@ -1270,44 +1274,52 @@ const loadSiteContent = async () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // 파일 크기 확인 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('파일 크기는 5MB 이하여야 합니다.');
+      // 파일 크기 확인 (20MB 제한)
+      if (file.size > 20 * 1024 * 1024) {
+        alert('파일 크기는 20MB 이하여야 합니다.\n\n💡 최적화 팁:\n• 웹용 이미지는 1-2MB가 적당합니다\n• JPG/PNG 압축 도구 사용 권장\n• 큰 이미지는 로딩 시간이 길어질 수 있습니다');
         return;
+      }
+      
+      // 큰 파일에 대한 경고 (5MB 이상)
+      if (file.size > 5 * 1024 * 1024) {
+        const fileSize = (file.size / 1024 / 1024).toFixed(1);
+        const confirmed = confirm(`파일 크기가 ${fileSize}MB입니다.\n\n⚠️ 큰 이미지는 웹사이트 로딩 속도를 느리게 할 수 있습니다.\n\n계속 업로드하시겠습니까?`);
+        if (!confirmed) return;
       }
 
       try {
         setIsImageUploading(`${category}-${imageName}`);
         
-        // 현재 이미지 업로드 기능은 비활성화됨
-        alert('⚠️ Image upload feature is temporarily disabled.');
+        // Firebase Storage에 이미지 업로드
+        const timestamp = Date.now();
+        const fileExtension = file.name.split('.').pop();
+        const fileName = `design-assets/${category}/${imageName}_${timestamp}.${fileExtension}`;
         
-        // Supabase Storage에 업로드 (현재 비활성화)
-        // const timestamp = Date.now();
-        // const fileExtension = file.name.split('.').pop();
-        // const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
+        // Firebase Storage에 업로드
+        const storageRef = ref(storage, fileName);
+        const uploadResult = await uploadBytes(storageRef, file);
         
-        // Supabase 업로드 (현재 비활성화)
-        // const { error } = await supabase.storage
-        //   .from('profile-images')
-        //   .upload(`design-assets/${fileName}`, file);
+        // 다운로드 URL 획득
+        const downloadURL = await getDownloadURL(uploadResult.ref);
         
-        // if (error) throw error;
+        // Firebase Firestore에 이미지 정보 저장
+        console.log('🔄 Saving image URL to Firestore:', { category, imageName, downloadURL });
+        await designService.updateActiveImage(category, imageName, downloadURL);
         
-        // 공개 URL 얻기 (현재 비활성화)
-        // const { data: urlData } = supabase.storage
-        //   .from('profile-images')
-        //   .getPublicUrl(`design-assets/${fileName}`);
+        // Reload design settings
+        console.log('🔄 Reloading design settings...');
+        await loadDesignSettings();
         
-        // if (urlData?.publicUrl) {
-        //   // Firebase Firestore에 이미지 정보 저장 (기존 방식 유지)
-        //   await designService.updateActiveImage(category, imageName, urlData.publicUrl);
-        //   
-        //   // 디자인 설정 다시 로드
-        //   await loadDesignSettings();
-        //   
-        //   alert('✅ Image has been successfully uploaded!');
-        // }
+        // 강제로 페이지 새로고침 트리거
+        console.log('🔄 Triggering design update...');
+        window.dispatchEvent(new CustomEvent('designUpdate', { detail: { category, imageName, downloadURL } }));
+        
+        console.log('✅ Image upload process completed successfully');
+        
+        // 업로드 상태 즉시 리셋
+        setIsImageUploading(null);
+        
+        alert('✅ Image has been successfully uploaded!');
       } catch (error) {
         console.error('❌ Image upload error:', error);
         alert('❌ Error occurred while uploading image.');
@@ -1327,7 +1339,7 @@ const loadSiteContent = async () => {
     }));
   };
 
-  // 폰트 변경 처리
+  // Handle font changes
   const handleFontChange = (fontType: string, newValue: string | number) => {
     setCurrentFonts(prev => ({
       ...prev,
@@ -1363,7 +1375,7 @@ const loadSiteContent = async () => {
       // 색상 테마 저장
       await designService.saveColorTheme(currentColors);
       
-      // 폰트 설정 저장
+      // Save font settings
       await designService.saveFontSettings(currentFonts);
       
       // Activity log recording
@@ -1402,7 +1414,7 @@ const loadSiteContent = async () => {
     alert('💡 Please check the homepage in the new tab. Changes will be reflected after saving and refreshing.');
   };
 
-  // 설정 내보내기 (JSON 파일로 다운로드)
+  // Export settings (download as JSON file)
   const handleExportSettings = () => {
     const settings = {
       colors: currentColors,
@@ -1419,7 +1431,7 @@ const loadSiteContent = async () => {
     link.download = `design-settings-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     
-    alert('✅ 디자인 설정이 JSON 파일로 다운로드되었습니다!');
+          alert('✅ Design settings have been downloaded as a JSON file!');
   };
 
   const loadPendingApplications = async () => {
@@ -1953,6 +1965,7 @@ const loadSiteContent = async () => {
           <div className="space-y-8">
             {/* Header */}
             <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                     <Edit size={28} className="mr-3 text-blue-600" />
@@ -1961,6 +1974,7 @@ const loadSiteContent = async () => {
                   <p className="text-gray-600 mt-2">
                     Edit website text and sections
                 </p>
+                </div>
               </div>
             </div>
 
@@ -2019,7 +2033,7 @@ const loadSiteContent = async () => {
               handleSaveContent(updatedContent);
             }}>
               
-              {/* 히어로 슬라이드 섹션 */}
+                              {/* Hero Slides Section */}
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                   <Edit size={24} className="mr-3 text-blue-600" />
@@ -2059,7 +2073,7 @@ const loadSiteContent = async () => {
                 </div>
               </div>
 
-              {/* CTA 버튼 섹션 */}
+                              {/* CTA Buttons Section */}
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                   <Target size={24} className="mr-3 text-green-600" />
@@ -2262,17 +2276,46 @@ const loadSiteContent = async () => {
               </p>
             </div>
 
-            {/* 이미지 편집 섹션 */}
+                            {/* Image Editing Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <ImageIcon size={24} className="mr-3 text-blue-600" />
                 📸 Image Management
               </h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-blue-800">How to use Image Management</h4>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><strong>Upload:</strong> Click to add a new image (if no image is set)</li>
+                        <li><strong>Replace:</strong> Click to change existing image</li>
+                        <li><strong>Preview:</strong> See how it looks on the live website</li>
+                        <li>Supported formats: JPG, PNG, WebP (max 20MB, 1-2MB recommended)</li>
+                        <li>Changes are applied immediately to the website</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <h5 className="text-xs font-medium text-yellow-800 mb-1">💡 Image Optimization Tips</h5>
+                  <div className="text-xs text-yellow-700 space-y-1">
+                    <div><strong>Recommended size:</strong> 1-2MB for web (faster loading)</div>
+                    <div><strong>Hero slides:</strong> 1920x1080px or 1200x800px</div>
+                    <div><strong>Feature cards:</strong> 400x300px or similar ratio</div>
+                    <div><strong>Compression tools:</strong> TinyPNG, ImageOptim, or Photoshop &quot;Save for Web&quot;</div>
+                  </div>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* 히어로 슬라이드 이미지들 */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Main Hero Slides</h4>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-2">Main Hero Slides</h4>
+                  <p className="text-sm text-gray-600 mb-4">Large background images on the homepage that rotate automatically</p>
                   {[1, 2, 3].map((slideNum) => (
                     <div key={slideNum} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -2288,7 +2331,12 @@ const loadSiteContent = async () => {
                             ) : (
                               <Upload size={14} className="mr-1" />
                             )}
-                            {isImageUploading === `heroSlides-slide${slideNum}` ? 'Uploading...' : 'Change'}
+                            {isImageUploading === `heroSlides-slide${slideNum}` ? 'Uploading...' : 
+                             (() => {
+                               const slideKey = `slide${slideNum}` as 'slide1' | 'slide2' | 'slide3';
+                               const hasImage = designSettings?.images?.heroSlides?.[slideKey];
+                               return hasImage ? 'Replace' : 'Upload';
+                             })()}
                           </button>
                           <button 
                             onClick={(e) => {
@@ -2303,13 +2351,33 @@ const loadSiteContent = async () => {
                           </button>
                         </div>
                       </div>
-                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-                        <Image 
-                          src={`/images/main-home-${slideNum}.${slideNum === 2 ? 'jpg' : 'png'}`}
-                          alt={`Main slide ${slideNum}`}
-                          className="w-full h-full object-cover"
-                          fill
-                        />
+                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                        {(() => {
+                          const slideKey = `slide${slideNum}` as 'slide1' | 'slide2' | 'slide3';
+                          const currentImage = designSettings?.images?.heroSlides?.[slideKey];
+                          
+                          if (currentImage) {
+                            return (
+                              <Image 
+                                src={currentImage}
+                                alt={`Main slide ${slideNum}`}
+                                className="w-full h-full object-cover"
+                                fill
+                                key={currentImage}
+                              />
+                            );
+                          } else {
+                            return (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                                <ImageIcon size={32} className="mb-2" />
+                                <span className="text-xs text-center">
+                                  No image uploaded<br />
+                                  Click &quot;Change&quot; to upload
+                                </span>
+                              </div>
+                            );
+                          }
+                        })()}
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <Upload size={20} className="text-white" />
                         </div>
@@ -2318,9 +2386,10 @@ const loadSiteContent = async () => {
                   ))}
                 </div>
 
-                {/* 기능 카드 이미지들 */}
+                {/* Feature Card Images */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Feature Card Images</h4>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-2">Feature Card Images</h4>
+                  <p className="text-sm text-gray-600 mb-4">Small images displayed on the feature cards (Student Jobs, References, etc.)</p>
                                       {[
                       { name: 'Student Jobs', file: 'student-opportunities.png', key: 'student' },
                       { name: 'Reference Support', file: 'reference-support.png', key: 'reference' },
@@ -2341,7 +2410,12 @@ const loadSiteContent = async () => {
                             ) : (
                               <Upload size={14} className="mr-1" />
                             )}
-                            {isImageUploading === `featureCards-${card.key}` ? 'Uploading...' : 'Change'}
+                            {isImageUploading === `featureCards-${card.key}` ? 'Uploading...' : 
+                             (() => {
+                               const cardKey = card.key as 'student' | 'reference' | 'company' | 'events';
+                               const hasImage = designSettings?.images?.featureCards?.[cardKey];
+                               return hasImage ? 'Replace' : 'Upload';
+                             })()}
                           </button>
                           <button 
                             onClick={(e) => {
@@ -2356,13 +2430,33 @@ const loadSiteContent = async () => {
                           </button>
                         </div>
                       </div>
-                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-                        <Image 
-                          src={`/images/${card.file}`}
-                          alt={card.name}
-                          className="w-full h-full object-cover"
-                          fill
-                        />
+                      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                        {(() => {
+                          const cardKey = card.key as 'student' | 'reference' | 'company' | 'events';
+                          const currentImage = designSettings?.images?.featureCards?.[cardKey];
+                          
+                          if (currentImage) {
+                            return (
+                              <Image 
+                                src={currentImage}
+                                alt={card.name}
+                                className="w-full h-full object-cover"
+                                fill
+                                key={currentImage}
+                              />
+                            );
+                          } else {
+                            return (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                                <ImageIcon size={32} className="mb-2" />
+                                <span className="text-xs text-center">
+                                  No image uploaded<br />
+                                  Click &quot;Change&quot; to upload
+                                </span>
+                              </div>
+                            );
+                          }
+                        })()}
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <Upload size={20} className="text-white" />
                         </div>
@@ -2481,39 +2575,231 @@ const loadSiteContent = async () => {
                 </div>
               </div>
 
-              {/* 미리 정의된 테마 */}
+              {/* 고급 색상 팔레트 */}
               <div className="mt-8">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4">🎨 Predefined Themes</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    { name: 'Current (Sky)', key: 'sky', colors: ['#0ea5e9', '#7dd3fc', '#0369a1', '#dbeafe'] },
-                    { name: 'Purple', key: 'purple', colors: ['#8b5cf6', '#c4b5fd', '#6d28d9', '#ede9fe'] },
-                    { name: 'Green', key: 'green', colors: ['#10b981', '#6ee7b7', '#047857', '#d1fae5'] },
-                    { name: 'Orange', key: 'orange', colors: ['#f59e0b', '#fcd34d', '#d97706', '#fef3c7'] }
-                  ].map((theme, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleApplyPresetTheme(theme.key)}
-                      disabled={isDesignSaving}
-                      className="p-3 border border-gray-200 rounded-lg hover:border-gray-400 transition-colors group disabled:opacity-50"
-                    >
-                      <div className="text-sm font-medium text-gray-700 mb-2">{theme.name}</div>
-                      <div className="flex space-x-1">
-                        {theme.colors.map((color, colorIndex) => (
-                          <div 
-                            key={colorIndex}
-                            className="w-6 h-6 rounded"
-                            style={{ backgroundColor: color }}
-                          ></div>
-                        ))}
+                <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
+                  <Palette size={20} className="mr-2 text-yellow-500" />
+                  🎨 Professional Color Palettes
+                </h4>
+                <p className="text-sm text-gray-600 mb-6">Choose from curated color combinations designed for modern websites</p>
+                
+                <div className="space-y-6">
+                  {/* Professional & Business */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      💼 Professional & Business
+                    </h5>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { name: 'Current (Sky)', key: 'sky', colors: ['#0ea5e9', '#7dd3fc', '#0369a1', '#dbeafe'] },
+                        { name: 'Corporate Blue', key: 'corporate', colors: ['#1e40af', '#60a5fa', '#1e3a8a', '#dbeafe'] },
+                        { name: 'Executive Dark', key: 'executive', colors: ['#374151', '#6b7280', '#111827', '#f3f4f6'] },
+                        { name: 'Finance Green', key: 'finance', colors: ['#059669', '#34d399', '#065f46', '#d1fae5'] }
+                      ].map((theme, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleApplyPresetTheme(theme.key)}
+                          disabled={isDesignSaving}
+                          className="p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all group disabled:opacity-50 transform hover:scale-105"
+                        >
+                          <div className="text-xs font-medium text-gray-700 mb-2">{theme.name}</div>
+                          <div className="flex space-x-1">
+                            {theme.colors.map((color, colorIndex) => (
+                              <div 
+                                key={colorIndex}
+                                className="w-5 h-5 rounded shadow-sm"
+                                style={{ backgroundColor: color }}
+                              ></div>
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Trendy & Modern */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      🔥 Trendy & Modern
+                    </h5>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { name: 'Purple Gradient', key: 'purple', colors: ['#8b5cf6', '#c4b5fd', '#7c3aed', '#ede9fe'] },
+                        { name: 'Coral Pink', key: 'coral', colors: ['#f472b6', '#fbbf24', '#ec4899', '#fef3c7'] },
+                        { name: 'Cyber Blue', key: 'cyber', colors: ['#06b6d4', '#67e8f9', '#0891b2', '#cffafe'] },
+                        { name: 'Neon Lime', key: 'neon', colors: ['#84cc16', '#bef264', '#65a30d', '#ecfccb'] }
+                      ].map((theme, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleApplyPresetTheme(theme.key)}
+                          disabled={isDesignSaving}
+                          className="p-3 border border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-md transition-all group disabled:opacity-50 transform hover:scale-105"
+                        >
+                          <div className="text-xs font-medium text-gray-700 mb-2">{theme.name}</div>
+                          <div className="flex space-x-1">
+                            {theme.colors.map((color, colorIndex) => (
+                              <div 
+                                key={colorIndex}
+                                className="w-5 h-5 rounded shadow-sm"
+                                style={{ backgroundColor: color }}
+                              ></div>
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Warm & Energetic */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      🌞 Warm & Energetic
+                    </h5>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { name: 'Orange Sunset', key: 'orange', colors: ['#f59e0b', '#fcd34d', '#d97706', '#fef3c7'] },
+                        { name: 'Autumn Red', key: 'autumn', colors: ['#ef4444', '#fca5a5', '#dc2626', '#fee2e2'] },
+                        { name: 'Golden Hour', key: 'golden', colors: ['#f59e0b', '#f97316', '#ea580c', '#fed7aa'] },
+                        { name: 'Warm Pink', key: 'warm-pink', colors: ['#ec4899', '#f9a8d4', '#db2777', '#fce7f3'] }
+                      ].map((theme, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleApplyPresetTheme(theme.key)}
+                          disabled={isDesignSaving}
+                          className="p-3 border border-gray-200 rounded-lg hover:border-orange-400 hover:shadow-md transition-all group disabled:opacity-50 transform hover:scale-105"
+                        >
+                          <div className="text-xs font-medium text-gray-700 mb-2">{theme.name}</div>
+                          <div className="flex space-x-1">
+                            {theme.colors.map((color, colorIndex) => (
+                              <div 
+                                key={colorIndex}
+                                className="w-5 h-5 rounded shadow-sm"
+                                style={{ backgroundColor: color }}
+                              ></div>
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Nature & Calm */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      🌿 Nature & Calm
+                    </h5>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { name: 'Forest Green', key: 'forest', colors: ['#16a34a', '#4ade80', '#15803d', '#dcfce7'] },
+                        { name: 'Ocean Blue', key: 'ocean', colors: ['#0369a1', '#0ea5e9', '#075985', '#e0f2fe'] },
+                        { name: 'Lavender', key: 'lavender', colors: ['#a855f7', '#c084fc', '#9333ea', '#f3e8ff'] },
+                        { name: 'Earth Tone', key: 'earth', colors: ['#92400e', '#d97706', '#78350f', '#fef3c7'] }
+                      ].map((theme, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleApplyPresetTheme(theme.key)}
+                          disabled={isDesignSaving}
+                          className="p-3 border border-gray-200 rounded-lg hover:border-green-400 hover:shadow-md transition-all group disabled:opacity-50 transform hover:scale-105"
+                        >
+                          <div className="text-xs font-medium text-gray-700 mb-2">{theme.name}</div>
+                          <div className="flex space-x-1">
+                            {theme.colors.map((color, colorIndex) => (
+                              <div 
+                                key={colorIndex}
+                                className="w-5 h-5 rounded shadow-sm"
+                                style={{ backgroundColor: color }}
+                              ></div>
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 실시간 미리보기 */}
+              <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <Eye size={20} className="mr-2 text-blue-600" />
+                  🔍 Live Color Preview
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 미니 웹사이트 미리보기 */}
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div 
+                      className="h-3 w-full"
+                      style={{ background: `linear-gradient(90deg, ${currentColors.primary}, ${currentColors.secondary})` }}
+                    ></div>
+                    <div className="p-4">
+                      <div 
+                        className="h-2 w-3/4 rounded mb-2"
+                        style={{ backgroundColor: currentColors.primary }}
+                      ></div>
+                      <div className="h-1 w-full bg-gray-200 rounded mb-2"></div>
+                      <div className="h-1 w-2/3 bg-gray-200 rounded mb-3"></div>
+                      <div className="flex space-x-2">
+                        <div 
+                          className="h-6 w-16 rounded text-xs flex items-center justify-center text-white font-medium"
+                          style={{ backgroundColor: currentColors.accent }}
+                        >
+                          Button
+                        </div>
+                        <div 
+                          className="h-6 w-16 rounded text-xs flex items-center justify-center border"
+                          style={{ 
+                            borderColor: currentColors.primary,
+                            color: currentColors.primary
+                          }}
+                        >
+                          Link
+                        </div>
                       </div>
-                    </button>
-                  ))}
+                    </div>
+                  </div>
+                  
+                  {/* 색상 정보 카드 */}
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-gray-700 mb-3">Current Color Scheme:</div>
+                    {[
+                      { name: 'Primary', color: currentColors.primary, usage: 'Main buttons, headers' },
+                      { name: 'Secondary', color: currentColors.secondary, usage: 'Secondary elements' },
+                      { name: 'Accent', color: currentColors.accent, usage: 'Call-to-action buttons' },
+                      { name: 'Background', color: currentColors.background, usage: 'Page backgrounds' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center space-x-3 text-xs">
+                        <div 
+                          className="w-8 h-8 rounded-full shadow-sm border border-gray-200"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-700">{item.name}</div>
+                          <div className="text-gray-500">{item.usage}</div>
+                        </div>
+                        <div className="font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                          {item.color}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* 색상 조합 팁 */}
+                <div className="mt-6 bg-white rounded-lg p-4 border border-blue-100">
+                  <h5 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
+                    💡 Color Harmony Tips
+                  </h5>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div>• <strong>Primary:</strong> Main brand color, use sparingly for maximum impact</div>
+                    <div>• <strong>Secondary:</strong> Lighter version of primary, for backgrounds and subtle elements</div>
+                    <div>• <strong>Accent:</strong> Contrasting color for call-to-action buttons and highlights</div>
+                    <div>• <strong>Background:</strong> Neutral color for page backgrounds and large areas</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 폰트 편집 섹션 */}
+            {/* Font Settings Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                 <Type size={24} className="mr-3 text-green-600" />
@@ -2521,7 +2807,7 @@ const loadSiteContent = async () => {
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* 본문 폰트 */}
+                {/* Body Font */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-gray-800">Body Font</h4>
                   <select 
@@ -2565,7 +2851,7 @@ const loadSiteContent = async () => {
                   </div>
                 </div>
 
-                {/* 제목 폰트 */}
+                {/* Heading Font */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-gray-800">Heading Font</h4>
                   <select 
@@ -2614,13 +2900,13 @@ const loadSiteContent = async () => {
                       Sample Heading: Future Student Talents
                     </h3>
                     <h4 className="text-lg font-semibold text-gray-600 mt-2" style={{ fontFamily: currentFonts.headingFont }}>
-                      샘플 제목: 미래를 만들어갈 학생 인재들
+                      Sample heading: Future Student Talents
                     </h4>
                   </div>
                 </div>
               </div>
 
-              {/* 폰트 크기 설정 */}
+                              {/* Font Size Settings */}
               <div className="mt-8">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">Font Size Settings</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -2731,7 +3017,7 @@ const loadSiteContent = async () => {
               </p>
             </div>
 
-            {/* 계정 보안 섹션 */}
+            {/* Account Security Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center mb-6">
                 <Shield size={24} className="text-green-600 mr-3" />
@@ -2804,7 +3090,7 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* 시스템 정보 섹션 */}
+            {/* System Information Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center mb-6">
                 <Activity size={24} className="text-blue-600 mr-3" />
@@ -2966,7 +3252,7 @@ const loadSiteContent = async () => {
                               )}
                             </button>
                             <a
-                              href={`mailto:${contact.email}?subject=Re: Your inquiry&body=Hello ${contact.name},%0D%0A%0D%0AThank you for contacting us.%0D%0A%0D%0ABest regards,%0D%0ANB Student Hub Team`}
+                              href={`mailto:${contact.email}?subject=Re: Your inquiry&body=Hello ${contact.name},%0D%0A%0D%0AThank you for contacting us.%0D%0A%0D%0ABest regards,%0D%0AHigh School Students Jobs Team`}
                               className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
                             >
                               Reply

@@ -42,17 +42,11 @@ export default function ContactPage() {
     setError(null);
 
     try {
-      console.log('📝 Submitting contact form...');
-      
       // Step 1: Save inquiry to Firebase (always executed)
       const firebaseResult = await contactService.submitContact(formData);
       
       if (firebaseResult.success) {
-        console.log('✅ Contact saved to Firebase successfully');
-        
         // Step 2: Email sending disabled - using Firebase only for maximum reliability
-        console.log('📧 Email sending disabled - all inquiries saved to Firebase database');
-        console.log('📝 Admin can view all inquiries in the admin dashboard Contact Management section');
         
         // Process as success if Firebase save succeeded
         setSubmitted(true);

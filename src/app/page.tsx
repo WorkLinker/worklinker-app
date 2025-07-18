@@ -19,8 +19,7 @@ export default function Home() {
   });
   const [clickedElements, setClickedElements] = useState<{ [key: string]: boolean }>({});
   const [isLoading, setIsLoading] = useState<{ [key: string]: boolean }>({});
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_siteContent, setSiteContent] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [siteContent, setSiteContent] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [designSettings, setDesignSettings] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const observerRef = useRef<IntersectionObserver | null>(null);
   
@@ -30,7 +29,7 @@ export default function Home() {
     
     const root = document.documentElement;
     
-    // 색상 테마 적용
+    // Apply color theme
     if (settings.colors) {
       root.style.setProperty('--color-primary', settings.colors.primary || '#0ea5e9');
       root.style.setProperty('--color-secondary', settings.colors.secondary || '#7dd3fc');
@@ -38,16 +37,16 @@ export default function Home() {
       root.style.setProperty('--color-background', settings.colors.background || '#dbeafe');
     }
     
-    // 폰트 설정 적용
+    // Apply font settings
     if (settings.fonts) {
       const fontFamilies = {
-        // 🇰🇷 한국어 최적화
+        // 🌎 International Fonts
         'pretendard': 'Pretendard, sans-serif',
         'noto-sans-kr': '"Noto Sans KR", sans-serif',
         'nanum-gothic': '"Nanum Gothic", sans-serif',
         'spoqa-han-sans': '"Spoqa Han Sans", sans-serif',
         
-        // 📝 깔끔한 Sans-serif
+        // 📝 Clean Sans-serif
         'inter': 'Inter, sans-serif',
         'roboto': 'Roboto, sans-serif',
         'open-sans': '"Open Sans", sans-serif',
@@ -60,7 +59,7 @@ export default function Home() {
         'ubuntu': 'Ubuntu, sans-serif',
         'system-ui': 'system-ui, sans-serif',
         
-        // 💪 임팩트 있는 Display
+        // 💪 Impactful Display
         'montserrat': 'Montserrat, sans-serif',
         'oswald': 'Oswald, sans-serif',
         'raleway': 'Raleway, sans-serif',
@@ -68,7 +67,7 @@ export default function Home() {
         'anton': 'Anton, sans-serif',
         'fredoka-one': '"Fredoka One", sans-serif',
         
-        // 🎨 우아한 Serif
+        // 🎨 Elegant Serif
         'playfair-display': '"Playfair Display", serif',
         'merriweather': 'Merriweather, serif',
         'cormorant-garamond': '"Cormorant Garamond", serif',
@@ -77,7 +76,7 @@ export default function Home() {
         'source-serif-pro': '"Source Serif Pro", serif',
         'noto-serif': '"Noto Serif KR", serif',
         
-        // ✨ 독특한 스타일
+        // ✨ Unique Style
         'dancing-script': '"Dancing Script", cursive',
         'pacifico': 'Pacifico, cursive',
         'comfortaa': 'Comfortaa, cursive',
@@ -116,23 +115,25 @@ export default function Home() {
     }
   ];
 
-  // Firestore에서 콘텐츠 가져오기 및 실시간 구독
+  // Fetch content from Firestore and set up real-time subscription
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
 
     const initializeContent = async () => {
       try {
-        // 초기 콘텐츠 로드
+        // Load initial content
         const content = await contentService.getCurrentContent();
         setSiteContent(content);
 
         // Start real-time subscription
         unsubscribe = contentService.subscribeToContent((updatedContent) => {
           setSiteContent(updatedContent);
-          console.log('🔄 Content updated in real-time');
         });
       } catch (error) {
-        console.error('❌ Content initialization error:', error);
+        console.error('❌ Content initialization error (details):', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
         // Use default content on error
       }
     };
@@ -141,6 +142,7 @@ export default function Home() {
 
     return () => {
       if (unsubscribe) {
+        console.log('🔕 실시간 구독 해제');
         unsubscribe();
       }
     };
@@ -159,6 +161,7 @@ export default function Home() {
 
         // Set up real-time subscription
         unsubscribe = designService.subscribeToDesignSettings((updatedSettings) => {
+          console.log('🎨 Design settings received:', updatedSettings);
           setDesignSettings(updatedSettings);
           updateCSSVariables(updatedSettings);
           console.log('🎨 Design settings updated in real-time');
@@ -177,22 +180,31 @@ export default function Home() {
     };
   }, []);
 
-  // Current slides to use (always use defaultSlides with English content)
-  const slides = defaultSlides.map((slide, index) => {
+  // Use Firebase content if available, otherwise use default slides
+  const slides = (siteContent?.heroSlides && siteContent.heroSlides.length > 0 
+    ? siteContent.heroSlides 
+    : defaultSlides
+  ).map((slide: { title: string; subtitle: string; image: string; alt?: string }, index: number) => {
     const designImage = designSettings?.images?.heroSlides?.[`slide${index + 1}`];
     // Only use design image if it's not a Korean filename
     const useDesignImage = designImage && !designImage.includes('메인홈') && !designImage.includes('%');
+    
+    // Use Firebase content data if available, otherwise use default data
+    const defaultSlide = defaultSlides[index] || defaultSlides[0];
+    
     return {
-    ...slide,
-      image: useDesignImage ? designImage : slide.image,
-      alt: slide.alt || slide.title
+      title: slide.title || defaultSlide.title,
+      subtitle: slide.subtitle || defaultSlide.subtitle,
+      image: useDesignImage ? `${designImage}?t=${Date.now()}` : defaultSlide.image,
+      alt: slide.alt || slide.title || defaultSlide.alt || defaultSlide.title,
+      hasCustomImage: useDesignImage
     };
   });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 10000); // 10초로 늘림 (더 여유롭게)
+    }, 10000); // 10 seconds interval (more relaxed)
     return () => clearInterval(timer);
   }, [slides.length]);
 
@@ -393,7 +405,7 @@ export default function Home() {
                 <>
                   <GraduationCap size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:rotate-12 transition-transform" />
                   <span className="relative z-10">
-                    Get Started as Student
+                    {siteContent?.ctaButtons?.student || 'Get Started as Student'}
                   </span>
                   <ArrowRight size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:translate-x-2 transition-transform" />
                 </>
@@ -414,7 +426,7 @@ export default function Home() {
               ) : (
                 <>
                   <Briefcase size={24} className="sm:w-7 sm:h-7 group-hover:rotate-12 transition-transform" />
-                  <span>Join as Employer</span>
+                  <span>{siteContent?.ctaButtons?.company || 'Join as Employer'}</span>
                   <TrendingUp size={24} className="sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
                 </>
               )}
@@ -455,7 +467,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.student || "/images/student-opportunities.png"}
+                  src={designSettings?.images?.featureCards?.student ? `${designSettings.images.featureCards.student}?t=${Date.now()}` : "/images/student-opportunities.png"}
                   alt="Student job search"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -465,15 +477,17 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <GraduationCap size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Student Jobs</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">
+                {siteContent?.featureCards?.student?.title || 'Student Jobs'}
+              </h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                Smart matching system that finds the perfect job opportunities for you
+                {siteContent?.featureCards?.student?.description || 'Smart matching system that finds the perfect job opportunities for you'}
               </p>
               <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-student'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  'Get Started →'
+                  `${siteContent?.featureCards?.student?.buttonText || 'Get Started'} →`
                 )}
               </div>
             </div>
@@ -496,7 +510,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.reference || "/images/reference-support.png"}
+                  src={designSettings?.images?.featureCards?.reference ? `${designSettings.images.featureCards.reference}?t=${Date.now()}` : "/images/reference-support.png"}
                   alt="Reference support"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -506,15 +520,17 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Award size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">References</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">
+                {siteContent?.featureCards?.reference?.title || 'References'}
+              </h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                Digital reference ecosystem connecting students with teachers
+                {siteContent?.featureCards?.reference?.description || 'Digital reference ecosystem connecting students with teachers'}
               </p>
               <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-reference'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  'Get Started →'
+                  `${siteContent?.featureCards?.reference?.buttonText || 'Get Started'} →`
                 )}
               </div>
             </div>
@@ -537,7 +553,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.company || "/images/company-recruitment.png"}
+                  src={designSettings?.images?.featureCards?.company ? `${designSettings.images.featureCards.company}?t=${Date.now()}` : "/images/company-recruitment.png"}
                   alt="Employer hiring"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -547,15 +563,17 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-accent rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Trophy size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Employer Hub</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">
+                {siteContent?.featureCards?.company?.title || 'Employer Hub'}
+              </h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                Smart hiring platform to connect with talented Canadian students
+                {siteContent?.featureCards?.company?.description || 'Smart hiring platform to connect with talented Canadian students'}
               </p>
               <div className="block w-full dynamic-gradient-accent text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-company'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  'Explore →'
+                  `${siteContent?.featureCards?.company?.buttonText || 'Explore'} →`
                 )}
               </div>
             </div>
@@ -578,7 +596,7 @@ export default function Home() {
               {/* Feature image */}
               <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden">
                 <Image
-                  src={designSettings?.images?.featureCards?.events || "/images/education-events.png"}
+                  src={designSettings?.images?.featureCards?.events ? `${designSettings.images.featureCards.events}?t=${Date.now()}` : "/images/education-events.png"}
                   alt="Learning events"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -588,15 +606,17 @@ export default function Home() {
               <div className="w-24 h-24 dynamic-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-xl">
                 <Sparkles size={48} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">Learning Events</h3>
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dynamic-font-heading">
+                {siteContent?.featureCards?.events?.title || 'Learning Events'}
+              </h3>
               <p className="text-gray-600 text-center mb-8 leading-relaxed text-lg flex-grow">
-                Hands-on educational programs to prepare for your future
+                {siteContent?.featureCards?.events?.description || 'Hands-on educational programs to prepare for your future'}
               </p>
               <div className="block w-full dynamic-gradient-primary text-white text-center py-4 rounded-xl font-bold transition-all shadow-lg mt-auto">
                 {isLoading['card-events'] ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
                 ) : (
-                  'Join Event →'
+                  `${siteContent?.featureCards?.events?.buttonText || 'Join Event'} →`
                 )}
               </div>
             </div>
