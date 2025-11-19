@@ -1,7 +1,46 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Star, Trophy, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
+import { contactSettingsService } from '@/lib/firebase-services';
 
 export default function Footer() {
+  const [contactInfo, setContactInfo] = useState({
+    email: 'histudentjobs@gmail.com',
+    phone: '506-429-6148',
+    address: '122 Brianna Dr, Fredericton NB COA 1N0'
+  });
+
+  useEffect(() => {
+    const loadContactInfo = async () => {
+      try {
+        const settings = await contactSettingsService.getCurrentContactSettings();
+        setContactInfo({
+          email: settings.email,
+          phone: settings.phone,
+          address: settings.address
+        });
+      } catch (error) {
+        console.error('Failed to load contact info:', error);
+      }
+    };
+
+    loadContactInfo();
+
+    const unsubscribe = contactSettingsService.subscribeToContactSettings((settings) => {
+      setContactInfo({
+        email: settings.email,
+        phone: settings.phone,
+        address: settings.address
+      });
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   return (
     <footer className="bg-gradient-to-r from-sky-700 via-sky-800 to-sky-900 text-white relative overflow-hidden">
       {/* Background Elements */}
@@ -77,15 +116,15 @@ export default function Footer() {
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center justify-center md:justify-start space-x-3">
                 <MapPin size={18} className="sm:w-5 sm:h-5 text-sky-300 flex-shrink-0" />
-                <span className="text-sky-200 text-sm sm:text-base">New Brunswick, Canada</span>
+                <span className="text-sky-200 text-sm sm:text-base">{contactInfo.address}</span>
               </div>
               <div className="flex items-center justify-center md:justify-start space-x-3">
                 <Mail size={18} className="sm:w-5 sm:h-5 text-sky-300 flex-shrink-0" />
-                <span className="text-sky-200 text-sm sm:text-base">contact@nbstudentjobs.ca</span>
+                <span className="text-sky-200 text-sm sm:text-base">{contactInfo.email}</span>
               </div>
               <div className="flex items-center justify-center md:justify-start space-x-3">
                 <Phone size={18} className="sm:w-5 sm:h-5 text-sky-300 flex-shrink-0" />
-                <span className="text-sky-200 text-sm sm:text-base">+1 (506) 555-0123</span>
+                <span className="text-sky-200 text-sm sm:text-base">{contactInfo.phone}</span>
               </div>
             </div>
           </div>

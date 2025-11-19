@@ -227,8 +227,8 @@ High School Students Jobs is a comprehensive online platform designed specifical
 ## Chapter 9: Contact Information and Support
 
 ### 9.1 Platform Contact Details
-- Email: nbhighschooljobs@gmail.com
-- Phone: (506) 429-6148
+- Email: histudentjobs@gmail.com
+- Phone: 506-429-6148
 - Address: 122 Brianna Dr, Fredericton NB COA 1N0
 
 ### 9.2 Business Hours

@@ -496,55 +496,77 @@ export const eventService = {
 
   // 실시간 이벤트 구독 (참가자 수 실시간 업데이트)
   subscribeToEvents(callback: (events: any[]) => void) {
-    const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
-    
-    return onSnapshot(eventsQuery, async (eventsSnapshot) => {
-      const events = eventsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+    try {
+      const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
+      
+      return onSnapshot(
+        eventsQuery, 
+        async (eventsSnapshot) => {
+          const events = eventsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
 
-             // 각 이벤트의 실시간 참가자 수 계산
-       const eventsWithParticipants = await Promise.all(
-         events.map(async (event) => {
-           const participantsQuery = query(
-             collection(db, 'eventRegistrations'),
-             where('eventId', '==', event.id)
-           );
-           const participantsSnapshot = await getDocs(participantsQuery);
-           const currentParticipants = participantsSnapshot.size;
+          // 각 이벤트의 실시간 참가자 수 계산
+          const eventsWithParticipants = await Promise.all(
+            events.map(async (event) => {
+              const participantsQuery = query(
+                collection(db, 'eventRegistrations'),
+                where('eventId', '==', event.id)
+              );
+              const participantsSnapshot = await getDocs(participantsQuery);
+              const currentParticipants = participantsSnapshot.size;
 
-           return {
-             ...event,
-             currentParticipants,
-             remainingSlots: Math.max(0, ((event as any).maxParticipants || 0) - currentParticipants)
-           };
-         })
-       );
+              return {
+                ...event,
+                currentParticipants,
+                remainingSlots: Math.max(0, ((event as any).maxParticipants || 0) - currentParticipants)
+              };
+            })
+          );
 
-      callback(eventsWithParticipants);
-    });
+          callback(eventsWithParticipants);
+        },
+        (error) => {
+          console.warn('⚠️ Events subscription error (permission denied or network issue):', error);
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup events subscription:', error);
+      return () => {};
+    }
   },
 
   // 특정 이벤트의 참가자 수 실시간 조회
   subscribeToEventParticipants(eventId: string, callback: (count: number) => void) {
-    const participantsQuery = query(
-      collection(db, 'eventRegistrations'),
-      where('eventId', '==', eventId)
-    );
-    
-    return onSnapshot(participantsQuery, (snapshot) => {
-      callback(snapshot.size);
-    });
+    try {
+      const participantsQuery = query(
+        collection(db, 'eventRegistrations'),
+        where('eventId', '==', eventId)
+      );
+      
+      return onSnapshot(
+        participantsQuery, 
+        (snapshot) => {
+          callback(snapshot.size);
+        },
+        (error) => {
+          console.warn('⚠️ Event participants subscription error (permission denied or network issue):', error);
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup event participants subscription:', error);
+      return () => {};
+    }
   },
 
   // 관리자 권한 확인
   isAdmin(email: string): boolean {
     if (!isFirebaseAvailable()) {
-      // Firebase 없을 때는 nbhighschooljobs@gmail.com만 관리자로 인정
-      return email === 'nbhighschooljobs@gmail.com';
+      // Firebase 없을 때는 histudentjobs@gmail.com만 관리자로 인정
+      return email === 'histudentjobs@gmail.com';
     }
-    const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca', 'nbhighschooljobs@gmail.com'];
+    const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca', 'histudentjobs@gmail.com'];
     return adminEmails.includes(email);
   },
 
@@ -593,14 +615,25 @@ export const communityService = {
 
   // 실시간 게시물 구독
   subscribeToposts(callback: (posts: any[]) => void) {
-    const q = query(collection(db, 'communityPosts'), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (querySnapshot) => {
-      const posts = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      callback(posts);
-    });
+    try {
+      const q = query(collection(db, 'communityPosts'), orderBy('createdAt', 'desc'));
+      return onSnapshot(
+        q, 
+        (querySnapshot) => {
+          const posts = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          callback(posts);
+        },
+        (error) => {
+          console.warn('⚠️ Community posts subscription error (permission denied or network issue):', error);
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup community posts subscription:', error);
+      return () => {};
+    }
   }
 };
 
@@ -972,8 +1005,50 @@ export const contentService = {
       console.log('✅ Current content retrieval successful');
       return latestContent;
     } catch (error) {
-      console.error('❌ Current content retrieval error:', error);
-      throw error;
+      console.warn('⚠️ Firebase content retrieval failed (permission or network issue), returning default content:', error);
+      // Return default content instead of throwing error
+      return {
+        heroSlides: [
+          {
+            title: 'Your First Step to Career Success',
+            subtitle: 'Turn your dreams into reality with professional guidance and hands-on experience'
+          },
+          {
+            title: 'Discover the Talented Students of Tomorrow',
+            subtitle: 'Connect with the future leaders of New Brunswick'
+          },
+          {
+            title: 'Innovative Education Platform',
+            subtitle: 'Where technology meets education to unlock new possibilities'
+          }
+        ],
+        ctaButtons: {
+          student: 'Get Started as Student',
+          company: 'Join as Employer'
+        },
+        featureCards: {
+          student: {
+            title: 'Student Jobs',
+            description: 'Smart matching system that finds the perfect job opportunities for you',
+            buttonText: 'Get Started'
+          },
+          reference: {
+            title: 'References',
+            description: 'Digital reference ecosystem connecting students with teachers',
+            buttonText: 'Get Started'
+          },
+          company: {
+            title: 'Employer Hub',
+            description: 'Smart hiring platform to connect with talented Canadian students',
+            buttonText: 'Explore'
+          },
+          events: {
+            title: 'Learning Events',
+            description: 'Hands-on educational programs to prepare for your future',
+            buttonText: 'Join Event'
+          }
+        }
+      };
     }
   },
 
@@ -1022,16 +1097,31 @@ export const contentService = {
 
   // 실시간 콘텐츠 구독
   subscribeToContent(callback: (content: any) => void) {
-    const q = query(collection(db, 'siteContent'), orderBy('updatedAt', 'desc'));
-    return onSnapshot(q, (querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const latestContent = {
-          id: querySnapshot.docs[0].id,
-          ...querySnapshot.docs[0].data()
-        };
-        callback(latestContent);
-      }
-    });
+    try {
+      const q = query(collection(db, 'siteContent'), orderBy('updatedAt', 'desc'));
+      return onSnapshot(
+        q, 
+        (querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const latestContent = {
+              id: querySnapshot.docs[0].id,
+              ...querySnapshot.docs[0].data()
+            };
+            callback(latestContent);
+          }
+        },
+        (error) => {
+          // 권한 에러 또는 네트워크 에러 처리
+          console.warn('⚠️ Content subscription error (permission denied or network issue):', error);
+          // 에러 발생 시에도 기본 콘텐츠 반환하여 앱이 정상 작동하도록
+          // 구독 실패 시 아무것도 하지 않음 (이미 getCurrentContent()에서 기본값 제공)
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup content subscription:', error);
+      // 구독 설정 실패 시 빈 unsubscribe 함수 반환
+      return () => {};
+    }
   }
 };
 
@@ -1146,18 +1236,29 @@ export const logService = {
 
   // 실시간 로그 구독
   subscribeToLogs(callback: (logs: any[]) => void, limit = 30) {
-    const q = query(
-      collection(db, 'logs'), 
-      orderBy('timestamp', 'desc')
-    );
-    
-    return onSnapshot(q, (querySnapshot) => {
-      const logs = querySnapshot.docs.slice(0, limit).map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      callback(logs);
-    });
+    try {
+      const q = query(
+        collection(db, 'logs'), 
+        orderBy('timestamp', 'desc')
+      );
+      
+      return onSnapshot(
+        q, 
+        (querySnapshot) => {
+          const logs = querySnapshot.docs.slice(0, limit).map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          callback(logs);
+        },
+        (error) => {
+          console.warn('⚠️ Logs subscription error (permission denied or network issue):', error);
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup logs subscription:', error);
+      return () => {};
+    }
   }
 }; 
 
@@ -1544,42 +1645,42 @@ export const designService = {
 
   // 현재 디자인 설정 조회
   async getCurrentDesignSettings() {
+    // 기본 설정 정의
+    const defaultSettings = {
+      colors: {
+        primary: '#0ea5e9',
+        secondary: '#7dd3fc',
+        accent: '#0369a1',
+        background: '#dbeafe'
+      },
+      fonts: {
+        bodyFont: 'inter',
+        headingFont: 'inter',
+        bodySize: 16,
+        headingSize: 32,
+        lineHeight: 1.5
+      },
+      images: {
+        heroSlides: {
+          slide1: '/images/main-home-1.png',
+          slide2: '/images/main-home-2.jpg',
+          slide3: '/images/main-home-3.png'
+        },
+        featureCards: {
+          student: '/images/student-opportunities.png',
+          reference: '/images/reference-support.png',
+          company: '/images/company-recruitment.png',
+          events: '/images/education-events.png'
+        }
+      }
+    };
+    
     try {
       const settingsRef = doc(db, 'siteSettings', 'design');
       const settingsSnap = await getDoc(settingsRef);
       
       if (!settingsSnap.exists()) {
-        // 기본 설정 반환
-        const defaultSettings = {
-          colors: {
-            primary: '#0ea5e9',
-            secondary: '#7dd3fc',
-            accent: '#0369a1',
-            background: '#dbeafe'
-          },
-          fonts: {
-            bodyFont: 'inter',
-            headingFont: 'inter',
-            bodySize: 16,
-            headingSize: 32,
-            lineHeight: 1.5
-          },
-          images: {
-            heroSlides: {
-              slide1: '/images/main-home-1.png',
-              slide2: '/images/main-home-2.jpg',
-              slide3: '/images/main-home-3.png'
-            },
-            featureCards: {
-              student: '/images/student-opportunities.png',
-              reference: '/images/reference-support.png',
-              company: '/images/company-recruitment.png',
-              events: '/images/education-events.png'
-            }
-          }
-        };
-        
-        console.log('📋 Returning default design settings');
+        console.log('📋 Returning default design settings (no custom settings found)');
         return defaultSettings;
       }
       
@@ -1587,50 +1688,66 @@ export const designService = {
       console.log('✅ Current design settings retrieval completed');
       return settings;
     } catch (error) {
-      console.error('❌ Design settings retrieval error:', error);
-      throw error;
+      console.warn('⚠️ Firebase design settings retrieval failed (permission or network issue), returning default settings:', error);
+      // Return default settings instead of throwing error
+      return defaultSettings;
     }
   },
 
   // 디자인 설정 실시간 구독
   subscribeToDesignSettings(callback: (settings: any) => void) {
-    const settingsRef = doc(db, 'siteSettings', 'design');
-    
-    return onSnapshot(settingsRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        // 기본 설정 반환
-        callback({
-          colors: {
-            primary: '#0ea5e9',
-            secondary: '#7dd3fc',
-            accent: '#0369a1',
-            background: '#dbeafe'
-          },
-          fonts: {
-            bodyFont: 'inter',
-            headingFont: 'inter',
-            bodySize: 16,
-            headingSize: 32,
-            lineHeight: 1.5
-          },
-          images: {
-            heroSlides: {
-              slide1: '/images/main-home-1.png',
-              slide2: '/images/main-home-2.jpg',
-              slide3: '/images/main-home-3.png'
-            },
-            featureCards: {
-              student: '/images/student-opportunities.png',
-              reference: '/images/reference-support.png',
-              company: '/images/company-recruitment.png',
-              events: '/images/education-events.png'
-            }
+    try {
+      const settingsRef = doc(db, 'siteSettings', 'design');
+      
+      return onSnapshot(
+        settingsRef, 
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            // 기본 설정 반환
+            callback({
+              colors: {
+                primary: '#0ea5e9',
+                secondary: '#7dd3fc',
+                accent: '#0369a1',
+                background: '#dbeafe'
+              },
+              fonts: {
+                bodyFont: 'inter',
+                headingFont: 'inter',
+                bodySize: 16,
+                headingSize: 32,
+                lineHeight: 1.5
+              },
+              images: {
+                heroSlides: {
+                  slide1: '/images/main-home-1.png',
+                  slide2: '/images/main-home-2.jpg',
+                  slide3: '/images/main-home-3.png'
+                },
+                featureCards: {
+                  student: '/images/student-opportunities.png',
+                  reference: '/images/reference-support.png',
+                  company: '/images/company-recruitment.png',
+                  events: '/images/education-events.png'
+                }
+              }
+            });
+          } else {
+            callback(snapshot.data());
           }
-        });
-      } else {
-        callback(snapshot.data());
-      }
-    });
+        },
+        (error) => {
+          // 권한 에러 또는 네트워크 에러 처리
+          console.warn('⚠️ Design settings subscription error (permission denied or network issue):', error);
+          // 에러 발생 시에도 기본 설정 반환하여 앱이 정상 작동하도록
+          // 구독 실패 시 아무것도 하지 않음 (이미 getCurrentDesignSettings()에서 기본값 제공)
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup design settings subscription:', error);
+      // 구독 설정 실패 시 빈 unsubscribe 함수 반환
+      return () => {};
+    }
   },
 
   // 프리셋 테마 적용
@@ -1674,6 +1791,92 @@ export const designService = {
     } catch (error) {
       console.error('❌ Preset theme application error:', error);
       throw error;
+    }
+  }
+};
+
+// 📞 연락처 설정 서비스
+export const contactSettingsService = {
+  // 현재 연락처 설정 조회
+  async getCurrentContactSettings() {
+    const defaultSettings = {
+      email: 'histudentjobs@gmail.com',
+      phone: '506-429-6148',
+      address: '122 Brianna Dr, Fredericton NB COA 1N0',
+      businessHours: {
+        weekdays: '9 AM - 6 PM',
+        weekends: '10 AM - 4 PM'
+      }
+    };
+    
+    try {
+      const settingsRef = doc(db, 'siteSettings', 'contact');
+      const settingsSnap = await getDoc(settingsRef);
+      
+      if (!settingsSnap.exists()) {
+        console.log('📋 Returning default contact settings');
+        return defaultSettings;
+      }
+      
+      const settings = settingsSnap.data();
+      console.log('✅ Contact settings retrieval completed');
+      return settings;
+    } catch (error) {
+      console.warn('⚠️ Contact settings retrieval failed, returning default settings:', error);
+      return defaultSettings;
+    }
+  },
+
+  // 연락처 설정 저장
+  async saveContactSettings(settings: any) {
+    try {
+      console.log('💾 Saving contact settings:', settings);
+      
+      const settingsRef = doc(db, 'siteSettings', 'contact');
+      const updatedSettings = {
+        ...settings,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await setDoc(settingsRef, updatedSettings, { merge: true });
+      
+      console.log('✅ Contact settings saved successfully');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Contact settings save error:', error);
+      throw error;
+    }
+  },
+
+  // 연락처 설정 실시간 구독
+  subscribeToContactSettings(callback: (settings: any) => void) {
+    try {
+      const settingsRef = doc(db, 'siteSettings', 'contact');
+      
+      return onSnapshot(
+        settingsRef,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            callback({
+              email: 'histudentjobs@gmail.com',
+              phone: '506-429-6148',
+              address: '122 Brianna Dr, Fredericton NB COA 1N0',
+              businessHours: {
+                weekdays: '9 AM - 6 PM',
+                weekends: '10 AM - 4 PM'
+              }
+            });
+          } else {
+            callback(snapshot.data());
+          }
+        },
+        (error) => {
+          console.warn('⚠️ Contact settings subscription error:', error);
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Failed to setup contact settings subscription:', error);
+      return () => {};
     }
   }
 };

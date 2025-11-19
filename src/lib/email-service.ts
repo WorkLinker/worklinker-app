@@ -1,9 +1,9 @@
 // import { NextResponse } from 'next/server'; // 사용하지 않음
 
 // 환경변수에서 값 가져오기
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'histudentjobs@gmail.com';
 const CONTACT_PHONE = process.env.CONTACT_PHONE || '506-429-6148';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nbhighschooljobs@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'histudentjobs@gmail.com';
 
 export interface EmailData {
   name: string;
@@ -159,7 +159,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        to: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'nbhighschooljobs@gmail.com',
+        to: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'histudentjobs@gmail.com',
         subject: `New inquiry from: ${data.name}`,
         html: generateContactEmailHTML(data),
         text: `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\n\nMessage:\n${data.message}`

@@ -42,7 +42,7 @@ import Footer from '@/components/Footer';
 
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
 // import { User as SupabaseUser } from '@supabase/supabase-js';
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
@@ -53,7 +53,7 @@ import { storage } from '@/lib/firebase';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management';
+type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
 
 // 비밀번호 변경 모달 컴포넌트
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -1089,6 +1089,20 @@ export default function AdminPage() {
   const [contactUpdating, setContactUpdating] = useState<string | null>(null);
   const [contactDeleting, setContactDeleting] = useState<string | null>(null);
   
+  // 연락처 설정 관련 상태
+  const [contactSettings, setContactSettings] = useState({
+    email: 'histudentjobs@gmail.com',
+    phone: '506-429-6148',
+    address: '122 Brianna Dr, Fredericton NB COA 1N0',
+    businessHours: {
+      weekdays: '9 AM - 6 PM',
+      weekends: '10 AM - 4 PM'
+    }
+  });
+  const [contactSettingsLoading, setContactSettingsLoading] = useState(false);
+  const [contactSettingsSaving, setContactSettingsSaving] = useState(false);
+  const [showContactSaveSuccess, setShowContactSaveSuccess] = useState(false);
+  
   const router = useRouter();
 
   // 봉사자 데이터 로딩 함수들
@@ -1101,6 +1115,34 @@ export default function AdminPage() {
       console.error('❌ Error loading volunteer opportunities:', error);
     } finally {
       setVolunteerLoading(false);
+    }
+  };
+
+  // 연락처 설정 로딩 함수
+  const loadContactSettings = async () => {
+    try {
+      setContactSettingsLoading(true);
+      const settings = await contactSettingsService.getCurrentContactSettings();
+      setContactSettings(settings);
+    } catch (error) {
+      console.error('Error loading contact settings:', error);
+    } finally {
+      setContactSettingsLoading(false);
+    }
+  };
+
+  // 연락처 설정 저장 함수
+  const handleSaveContactSettings = async () => {
+    try {
+      setContactSettingsSaving(true);
+      await contactSettingsService.saveContactSettings(contactSettings);
+      setShowContactSaveSuccess(true);
+      setTimeout(() => setShowContactSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving contact settings:', error);
+      alert('Failed to save contact settings. Please try again.');
+    } finally {
+      setContactSettingsSaving(false);
     }
   };
 
@@ -1198,7 +1240,8 @@ export default function AdminPage() {
         loadSiteContent(),
         loadPendingVolunteerPostings(),
         loadDesignSettings(),
-        loadAllContacts()
+        loadAllContacts(),
+        loadContactSettings()
       ]);
     } else {
       router.push('/');
@@ -1622,6 +1665,12 @@ const loadSiteContent = async () => {
       name: 'Contact Management',
       icon: Mail,
       description: 'Manage customer inquiries and support requests'
+    },
+    {
+      id: 'contact-settings' as TabType,
+      name: 'Contact Settings',
+      icon: Phone,
+      description: 'Edit contact information displayed on website'
     }
   ];
 
@@ -3132,6 +3181,145 @@ const loadSiteContent = async () => {
 
       case 'file-management':
         return <FileManager />;
+
+      case 'contact-settings':
+        if (contactSettingsLoading) {
+          return (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-6">
+            {/* Success message */}
+            {showContactSaveSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
+                  <p className="text-green-800 font-medium">Contact information saved successfully!</p>
+                </div>
+                <button 
+                  onClick={() => setShowContactSaveSuccess(false)}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  <XCircle size={20} />
+                </button>
+              </div>
+            )}
+
+            {/* Email setting */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center mb-4">
+                <Mail className="h-6 w-6 text-blue-600 mr-3" />
+                <h3 className="text-xl font-bold text-gray-900">Email Address</h3>
+              </div>
+              <input
+                type="email"
+                value={contactSettings.email}
+                onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="histudentjobs@gmail.com"
+              />
+              <p className="text-sm text-gray-500 mt-2">This email will be displayed in the footer and contact page</p>
+            </div>
+
+            {/* Phone setting */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center mb-4">
+                <Phone className="h-6 w-6 text-green-600 mr-3" />
+                <h3 className="text-xl font-bold text-gray-900">Phone Number</h3>
+              </div>
+              <input
+                type="tel"
+                value={contactSettings.phone}
+                onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="506-429-6148"
+              />
+              <p className="text-sm text-gray-500 mt-2">Format: XXX-XXX-XXXX</p>
+            </div>
+
+            {/* Address setting */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center mb-4">
+                <MapPin className="h-6 w-6 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-gray-900">Address</h3>
+              </div>
+              <input
+                type="text"
+                value={contactSettings.address}
+                onChange={(e) => setContactSettings({ ...contactSettings, address: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="122 Brianna Dr, Fredericton NB COA 1N0"
+              />
+              <p className="text-sm text-gray-500 mt-2">Full business address</p>
+            </div>
+
+            {/* Business hours setting */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center mb-4">
+                <Clock className="h-6 w-6 text-purple-600 mr-3" />
+                <h3 className="text-xl font-bold text-gray-900">Business Hours</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Weekdays</label>
+                  <input
+                    type="text"
+                    value={contactSettings.businessHours.weekdays}
+                    onChange={(e) => setContactSettings({
+                      ...contactSettings,
+                      businessHours: { ...contactSettings.businessHours, weekdays: e.target.value }
+                    })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="9 AM - 6 PM"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Weekends</label>
+                  <input
+                    type="text"
+                    value={contactSettings.businessHours.weekends}
+                    onChange={(e) => setContactSettings({
+                      ...contactSettings,
+                      businessHours: { ...contactSettings.businessHours, weekends: e.target.value }
+                    })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="10 AM - 4 PM"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Save button */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={handleSaveContactSettings}
+                  disabled={contactSettingsSaving}
+                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg disabled:opacity-50"
+                >
+                  {contactSettingsSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={20} className="mr-3" />
+                      Save Contact Information
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-center text-sm text-gray-600 mt-4">
+                💡 Changes will be reflected immediately after saving to all pages including footer and contact page
+              </p>
+            </div>
+          </div>
+        );
 
       case 'contact-management':
         return (

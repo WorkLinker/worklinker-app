@@ -68,14 +68,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Additional favicon meta tags for better browser compatibility */}
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className="min-h-screen bg-gray-50 dynamic-font-body">
+      <body className="min-h-screen bg-gray-50 dynamic-font-body" suppressHydrationWarning>
         {children}
       </body>
     </html>

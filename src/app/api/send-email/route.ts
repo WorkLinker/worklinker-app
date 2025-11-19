@@ -4,9 +4,9 @@ import { generateContactEmailHTML, generateJobApplicationEmailHTML, generateJobP
 
 // 환경변수  
 const MAILERSEND_API_KEY = process.env.MAILERSEND_API_TOKEN || process.env.MAILERSEND_API_KEY || '';
-const FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL || 'nbhighschooljobs@gmail.com';
+const FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL || 'histudentjobs@gmail.com';
 const FROM_NAME = process.env.MAILERSEND_FROM_NAME || 'NB High School Jobs Platform';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nbhighschooljobs@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'histudentjobs@gmail.com';
 
 // MailerSend 인스턴스 생성
 let mailerSend: MailerSend | null = null;

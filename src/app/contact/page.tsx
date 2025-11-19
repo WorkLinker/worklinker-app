@@ -18,12 +18,18 @@ import Footer from '@/components/Footer';
 import { ContactFormData } from '@/lib/email-service';
 import { contactService } from '@/lib/firebase-services';
 
-// Get contact information from environment variables
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'nbhighschooljobs@gmail.com';
-const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '506-429-6148';
-const CONTACT_ADDRESS = process.env.NEXT_PUBLIC_CONTACT_ADDRESS || '122 Brianna Dr, Fredericton NB COA 1N0';
+import { contactSettingsService } from '@/lib/firebase-services';
 
 export default function ContactPage() {
+  const [contactInfo, setContactInfo] = useState({
+    email: 'histudentjobs@gmail.com',
+    phone: '506-429-6148',
+    address: '122 Brianna Dr, Fredericton NB COA 1N0',
+    businessHours: {
+      weekdays: '9 AM - 6 PM',
+      weekends: '10 AM - 4 PM'
+    }
+  });
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -35,6 +41,27 @@ export default function ContactPage() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
+
+  useEffect(() => {
+    const loadContactInfo = async () => {
+      try {
+        const settings = await contactSettingsService.getCurrentContactSettings();
+        setContactInfo(settings);
+      } catch (error) {
+        console.error('Failed to load contact info:', error);
+      }
+    };
+
+    loadContactInfo();
+
+    const unsubscribe = contactSettingsService.subscribeToContactSettings((settings) => {
+      setContactInfo(settings);
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,10 +172,10 @@ export default function ContactPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
               <a 
-                href={`mailto:${CONTACT_EMAIL}`}
+                href={`mailto:${contactInfo.email}`}
                 className="text-purple-600 hover:text-purple-700 transition-colors"
               >
-                {CONTACT_EMAIL}
+                {contactInfo.email}
               </a>
             </div>
 
@@ -158,10 +185,10 @@ export default function ContactPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
               <a 
-                href={`tel:${CONTACT_PHONE}`}
+                href={`tel:${contactInfo.phone}`}
                 className="text-blue-600 hover:text-blue-700 transition-colors"
               >
-                {CONTACT_PHONE}
+                {contactInfo.phone}
               </a>
             </div>
 
@@ -171,10 +198,10 @@ export default function ContactPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Address</h3>
               <p className="text-gray-600">
-                {CONTACT_ADDRESS.split(', ').map((part, index) => (
+                {contactInfo.address.split(', ').map((part, index) => (
                   <span key={index}>
                     {part}
-                    {index < CONTACT_ADDRESS.split(', ').length - 1 && <br />}
+                    {index < contactInfo.address.split(', ').length - 1 && <br />}
                   </span>
                 ))}
               </p>
@@ -186,8 +213,8 @@ export default function ContactPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Business Hours</h3>
               <div className="text-gray-600 space-y-1">
-                <p>Weekdays: 9 AM - 6 PM</p>
-                <p>Weekends: 10 AM - 4 PM</p>
+                <p>Weekdays: {contactInfo.businessHours.weekdays}</p>
+                <p>Weekends: {contactInfo.businessHours.weekends}</p>
               </div>
             </div>
           </div>
@@ -419,7 +446,7 @@ export default function ContactPage() {
           
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href={`mailto:${CONTACT_EMAIL}`}
+              href={`mailto:${contactInfo.email}`}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
             >
               <Mail className="w-5 h-5" />
@@ -427,7 +454,7 @@ export default function ContactPage() {
             </a>
             
             <a
-              href={`tel:${CONTACT_PHONE}`}
+              href={`tel:${contactInfo.phone}`}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
             >
               <Phone className="w-5 h-5" />

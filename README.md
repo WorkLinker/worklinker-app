@@ -157,8 +157,8 @@ Wix에서 구매한 도메인을 Vercel에 연결하려면:
 
 ## 📞 지원 및 문의
 
-- **이메일**: nbhighschooljobs@gmail.com
-- **전화**: (506) 429-6148
+- **이메일**: histudentjobs@gmail.com
+- **전화**: 506-429-6148
 - **주소**: 122 Brianna Dr, Fredericton NB COA 1N0
 
 ## 📄 라이선스

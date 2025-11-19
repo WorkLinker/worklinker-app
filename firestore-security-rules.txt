@@ -17,7 +17,7 @@ service cloud.firestore {
                'admin@example.com',
                'manager@jobsprout.ca', 
                'admin@jobsprout.ca',
-               'nbhighschooljobs@gmail.com'
+               'histudentjobs@gmail.com'
              ];
     }
     
