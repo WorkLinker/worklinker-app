@@ -46,7 +46,15 @@ export default function ContactPage() {
     const loadContactInfo = async () => {
       try {
         const settings = await contactSettingsService.getCurrentContactSettings();
-        setContactInfo(settings);
+        setContactInfo({
+          email: settings.email || 'histudentjobs@gmail.com',
+          phone: settings.phone || '506-429-6148',
+          address: settings.address || '122 Brianna Dr, Fredericton NB COA 1N0',
+          businessHours: settings.businessHours || {
+            weekdays: '9 AM - 6 PM',
+            weekends: '10 AM - 4 PM'
+          }
+        });
       } catch (error) {
         console.error('Failed to load contact info:', error);
       }
@@ -55,7 +63,15 @@ export default function ContactPage() {
     loadContactInfo();
 
     const unsubscribe = contactSettingsService.subscribeToContactSettings((settings) => {
-      setContactInfo(settings);
+      setContactInfo({
+        email: settings.email || 'histudentjobs@gmail.com',
+        phone: settings.phone || '506-429-6148',
+        address: settings.address || '122 Brianna Dr, Fredericton NB COA 1N0',
+        businessHours: settings.businessHours || {
+          weekdays: '9 AM - 6 PM',
+          weekends: '10 AM - 4 PM'
+        }
+      });
     });
 
     return () => {
