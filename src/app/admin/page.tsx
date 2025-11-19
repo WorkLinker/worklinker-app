@@ -1123,7 +1123,15 @@ export default function AdminPage() {
     try {
       setContactSettingsLoading(true);
       const settings = await contactSettingsService.getCurrentContactSettings();
-      setContactSettings(settings);
+      setContactSettings({
+        email: settings.email || 'histudentjobs@gmail.com',
+        phone: settings.phone || '506-429-6148',
+        address: settings.address || '122 Brianna Dr, Fredericton NB COA 1N0',
+        businessHours: settings.businessHours || {
+          weekdays: '9 AM - 6 PM',
+          weekends: '10 AM - 4 PM'
+        }
+      });
     } catch (error) {
       console.error('Error loading contact settings:', error);
     } finally {
