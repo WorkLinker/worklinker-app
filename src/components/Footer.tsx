@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Star, Trophy, GraduationCap } from 'lucide-react';
+import { Mail, Phone, MapPin, Star, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { contactSettingsService } from '@/lib/firebase-services';
 
 export default function Footer() {
@@ -56,8 +57,14 @@ export default function Footer() {
           {/* Company Info */}
           <div className="lg:col-span-2 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-sky-300 to-sky-400 rounded-xl flex items-center justify-center shadow-xl">
-                <GraduationCap size={28} className="text-white" />
+              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl p-1.5">
+                <Image
+                  src="/favicon-96x96.png"
+                  alt="High School Students Jobs Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold text-white">High School Students Jobs</h3>
