@@ -147,8 +147,35 @@ export default function MyJobsPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-blue-50">
-        <Navigation />
-        <div className="pt-20 pb-12">
+        {/* Hero Section */}
+        <section className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
+          {/* Navigation overlay */}
+          <div className="absolute top-0 left-0 right-0 z-50">
+            <Navigation />
+          </div>
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src="/images/job-postings.png"
+              alt="My Job Postings"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: '50% 20%' }}
+              priority
+            />
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+
+          {/* Hero Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
+              Manage Your Job Postings
+            </h1>
+          </div>
+        </section>
+
+        <div className="py-12 bg-blue-50">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
               <AlertCircle size={64} className="text-orange-500 mx-auto mb-4" />
@@ -175,8 +202,35 @@ export default function MyJobsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-blue-50">
-        <Navigation />
-        <div className="pt-32 pb-12">
+        {/* Hero Section */}
+        <section className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
+          {/* Navigation overlay */}
+          <div className="absolute top-0 left-0 right-0 z-50">
+            <Navigation />
+          </div>
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src="/images/job-postings.png"
+              alt="My Job Postings"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: '50% 20%' }}
+              priority
+            />
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+
+          {/* Hero Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
+              Manage Your Job Postings
+            </h1>
+          </div>
+        </section>
+
+        <div className="py-12 bg-blue-50">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-500 mx-auto mb-6"></div>
