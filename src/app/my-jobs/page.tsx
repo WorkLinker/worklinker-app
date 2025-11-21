@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   Briefcase,
   Building, 
@@ -159,7 +160,7 @@ export default function MyJobsPage() {
               </p>
               <button
                 onClick={() => router.push('/job-postings')}
-                className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
               >
                 Back to Job Postings
               </button>
@@ -178,7 +179,7 @@ export default function MyJobsPage() {
         <div className="pt-32 pb-12">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-6"></div>
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-500 mx-auto mb-6"></div>
               <p className="text-lg text-gray-600">Loading your job postings...</p>
             </div>
           </div>
@@ -190,25 +191,51 @@ export default function MyJobsPage() {
 
   return (
     <div className="min-h-screen bg-blue-50">
-      <Navigation />
-      
-      <div className="pt-20 pb-12">
+      {/* Hero Section */}
+      <section className="h-screen flex items-end justify-center relative overflow-hidden pb-20">
+        {/* Navigation overlay */}
+        <div className="absolute top-0 left-0 right-0 z-50">
+          <Navigation />
+        </div>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/job-postings.png"
+            alt="My Job Postings"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            style={{ objectPosition: '50% 20%' }}
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+
+        {/* Hero Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h1 className="hero-title hero-title-premium mb-4 sm:mb-6">
+            Manage Your Job Postings
+          </h1>
+        </div>
+      </section>
+
+      <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
-                  <Briefcase size={32} className="mr-3 text-purple-500" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                  <Briefcase size={28} className="mr-3 text-sky-500" />
                   My Job Postings
-                </h1>
+                </h2>
                 <p className="text-gray-600">
                   Manage all your job postings and applicants in one place
                 </p>
               </div>
               <button
                 onClick={() => router.push('/job-postings')}
-                className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
               >
                 + Post New Job
               </button>
@@ -223,8 +250,8 @@ export default function MyJobsPage() {
                   <p className="text-sm text-gray-600 mb-1">Total Postings</p>
                   <p className="text-3xl font-bold text-gray-900">{jobPostings.length}</p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Briefcase size={24} className="text-purple-600" />
+                <div className="p-3 bg-sky-100 rounded-lg">
+                  <Briefcase size={24} className="text-sky-600" />
                 </div>
               </div>
             </div>
@@ -270,7 +297,7 @@ export default function MyJobsPage() {
               </p>
               <button
                 onClick={() => router.push('/job-postings')}
-                className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
               >
                 Create First Job Posting
               </button>
@@ -327,7 +354,7 @@ export default function MyJobsPage() {
                       {job.approved === true && (
                         <button
                           onClick={() => router.push(`/job-listings/${job.id}/applicants`)}
-                          className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
+                          className="flex items-center px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium"
                         >
                           <Users size={16} className="mr-1" />
                           View Applicants

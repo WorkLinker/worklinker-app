@@ -134,7 +134,7 @@ export default function JobPostingsPage() {
             style={{ objectPosition: '50% 20%' }}
             priority
           />
-          <div className="absolute inset-0 bg-black/30"></div>
+          <div className="absolute inset-0 bg-black/50"></div>
         </div>
 
         {/* Hero Content */}
