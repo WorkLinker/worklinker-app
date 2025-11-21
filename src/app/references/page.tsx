@@ -5,10 +5,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
-import { FileText, Upload, CheckCircle, User, GraduationCap } from 'lucide-react';
+import { FileText, Upload, CheckCircle, User, GraduationCap, AlertCircle, LogIn } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { referenceService } from '@/lib/firebase-services';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
 
 const ReferenceSchema = z.object({
   studentName: z.string().min(2, 'Student name must be at least 2 characters'),
@@ -24,6 +26,7 @@ const ReferenceSchema = z.object({
 type ReferenceForm = z.infer<typeof ReferenceSchema>;
 
 export default function ReferencesPage() {
+  const [user, loading] = useAuthState(auth);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -228,10 +231,36 @@ export default function ReferencesPage() {
           </div>
 
           {/* Reference Form */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Submit Reference Letter</h2>
-            
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {loading ? (
+            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-sky-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          ) : !user ? (
+            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <AlertCircle size={64} className="text-orange-500 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Login Required</h2>
+              <p className="text-gray-600 mb-6">
+                You need to be logged in to submit a reference letter.
+                <br />
+                Please sign in to continue.
+              </p>
+              <button
+                onClick={() => {
+                  // Navigation 컴포넌트의 로그인 모달을 여는 방법이 필요
+                  alert('Please use the "Sign In" button in the navigation menu at the top of the page.');
+                }}
+                className="inline-flex items-center px-8 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
+              >
+                <LogIn size={20} className="mr-2" />
+                Sign In
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Submit Reference Letter</h2>
+              
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Student Information */}
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Student Information</h3>
@@ -444,6 +473,7 @@ Example:
               </div>
             </form>
           </div>
+          )}
         </div>
       </section>
 
