@@ -162,7 +162,7 @@ export default function ReferencesPage() {
               </p>
               <div className="bg-sky-50 rounded-lg p-4">
                 <p className="text-sky-700 font-medium text-sm">
-                  Available after teacher verification
+                  Submitted references are reviewed and approved by admin
                 </p>
               </div>
             </div>
