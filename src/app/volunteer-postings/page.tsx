@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
 import Link from 'next/link';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { Users, FileText, Building, Phone, DollarSign, Star, CheckCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -40,7 +42,8 @@ export default function VolunteerPostingsPage() {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    control
   } = useForm<VolunteerForm>({
     resolver: zodResolver(VolunteerSchema)
   });
@@ -332,11 +335,19 @@ export default function VolunteerPostingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Start Date *
                     </label>
-                    <input
-                      type="date"
-                      {...register('startDate')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      lang="en-CA"
+                    <Controller
+                      control={control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          selected={field.value ? new Date(field.value) : null}
+                          onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                          dateFormat="MMMM d, yyyy"
+                          placeholderText="Select start date"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          wrapperClassName="w-full"
+                        />
+                      )}
                     />
                     {errors.startDate && (
                       <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>
@@ -346,11 +357,19 @@ export default function VolunteerPostingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       End Date *
                     </label>
-                    <input
-                      type="date"
-                      {...register('endDate')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      lang="en-CA"
+                    <Controller
+                      control={control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          selected={field.value ? new Date(field.value) : null}
+                          onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                          dateFormat="MMMM d, yyyy"
+                          placeholderText="Select end date"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          wrapperClassName="w-full"
+                        />
+                      )}
                     />
                     {errors.endDate && (
                       <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>

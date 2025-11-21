@@ -37,6 +37,8 @@ import {
   Upload,
   Phone
 } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -818,12 +820,13 @@ function ActivityLogComponent() {
                 <CalendarDays size={16} className="mr-1" />
                 Start Date
               </label>
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              <DatePicker
+                selected={filters.startDate ? new Date(filters.startDate) : null}
+                onChange={(date) => handleFilterChange('startDate', date ? date.toISOString().split('T')[0] : '')}
+                dateFormat="MMMM d, yyyy"
+                placeholderText="Select start date"
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                lang="en-CA"
+                wrapperClassName="w-full"
               />
             </div>
             
@@ -832,12 +835,13 @@ function ActivityLogComponent() {
                 <CalendarDays size={16} className="mr-1" />
                 End Date
               </label>
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              <DatePicker
+                selected={filters.endDate ? new Date(filters.endDate) : null}
+                onChange={(date) => handleFilterChange('endDate', date ? date.toISOString().split('T')[0] : '')}
+                dateFormat="MMMM d, yyyy"
+                placeholderText="Select end date"
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                lang="en-CA"
+                wrapperClassName="w-full"
               />
             </div>
           </div>
