@@ -34,14 +34,18 @@ interface JobPosting {
   description?: string;
   approved?: boolean;
   views?: number;
-  createdAt?: unknown;
+  createdAt?: FirebaseTimestamp | Date | string | number;
   posterEmail?: string;
   requirements?: string;
   benefits?: string;
   contactEmail?: string;
   contactPhone?: string;
   applicationDeadline?: string;
-  updatedAt?: unknown;
+  updatedAt?: FirebaseTimestamp | Date | string | number;
+}
+
+interface FirebaseTimestamp {
+  toDate: () => Date;
 }
 
 export default function MyJobsPage() {
@@ -119,18 +123,17 @@ export default function MyJobsPage() {
     }
   };
 
-  const formatDate = (timestamp: unknown) => {
+  const formatDate = (timestamp: FirebaseTimestamp | Date | string | number | undefined) => {
     if (!timestamp) return 'N/A';
     
     let date: Date;
-    const ts = timestamp as { toDate?: () => Date } | Date | string | number;
     
-    if (ts && typeof ts === 'object' && 'toDate' in ts && typeof ts.toDate === 'function') {
-      date = ts.toDate();
-    } else if (ts instanceof Date) {
-      date = ts;
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
     } else {
-      date = new Date(ts as string | number);
+      date = new Date(timestamp as string | number);
     }
     
     return date.toLocaleDateString('en-CA', {

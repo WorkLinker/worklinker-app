@@ -79,7 +79,14 @@ export default function ReferencesPage() {
       }
     } catch (error: unknown) {
       console.error('❌ Reference letter submission error:', error);
-      const err = error as { message?: string; code?: string; stack?: string };
+      
+      interface ErrorWithDetails {
+        message?: string;
+        code?: string;
+        stack?: string;
+      }
+      
+      const err = error as ErrorWithDetails;
       console.error('Error details:', {
         message: err?.message,
         code: err?.code,
