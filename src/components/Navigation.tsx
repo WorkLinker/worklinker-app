@@ -184,7 +184,7 @@ export default function Navigation() {
   }, [user]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-indigo-600 to-blue-500 shadow-lg backdrop-blur-sm">
+    <nav className="absolute top-0 left-0 right-0 z-50 bg-transparent">
       <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}

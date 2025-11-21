@@ -1611,7 +1611,7 @@ const loadSiteContent = async () => {
       date = new Date(timestamp);
     }
     
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

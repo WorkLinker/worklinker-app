@@ -130,7 +130,7 @@ export default function VolunteerDetailPage() {
       date = new Date(timestamp);
     }
     
-    return date.toLocaleDateString('ko-KR');
+    return date.toLocaleDateString('en-CA');
   };
 
   const getOrganizationTypeColor = (type: string) => {
