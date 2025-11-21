@@ -2196,9 +2196,9 @@ const loadSiteContent = async () => {
                     ref.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     ref.teacherName?.toLowerCase().includes(searchTerm.toLowerCase())
                   ).map((reference) => (
-                    <div key={reference.id} className="p-6 bg-white hover:bg-gray-50 transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <div key={reference.id} className="p-6 bg-white hover:bg-gray-50 transition-all duration-200 overflow-hidden">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center mb-3">
                             <h3 className="text-lg font-semibold text-gray-900 mr-3">
                               {reference.studentName}
@@ -2217,30 +2217,32 @@ const loadSiteContent = async () => {
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                            <div className="flex items-center">
+                            <div className="flex items-center min-w-0">
                               <User size={16} className="mr-2 text-gray-400 flex-shrink-0" />
-                              <span className="font-medium text-gray-700 break-words">Teacher: {reference.teacherName}</span>
+                              <span className="font-medium text-gray-700 break-words overflow-hidden">Teacher: {reference.teacherName}</span>
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center min-w-0">
                               <Mail size={16} className="mr-2 text-gray-400 flex-shrink-0" />
                               <span className="font-medium text-gray-700 break-all truncate">{reference.studentEmail}</span>
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center min-w-0 overflow-hidden">
                               <BookOpen size={16} className="mr-2 text-gray-400 flex-shrink-0" />
-                              <span className="font-medium text-gray-700 break-words">Subject: {reference.subject}</span>
+                              <span className="font-medium text-gray-700 break-words overflow-hidden">Subject: {reference.subject}</span>
                             </div>
                           </div>
 
-                          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                            <p className="text-sm text-gray-700 mb-2 break-words">
+                          <div className="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden">
+                            <p className="text-sm text-gray-700 mb-2 break-words overflow-wrap-anywhere">
                               <strong>Relationship:</strong> {reference.relationship}
                             </p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words line-clamp-6 overflow-hidden">
-                              <strong>Reference Letter:</strong><br />
+                            <div className="text-sm text-gray-700 mb-2 overflow-hidden">
+                              <strong>Reference Letter:</strong>
+                            </div>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere line-clamp-6 overflow-hidden">
                               {reference.referenceText}
                             </p>
                             {reference.referenceFileName && (
-                              <div className="mt-3 flex items-center text-sm text-blue-600 break-all">
+                              <div className="mt-3 flex items-center text-sm text-blue-600 min-w-0">
                                 <FileText size={16} className="mr-2 flex-shrink-0" />
                                 <span className="truncate">Attached file: {reference.referenceFileName}</span>
                               </div>
