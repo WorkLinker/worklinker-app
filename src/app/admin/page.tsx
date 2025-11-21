@@ -2218,31 +2218,31 @@ const loadSiteContent = async () => {
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
                             <div className="flex items-center">
-                              <User size={16} className="mr-2 text-gray-400" />
-                              <span className="font-medium text-gray-700">Teacher: {reference.teacherName}</span>
+                              <User size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                              <span className="font-medium text-gray-700 break-words">Teacher: {reference.teacherName}</span>
                             </div>
                             <div className="flex items-center">
-                              <Mail size={16} className="mr-2 text-gray-400" />
-                              <span className="font-medium text-gray-700">{reference.studentEmail}</span>
+                              <Mail size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                              <span className="font-medium text-gray-700 break-all truncate">{reference.studentEmail}</span>
                             </div>
                             <div className="flex items-center">
-                              <BookOpen size={16} className="mr-2 text-gray-400" />
-                              <span className="font-medium text-gray-700">Subject: {reference.subject}</span>
+                              <BookOpen size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                              <span className="font-medium text-gray-700 break-words">Subject: {reference.subject}</span>
                             </div>
                           </div>
 
                           <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                            <p className="text-sm text-gray-700 mb-2">
+                            <p className="text-sm text-gray-700 mb-2 break-words">
                               <strong>Relationship:</strong> {reference.relationship}
                             </p>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words line-clamp-6 overflow-hidden">
                               <strong>Reference Letter:</strong><br />
                               {reference.referenceText}
                             </p>
                             {reference.referenceFileName && (
-                              <div className="mt-3 flex items-center text-sm text-blue-600">
-                                <FileText size={16} className="mr-2" />
-                                <span>Attached file: {reference.referenceFileName}</span>
+                              <div className="mt-3 flex items-center text-sm text-blue-600 break-all">
+                                <FileText size={16} className="mr-2 flex-shrink-0" />
+                                <span className="truncate">Attached file: {reference.referenceFileName}</span>
                               </div>
                             )}
                           </div>
