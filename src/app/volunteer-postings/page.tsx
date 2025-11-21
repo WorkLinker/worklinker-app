@@ -336,6 +336,7 @@ export default function VolunteerPostingsPage() {
                       type="date"
                       {...register('startDate')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      lang="en-CA"
                     />
                     {errors.startDate && (
                       <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>
@@ -349,6 +350,7 @@ export default function VolunteerPostingsPage() {
                       type="date"
                       {...register('endDate')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      lang="en-CA"
                     />
                     {errors.endDate && (
                       <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>

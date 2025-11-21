@@ -823,6 +823,7 @@ function ActivityLogComponent() {
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                lang="en-CA"
               />
             </div>
             
@@ -836,6 +837,7 @@ function ActivityLogComponent() {
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                lang="en-CA"
               />
             </div>
           </div>

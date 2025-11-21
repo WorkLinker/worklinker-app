@@ -451,7 +451,7 @@ export default function CommunityPage() {
                   {...register('author')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   placeholder="Enter your name"
-                  defaultValue={user?.displayName || user?.email?.split('@')[0] || ''}
+                  defaultValue={user?.displayName === '시스템 관리자' ? 'System Administrator' : (user?.displayName || user?.email?.split('@')[0] || '')}
                 />
                 {errors.author && (
                   <p className="mt-1 text-sm text-red-600">{errors.author.message}</p>

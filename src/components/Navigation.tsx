@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Home, Users, FileText, Calendar, Mail, MessageSquare, LogIn, LogOut, ChevronDown, UserCircle, Settings, Building, Heart } from 'lucide-react';
+import { Menu, X, Home, Users, FileText, Calendar, Mail, MessageSquare, LogIn, LogOut, ChevronDown, UserCircle, Settings, Building, Heart, Briefcase } from 'lucide-react';
 import { authService } from '@/lib/auth-service';
 import { User as FirebaseUser } from 'firebase/auth';
 
@@ -25,6 +25,7 @@ export default function Navigation() {
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/student-profiles', label: 'Student Profiles', icon: Users },
     { href: '/job-postings', label: 'Post a Job', icon: Building },
+    { href: '/my-jobs', label: 'My Jobs', icon: Briefcase },
     { href: '/references', label: 'References', icon: FileText },
     { href: '/volunteer-listings', label: 'Volunteer', icon: Heart },
     { href: '/community', label: 'Community', icon: MessageSquare },
@@ -183,7 +184,7 @@ export default function Navigation() {
   }, [user]);
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-50 bg-transparent">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-indigo-600 to-blue-500 shadow-lg backdrop-blur-sm">
       <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
