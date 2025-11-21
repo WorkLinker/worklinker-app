@@ -13,10 +13,10 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Firebase 초기화 (중복 초기화 방지)
+// Firebase initialization (prevent duplicate initialization)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     
-// Firebase 서비스 인스턴스
+// Firebase service instances
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);

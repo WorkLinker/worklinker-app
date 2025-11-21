@@ -1,15 +1,2 @@
-Error: [2025-11-18T13:27:39.682Z]  @firebase/firestore: "Firestore (11.10.0): Uncaught Error in snapshot listener:" "FirebaseError: [code=permission-denied]: Missing or insufficient permissions."
-    at createConsoleError (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/errors/console-error.js:27:71)
-    at handleConsoleError (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/errors/use-error-handler.js:47:54)
-    at console.error (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:47:57)
-    at Logger.defaultLogHandler [as _logHandler] (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/logger/dist/esm/index.esm2017.js:85:24)
-    at Logger.error (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/logger/dist/esm/index.esm2017.js:168:14)
-    at __PRIVATE_logError (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:251:11)
-    at __PRIVATE_AsyncObserver.error (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17949:80)
-    at __PRIVATE_QueryListener.onError (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:16339:17)
-    at __PRIVATE_eventManagerOnWatchError (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:16286:36)
-    at __PRIVATE_removeAndCleanupTarget (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17255:60)
-    at eval (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17165:51)
-    at async __PRIVATE_syncEngineRejectListen (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:17164:12)
-    at async __PRIVATE_handleTargetError (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:15609:29)
-    at async __PRIVATE_onWatchStreamChange (webpack-internal:///(app-pages-browser)/./node_modules/@firebase/firestore/dist/index.esm2017.js:15605:9)
+그리고 선생님이 레퍼런스를 써줄때 선생님으로 등록을 해야 하는데 선생님으로 등록 하는 방법이 ?
+대표님 post a job 한것에대해서는 어떻게 관리하는 창이 없네요

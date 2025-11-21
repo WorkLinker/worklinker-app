@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 import { generateContactEmailHTML, generateJobApplicationEmailHTML, generateJobPostingNotificationHTML } from '@/lib/email-service';
 
-// 환경변수  
+// Environment variables  
 const MAILERSEND_API_KEY = process.env.MAILERSEND_API_TOKEN || process.env.MAILERSEND_API_KEY || '';
 const FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL || 'histudentjobs@gmail.com';
 const FROM_NAME = process.env.MAILERSEND_FROM_NAME || 'NB High School Jobs Platform';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'histudentjobs@gmail.com';
 
-// MailerSend 인스턴스 생성
+// Create MailerSend instance
 let mailerSend: MailerSend | null = null;
 
-// API 키가 있는 경우에만 MailerSend 인스턴스 생성
+// Create MailerSend instance only when API key exists
 if (MAILERSEND_API_KEY) {
   try {
     mailerSend = new MailerSend({
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     let text: string;
     let html: string;
 
-    // 기존 SendGrid 방식 (type과 data가 있는 경우)
+    // Legacy SendGrid approach (when type and data are provided)
     if (body.type && body.data) {
       switch (body.type) {
         case 'contact_form':
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           );
       }
     }
-    // 새로운 직접 방식 (to, subject, text/html이 직접 제공되는 경우)
+    // New direct approach (when to, subject, text/html are directly provided)
     else if (body.to && body.subject && (body.text || body.html)) {
       // ⚠️ Trial account limitation: Send all emails to admin email
       const originalTo = body.to;

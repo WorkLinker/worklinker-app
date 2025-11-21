@@ -43,10 +43,10 @@ import Footer from '@/components/Footer';
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
 import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService } from '@/lib/firebase-services';
-// import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // 제거됨
+// import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // Removed
 // import { User as SupabaseUser } from '@supabase/supabase-js';
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
-// import { supabase } from '@/lib/supabase'; // 제거됨
+// import { supabase } from '@/lib/supabase'; // Removed
 import { User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
@@ -55,7 +55,7 @@ import Papa from 'papaparse';
 
 type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
 
-// 비밀번호 변경 모달 컴포넌트
+// Password change modal component
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
   const [passwords, setPasswords] = useState({
     current: '',
@@ -1074,14 +1074,14 @@ export default function AdminPage() {
     lineHeight: 1.5
   });
   
-  // 봉사자 관리 관련 상태
+  // Volunteer management related state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pendingVolunteerPostings, setPendingVolunteerPostings] = useState<any[]>([]);
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState('');
   const [volunteerLoading, setVolunteerLoading] = useState(false);
   const [volunteerUpdating, setVolunteerUpdating] = useState<string | null>(null);
   
-  // 문의사항 관리 관련 상태
+  // Contact inquiries management related state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [allContacts, setAllContacts] = useState<any[]>([]);
   const [contactSearchTerm, setContactSearchTerm] = useState('');
@@ -1089,7 +1089,7 @@ export default function AdminPage() {
   const [contactUpdating, setContactUpdating] = useState<string | null>(null);
   const [contactDeleting, setContactDeleting] = useState<string | null>(null);
   
-  // 연락처 설정 관련 상태
+  // Contact settings related state
   const [contactSettings, setContactSettings] = useState({
     email: 'histudentjobs@gmail.com',
     phone: '506-429-6148',
@@ -1105,7 +1105,7 @@ export default function AdminPage() {
   
   const router = useRouter();
 
-  // 봉사자 데이터 로딩 함수들
+  // Volunteer data loading functions
   const loadPendingVolunteerPostings = async () => {
     try {
       setVolunteerLoading(true);
@@ -1118,7 +1118,7 @@ export default function AdminPage() {
     }
   };
 
-  // 연락처 설정 로딩 함수
+  // Contact settings loading function
   const loadContactSettings = async () => {
     try {
       setContactSettingsLoading(true);
@@ -1139,7 +1139,7 @@ export default function AdminPage() {
     }
   };
 
-  // 연락처 설정 저장 함수
+  // Contact settings save function
   const handleSaveContactSettings = async () => {
     try {
       setContactSettingsSaving(true);
@@ -1154,7 +1154,7 @@ export default function AdminPage() {
     }
   };
 
-  // 문의사항 데이터 로딩 함수들
+  // Contact inquiries data loading functions
   const loadAllContacts = async () => {
     try {
       setContactLoading(true);
@@ -1172,10 +1172,10 @@ export default function AdminPage() {
       setContactUpdating(contactId);
       await contactService.updateContactStatus(contactId, resolved);
       await loadAllContacts();
-      alert(resolved ? '✅ 문의사항이 해결됨으로 표시되었습니다.' : '✅ 문의사항이 미해결로 표시되었습니다.');
+      alert(resolved ? '✅ Contact inquiry has been marked as resolved.' : '✅ Contact inquiry has been marked as unresolved.');
     } catch (error) {
       console.error('❌ Error updating contact status:', error);
-      alert('❌ 상태 변경 중 오류가 발생했습니다.');
+      alert('❌ An error occurred while updating status.');
     } finally {
       setContactUpdating(null);
     }
@@ -1231,7 +1231,7 @@ export default function AdminPage() {
     }
   };
 
-  // 관리자 권한 확인 및 데이터 로드
+  // Administrator privileges verification and data loading
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange(async (currentUser) => {
       if (currentUser) {
@@ -1315,7 +1315,7 @@ const loadSiteContent = async () => {
     }
   };
 
-  // 이미지 업로드 처리 (Supabase Storage 사용)
+  // Image upload handling (using Firebase Storage)
   const handleImageUpload = async (category: string, imageName: string) => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -1325,35 +1325,35 @@ const loadSiteContent = async () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // 파일 크기 확인 (20MB 제한)
+      // File size verification (20MB limit)
       if (file.size > 20 * 1024 * 1024) {
-        alert('파일 크기는 20MB 이하여야 합니다.\n\n💡 최적화 팁:\n• 웹용 이미지는 1-2MB가 적당합니다\n• JPG/PNG 압축 도구 사용 권장\n• 큰 이미지는 로딩 시간이 길어질 수 있습니다');
+        alert('File size must be 20MB or less.\n\n💡 Optimization tips:\n• 1-2MB is ideal for web images\n• Use JPG/PNG compression tools\n• Large images can slow down loading times');
         return;
       }
       
-      // 큰 파일에 대한 경고 (5MB 이상)
+      // Warning for large files (5MB or more)
       if (file.size > 5 * 1024 * 1024) {
         const fileSize = (file.size / 1024 / 1024).toFixed(1);
-        const confirmed = confirm(`파일 크기가 ${fileSize}MB입니다.\n\n⚠️ 큰 이미지는 웹사이트 로딩 속도를 느리게 할 수 있습니다.\n\n계속 업로드하시겠습니까?`);
+        const confirmed = confirm(`File size is ${fileSize}MB.\n\n⚠️ Large images can slow down website loading speed.\n\nDo you want to continue uploading?`);
         if (!confirmed) return;
       }
 
       try {
         setIsImageUploading(`${category}-${imageName}`);
         
-        // Firebase Storage에 이미지 업로드
+        // Upload image to Firebase Storage
         const timestamp = Date.now();
         const fileExtension = file.name.split('.').pop();
         const fileName = `design-assets/${category}/${imageName}_${timestamp}.${fileExtension}`;
         
-        // Firebase Storage에 업로드
+        // Upload to Firebase Storage
         const storageRef = ref(storage, fileName);
         const uploadResult = await uploadBytes(storageRef, file);
         
-        // 다운로드 URL 획득
+        // Get download URL
         const downloadURL = await getDownloadURL(uploadResult.ref);
         
-        // Firebase Firestore에 이미지 정보 저장
+        // Save image information to Firebase Firestore
         console.log('🔄 Saving image URL to Firestore:', { category, imageName, downloadURL });
         await designService.updateActiveImage(category, imageName, downloadURL);
         
@@ -1361,13 +1361,13 @@ const loadSiteContent = async () => {
         console.log('🔄 Reloading design settings...');
         await loadDesignSettings();
         
-        // 강제로 페이지 새로고침 트리거
+        // Force page refresh trigger
         console.log('🔄 Triggering design update...');
         window.dispatchEvent(new CustomEvent('designUpdate', { detail: { category, imageName, downloadURL } }));
         
         console.log('✅ Image upload process completed successfully');
         
-        // 업로드 상태 즉시 리셋
+        // Immediately reset upload status
         setIsImageUploading(null);
         
         alert('✅ Image has been successfully uploaded!');
@@ -1382,7 +1382,7 @@ const loadSiteContent = async () => {
     input.click();
   };
 
-  // 색상 변경 처리
+  // Color change handling
   const handleColorChange = (colorType: string, newColor: string) => {
     setCurrentColors(prev => ({
       ...prev,
@@ -1398,7 +1398,7 @@ const loadSiteContent = async () => {
     }));
   };
 
-  // 미리 정의된 테마 적용
+  // Apply preset theme
   const handleApplyPresetTheme = async (themeName: string) => {
     try {
       setIsDesignSaving(true);
@@ -1413,17 +1413,17 @@ const loadSiteContent = async () => {
     }
   };
 
-  // 모든 디자인 변경사항 저장
+  // Save all design changes
   const handleSaveDesign = async () => {
     if (!user?.email) {
-      alert('관리자 정보를 찾을 수 없습니다.');
+      alert('Administrator information not found.');
       return;
     }
 
     try {
       setIsDesignSaving(true);
       
-      // 색상 테마 저장
+      // Save color theme
       await designService.saveColorTheme(currentColors);
       
       // Save font settings
@@ -1455,7 +1455,7 @@ const loadSiteContent = async () => {
     }
   };
 
-  // 전체 미리보기 (새 탭에서 홈페이지 열기)
+  // Full preview (open homepage in new tab)
   const handlePreviewDesign = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -1487,60 +1487,60 @@ const loadSiteContent = async () => {
 
   const loadPendingApplications = async () => {
     try {
-      console.log('📋 대기 중인 구직 신청 로드...');
+      console.log('📋 Loading pending job applications...');
       
-      // 승인 대기 중인 신청서들 가져오기
+      // Get applications pending approval
       const applications = await jobSeekerService.getPendingApplications();
       setPendingApplications(applications);
       
-      console.log('✅ 대기 중인 신청서:', applications.length, '개');
+      console.log('✅ Pending applications:', applications.length, 'items');
     } catch (error) {
-      console.error('❌ 신청서 로드 오류:', error);
+      console.error('❌ Application loading error:', error);
     }
   };
 
   const handleApprove = async (applicationId: string) => {
-    if (!confirm('이 구직 신청을 승인하시겠습니까?')) return;
+    if (!confirm('Do you want to approve this job application?')) return;
 
     try {
       setUpdating(applicationId);
       
-      // 신청자 정보 찾기 (로그용)
+      // Find applicant information (for logging)
       const applicant = pendingApplications.find(app => app.id === applicationId);
       
       const result = await jobSeekerService.approveApplication(applicationId);
       if (result.success) {
-        // 활동 로그 생성
+        // Create activity log
         if (user?.email && applicant) {
           await logService.createUserActionLog({
             action: 'approve',
             adminEmail: user.email,
             targetUserId: applicationId,
             targetUserEmail: applicant.email,
-            reason: '관리자 승인'
+            reason: 'Administrator approval'
           });
         }
         
-        // 승인 이메일 전송 (현재 비활성화)
+        // Send approval email (currently disabled)
         // if (applicant?.email && applicant?.name) {
         //   try {
         //     const emailResult = await sendApprovalEmail(applicant.email, applicant.name);
         //     if (emailResult.success) {
-        //       console.log('✅ 승인 이메일 전송 성공:', emailResult.messageId);
+        //       console.log('✅ Approval email sent successfully:', emailResult.messageId);
         //     } else {
-        //       console.error('❌ 승인 이메일 전송 실패:', emailResult.error);
+        //       console.error('❌ Approval email sending failed:', emailResult.error);
         //     }
         //   } catch (emailError) {
-        //     console.error('❌ 승인 이메일 전송 중 오류:', emailError);
+        //     console.error('❌ Error sending approval email:', emailError);
         //   }
         // }
         
-        alert('구직 신청이 승인되었습니다! 승인 이메일이 발송되었습니다.');
-        await loadPendingApplications(); // 목록 새로고침
+        alert('Job application has been approved! Approval email has been sent.');
+        await loadPendingApplications(); // Refresh list
       }
     } catch (error: unknown) {
-      console.error('❌ 승인 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '승인 처리 중 오류가 발생했습니다.';
+      console.error('❌ Approval error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while processing approval.';
       alert(errorMessage);
     } finally {
       setUpdating(null);
@@ -1548,48 +1548,48 @@ const loadSiteContent = async () => {
   };
 
   const handleReject = async (applicationId: string) => {
-    const reason = prompt('거절 사유를 입력해주세요 (선택사항):');
-    if (reason === null) return; // 취소한 경우
+    const reason = prompt('Please enter reason for rejection (optional):');
+    if (reason === null) return; // If cancelled
 
     try {
       setUpdating(applicationId);
       
-      // 신청자 정보 찾기 (로그용)
+      // Find applicant information (for logging)
       const applicant = pendingApplications.find(app => app.id === applicationId);
       
       const result = await jobSeekerService.rejectApplication(applicationId, reason);
       if (result.success) {
-        // 활동 로그 생성
+        // Create activity log
         if (user?.email && applicant) {
           await logService.createUserActionLog({
             action: 'reject',
             adminEmail: user.email,
             targetUserId: applicationId,
             targetUserEmail: applicant.email,
-            reason: reason || '사유 없음'
+            reason: reason || 'No reason provided'
           });
         }
         
-        // 거절 이메일 전송 (현재 비활성화)
+        // Send rejection email (currently disabled)
         // if (applicant?.email && applicant?.name) {
         //   try {
         //     const emailResult = await sendRejectionEmail(applicant.email, applicant.name, reason || undefined);
         //     if (emailResult.success) {
-        //       console.log('✅ 거절 이메일 전송 성공:', emailResult.messageId);
+        //       console.log('✅ Rejection email sent successfully:', emailResult.messageId);
         //     } else {
-        //       console.error('❌ 거절 이메일 전송 실패:', emailResult.error);
+        //       console.error('❌ Rejection email sending failed:', emailResult.error);
         //     }
         //   } catch (emailError) {
-        //     console.error('❌ 거절 이메일 전송 중 오류:', emailError);
+        //     console.error('❌ Error sending rejection email:', emailError);
         //   }
         // }
         
-        alert('구직 신청이 거절되었습니다. 거절 이메일이 발송되었습니다.');
-        await loadPendingApplications(); // 목록 새로고침
+        alert('Job application has been rejected. Rejection email has been sent.');
+        await loadPendingApplications(); // Refresh list
       }
     } catch (error: unknown) {
-      console.error('❌ 거절 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '거절 처리 중 오류가 발생했습니다.';
+      console.error('❌ Rejection error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while processing rejection.';
       alert(errorMessage);
     } finally {
       setUpdating(null);
@@ -1598,7 +1598,7 @@ const loadSiteContent = async () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return '날짜 정보 없음';
+    if (!timestamp) return 'No date information';
     
     let date;
     if (timestamp.toDate) {
@@ -1682,7 +1682,7 @@ const loadSiteContent = async () => {
     }
   ];
 
-  // 탭별 콘텐츠 렌더링
+  // Render tab content
   const renderTabContent = () => {
     switch (activeTab) {
       case 'user-approval':
@@ -1866,7 +1866,7 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* 검색 */}
+            {/* Search */}
             <div className="bg-white rounded-xl shadow-xl p-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
@@ -1882,7 +1882,7 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* 봉사자 모집 공고 목록 */}
+            {/* Volunteer opportunity list */}
             <div className="bg-white rounded-xl shadow-xl">
               <div className="p-6 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -2369,7 +2369,7 @@ const loadSiteContent = async () => {
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* 히어로 슬라이드 이미지들 */}
+                {/* Hero slide images */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-gray-800 mb-2">Main Hero Slides</h4>
                   <p className="text-sm text-gray-600 mb-4">Large background images on the homepage that rotate automatically</p>
@@ -2632,7 +2632,7 @@ const loadSiteContent = async () => {
                 </div>
               </div>
 
-              {/* 고급 색상 팔레트 */}
+              {/* Advanced color palettes */}
               <div className="mt-8">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
                   <Palette size={20} className="mr-2 text-yellow-500" />
@@ -2775,14 +2775,14 @@ const loadSiteContent = async () => {
                 </div>
               </div>
               
-              {/* 실시간 미리보기 */}
+              {/* Real-time preview */}
               <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <Eye size={20} className="mr-2 text-blue-600" />
                   🔍 Live Color Preview
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* 미니 웹사이트 미리보기 */}
+                  {/* Mini website preview */}
                   <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div 
                       className="h-3 w-full"
@@ -2815,7 +2815,7 @@ const loadSiteContent = async () => {
                     </div>
                   </div>
                   
-                  {/* 색상 정보 카드 */}
+                  {/* Color information cards */}
                   <div className="space-y-3">
                     <div className="text-sm font-medium text-gray-700 mb-3">Current Color Scheme:</div>
                     {[
@@ -2841,7 +2841,7 @@ const loadSiteContent = async () => {
                   </div>
                 </div>
                 
-                {/* 색상 조합 팁 */}
+                {/* Color combination tips */}
                 <div className="mt-6 bg-white rounded-lg p-4 border border-blue-100">
                   <h5 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
                     💡 Color Harmony Tips
@@ -2875,8 +2875,8 @@ const loadSiteContent = async () => {
                     <optgroup label="🇰🇷 Korean Optimized">
                       <option value="pretendard">Pretendard (Default Recommended)</option>
                       <option value="noto-sans-kr">Noto Sans KR</option>
-                      <option value="nanum-gothic">나눔고딕</option>
-                      <option value="spoqa-han-sans">스포카 한 산스</option>
+                      <option value="nanum-gothic">Nanum Gothic</option>
+                      <option value="spoqa-han-sans">Spoqa Han Sans</option>
                     </optgroup>
                     <optgroup label="📝 Clean Sans-serif">
                       <option value="inter">Inter</option>
@@ -2903,7 +2903,7 @@ const loadSiteContent = async () => {
                   <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                     <p className="text-gray-800" style={{ fontFamily: currentFonts.bodyFont, fontSize: `${currentFonts.bodySize}px`, lineHeight: currentFonts.lineHeight }}>
                       Sample Text: Job platform for Canadian students. 
-                      샘플 텍스트: New Brunswick High School Jobs Platform.
+                      New Brunswick High School Jobs Platform.
                     </p>
                   </div>
                 </div>
@@ -2919,8 +2919,8 @@ const loadSiteContent = async () => {
                     <optgroup label="🇰🇷 Korean Optimized">
                       <option value="pretendard">Pretendard (Default Recommended)</option>
                       <option value="noto-sans-kr">Noto Sans KR</option>
-                      <option value="nanum-gothic">나눔고딕</option>
-                      <option value="spoqa-han-sans">스포카 한 산스</option>
+                      <option value="nanum-gothic">Nanum Gothic</option>
+                      <option value="spoqa-han-sans">Spoqa Han Sans</option>
                     </optgroup>
                     <optgroup label="💪 Impactful Display">
                       <option value="montserrat">Montserrat</option>
@@ -3020,7 +3020,7 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* 저장 및 미리보기 버튼 */}
+            {/* Save and preview buttons */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
@@ -3063,7 +3063,7 @@ const loadSiteContent = async () => {
       case 'admin-settings':
         return (
           <div className="space-y-6">
-            {/* 헤더 */}
+            {/* Header */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                 <Settings size={28} className="mr-3 text-purple-600" />
@@ -3332,7 +3332,7 @@ const loadSiteContent = async () => {
       case 'contact-management':
         return (
           <div className="space-y-6">
-            {/* 헤더 */}
+            {/* Header */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                 <Mail size={28} className="mr-3 text-blue-600" />
@@ -3343,7 +3343,7 @@ const loadSiteContent = async () => {
               </p>
             </div>
 
-            {/* 검색 및 필터 */}
+            {/* Search and filter */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
@@ -3368,7 +3368,7 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* 문의사항 목록 */}
+            {/* Inquiry list */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900">
@@ -3508,7 +3508,7 @@ const loadSiteContent = async () => {
             </p>
           </div>
 
-          {/* 탭 네비게이션 */}
+          {/* Tab navigation */}
           <div className="bg-white rounded-t-xl shadow-xl">
             <div className="border-b border-gray-200">
               <nav className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -3538,7 +3538,7 @@ const loadSiteContent = async () => {
             </div>
           </div>
 
-          {/* 현재 탭 정보 */}
+          {/* Current tab information */}
           <div className="bg-white px-6 py-4 border-b border-gray-200">
             <div className="flex items-center">
               {(() => {
@@ -3562,14 +3562,14 @@ const loadSiteContent = async () => {
             </div>
           </div>
 
-          {/* 탭 콘텐츠 */}
+          {/* Tab content */}
           <div className="bg-white rounded-b-xl shadow-xl p-6">
             {renderTabContent()}
           </div>
         </div>
       </div>
 
-      {/* 비밀번호 변경 모달 */}
+      {/* Password change modal */}
       <PasswordChangeModal 
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}

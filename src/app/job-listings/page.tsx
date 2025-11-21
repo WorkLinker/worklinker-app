@@ -551,12 +551,12 @@ export default function JobListingsPage() {
         </div>
       </div>
 
-      {/* 관리자 파일 업로드 섹션 */}
+      {/* Administrator file upload section */}
       {user && eventService.isAdmin(user.email || '') && (
         <section className="py-16 bg-gray-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <AdminFileUpload 
-              title="구인공고 관련 파일 업로드"
+              title="Job Listings File Upload"
               category="job-listings"
               showTitle={true}
             />

@@ -1,6 +1,6 @@
-// import { NextResponse } from 'next/server'; // 사용하지 않음
+// import { NextResponse } from 'next/server'; // Not used
 
-// 환경변수에서 값 가져오기
+// Get values from environment variables
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'histudentjobs@gmail.com';
 const CONTACT_PHONE = process.env.CONTACT_PHONE || '506-429-6148';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'histudentjobs@gmail.com';
@@ -74,45 +74,45 @@ export function generateJobApplicationEmailHTML(data: EmailData): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
-        🎯 새로운 구직 신청서가 도착했습니다!
+        🎯 New Job Application Received!
       </h2>
       
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">📋 지원자 정보</h3>
-        <p><strong>이름:</strong> ${data.name}</p>
-        <p><strong>이메일:</strong> ${data.email}</p>
-        <p><strong>전화번호:</strong> ${data.phone}</p>
-        <p><strong>학년:</strong> ${data.grade}</p>
-        <p><strong>학교:</strong> ${data.school}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">📋 Applicant Information</h3>
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Phone:</strong> ${data.phone}</p>
+        <p><strong>Grade:</strong> ${data.grade}</p>
+        <p><strong>School:</strong> ${data.school}</p>
       </div>
 
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">💼 지원 정보</h3>
-        <p><strong>지원 직무:</strong> ${data.jobTitle || '직무 정보 없음'}</p>
-        <p><strong>회사명:</strong> ${data.companyName || '회사 정보 없음'}</p>
-        <p><strong>근무 가능 시간:</strong> ${data.availability}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">💼 Application Details</h3>
+        <p><strong>Position:</strong> ${data.jobTitle || 'No position specified'}</p>
+        <p><strong>Company:</strong> ${data.companyName || 'No company specified'}</p>
+        <p><strong>Availability:</strong> ${data.availability}</p>
       </div>
 
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">📝 지원자 메시지</h3>
-        <p><strong>경험 및 기술:</strong><br>${data.experience.replace(/\n/g, '<br>')}</p>
-        <p><strong>지원 동기:</strong><br>${data.motivation.replace(/\n/g, '<br>')}</p>
-        ${data.questions ? `<p><strong>질문사항:</strong><br>${data.questions.replace(/\n/g, '<br>')}</p>` : ''}
+        <h3 style="color: #0369a1; margin-top: 0;">📝 Applicant Message</h3>
+        <p><strong>Experience & Skills:</strong><br>${data.experience.replace(/\n/g, '<br>')}</p>
+        <p><strong>Motivation:</strong><br>${data.motivation.replace(/\n/g, '<br>')}</p>
+        ${data.questions ? `<p><strong>Questions:</strong><br>${data.questions.replace(/\n/g, '<br>')}</p>` : ''}
       </div>
 
       <div style="background-color: #fee2e2; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #dc2626; margin-top: 0;">📎 첨부 파일</h3>
+        <h3 style="color: #dc2626; margin-top: 0;">📎 Attachments</h3>
         ${data.resumeFileName ? 
-          `<p><strong>이력서:</strong> ${data.resumeFileName} (${Math.round((data.resumeSize || 0) / 1024)}KB)</p>` : 
-          '<p>첨부된 이력서가 없습니다.</p>'
+          `<p><strong>Resume:</strong> ${data.resumeFileName} (${Math.round((data.resumeSize || 0) / 1024)}KB)</p>` : 
+          '<p>No resume attached.</p>'
         }
       </div>
 
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 14px;">
-          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
-          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
-          <strong>전화:</strong> ${CONTACT_PHONE}
+          This message was sent automatically from the Canada Student Job Platform.<br>
+          <strong>Contact:</strong> ${CONTACT_EMAIL}<br>
+          <strong>Phone:</strong> ${CONTACT_PHONE}
         </p>
       </div>
     </div>
@@ -123,26 +123,26 @@ export function generateContactEmailHTML(data: ContactFormData): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
-        📧 새로운 문의사항이 도착했습니다!
+        📧 New Inquiry Received!
       </h2>
       
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">👤 문의자 정보</h3>
-        <p><strong>이름:</strong> ${data.name}</p>
-        <p><strong>이메일:</strong> ${data.email}</p>
-        <p><strong>전화번호:</strong> ${data.phone}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">👤 Inquirer Information</h3>
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Phone:</strong> ${data.phone}</p>
       </div>
 
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">💬 문의 내용</h3>
+        <h3 style="color: #0369a1; margin-top: 0;">💬 Inquiry Message</h3>
         <p style="line-height: 1.6;">${data.message.replace(/\n/g, '<br>')}</p>
       </div>
 
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 14px;">
-          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
-          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
-          <strong>전화:</strong> ${CONTACT_PHONE}
+          This message was sent automatically from the Canada Student Job Platform.<br>
+          <strong>Contact:</strong> ${CONTACT_EMAIL}<br>
+          <strong>Phone:</strong> ${CONTACT_PHONE}
         </p>
       </div>
     </div>
@@ -278,37 +278,37 @@ export function generateJobPostingNotificationHTML(data: JobPostingData): string
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #0369a1; text-align: center; margin-bottom: 30px;">
-        🏢 새로운 구인공고가 등록되었습니다!
+        🏢 New Job Posting Registered!
       </h2>
       
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">📋 구인공고 정보</h3>
-        <p><strong>직무명:</strong> ${data.title}</p>
-        <p><strong>회사명:</strong> ${data.company}</p>
-        <p><strong>근무지:</strong> ${data.location}</p>
-        <p><strong>급여:</strong> ${data.salary}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">📋 Job Posting Information</h3>
+        <p><strong>Position:</strong> ${data.title}</p>
+        <p><strong>Company:</strong> ${data.company}</p>
+        <p><strong>Location:</strong> ${data.location}</p>
+        <p><strong>Salary:</strong> ${data.salary}</p>
       </div>
 
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">📝 상세 정보</h3>
-        <p><strong>업무 설명:</strong><br>${data.description.replace(/\n/g, '<br>')}</p>
-        <p><strong>자격 요건:</strong><br>${data.requirements.replace(/\n/g, '<br>')}</p>
-        <p><strong>복리후생:</strong><br>${data.benefits.replace(/\n/g, '<br>')}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">📝 Details</h3>
+        <p><strong>Job Description:</strong><br>${data.description.replace(/\n/g, '<br>')}</p>
+        <p><strong>Requirements:</strong><br>${data.requirements.replace(/\n/g, '<br>')}</p>
+        <p><strong>Benefits:</strong><br>${data.benefits.replace(/\n/g, '<br>')}</p>
       </div>
 
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #0369a1; margin-top: 0;">📞 연락처</h3>
-        <p><strong>담당자:</strong> ${data.submitterName}</p>
-        <p><strong>이메일:</strong> ${data.submitterEmail}</p>
-        <p><strong>회사 연락처:</strong> ${data.contactEmail}</p>
-        <p><strong>전화번호:</strong> ${data.contactPhone}</p>
+        <h3 style="color: #0369a1; margin-top: 0;">📞 Contact Information</h3>
+        <p><strong>Contact Person:</strong> ${data.submitterName}</p>
+        <p><strong>Email:</strong> ${data.submitterEmail}</p>
+        <p><strong>Company Contact:</strong> ${data.contactEmail}</p>
+        <p><strong>Phone:</strong> ${data.contactPhone}</p>
       </div>
 
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 14px;">
-          이 메시지는 캐나다 학생 일자리 플랫폼에서 자동으로 발송되었습니다.<br>
-          <strong>연락처:</strong> ${CONTACT_EMAIL}<br>
-          <strong>전화:</strong> ${CONTACT_PHONE}
+          This message was sent automatically from the Canada Student Job Platform.<br>
+          <strong>Contact:</strong> ${CONTACT_EMAIL}<br>
+          <strong>Phone:</strong> ${CONTACT_PHONE}
         </p>
       </div>
     </div>

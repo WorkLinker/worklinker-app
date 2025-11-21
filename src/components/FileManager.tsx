@@ -34,9 +34,9 @@ export default function FileManager() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [uploadCategory, setUploadCategory] = useState('documents'); // 업로드 카테고리 상태 추가
+  const [uploadCategory, setUploadCategory] = useState('documents'); // Upload category state
   
-  // 파일 업로드 확인 관련 상태
+  // File upload confirmation related state
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -92,10 +92,10 @@ export default function FileManager() {
           continue;
         }
 
-        // 사용자가 선택한 카테고리 사용
+        // Use user-selected category
         let category = uploadCategory;
         
-        // 파일 타입에 따른 자동 분류 (사용자 선택이 documents인 경우에만)
+        // Auto-categorize based on file type (only when user selection is documents)
         if (uploadCategory === 'documents') {
           if (file.type.startsWith('image/')) {
             category = 'images';
@@ -171,7 +171,7 @@ export default function FileManager() {
     setDragActive(false);
   };
 
-  // 파일 업로드 확인
+  // Confirm file upload
   const confirmUpload = async () => {
     if (pendingFiles.length === 0) return;
     
@@ -180,7 +180,7 @@ export default function FileManager() {
     setPendingFiles([]);
   };
 
-  // 파일 업로드 취소
+  // Cancel file upload
   const cancelUpload = () => {
     setPendingFiles([]);
     setShowConfirmModal(false);
@@ -190,14 +190,14 @@ export default function FileManager() {
     try {
       console.log(`📥 Downloading ${file.originalName}...`);
       
-      // Firebase Storage URL을 직접 사용하여 다운로드
+      // Download directly using Firebase Storage URL
       const link = document.createElement('a');
       link.href = file.downloadURL;
       link.download = file.originalName;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       
-      // 임시로 DOM에 추가하고 클릭
+      // Temporarily add to DOM and click
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -460,7 +460,7 @@ export default function FileManager() {
               ))}
             </select>
             
-            {/* 전체 선택/해제 버튼 */}
+            {/* Select/Deselect all button */}
             {filteredFiles.length > 0 && (
               <button
                 onClick={selectAllFiles}
@@ -483,7 +483,7 @@ export default function FileManager() {
           </div>
         </div>
         
-        {/* 파일 개수 및 선택 정보 */}
+        {/* File count and selection info */}
         <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
           <div>
             Total {filteredFiles.length} files • {selectedFiles.length} selected

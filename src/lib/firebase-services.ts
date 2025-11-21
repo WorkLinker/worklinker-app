@@ -2,14 +2,14 @@
 import { db, storage } from './firebase';
 // import { supabase } from './supabase';
 
-// 안전한 응답 생성 헬퍼
+// Safe response generation helper
 // const createSafeResponse = (message: string = 'Firebase not available') => ({
 //   success: false,
 //   error: message,
 //   data: null
 // });
 
-// Firebase 서비스 가용성 확인
+// Check Firebase service availability
 const isFirebaseAvailable = () => {
   return !!db && !!storage;
 };
@@ -32,9 +32,9 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-// 🎓 학생 구직 신청 관련
+// 🎓 Student Job Application Services
 export const jobSeekerService = {
-  // 구직 신청 제출
+  // Submit job application
   async submitApplication(data: any, resumeFile?: File) {
     if (!db) {
       console.warn('Firebase not configured - using placeholder response');
@@ -44,7 +44,7 @@ export const jobSeekerService = {
     try {
       let resumeUrl = '';
       
-      // 레쥬메 파일 업로드 (Storage가 활성화된 경우에만)
+      // Upload resume file (only when Storage is activated)
       if (resumeFile) {
         try {
           const resumeRef = ref(storage, `resumes/${Date.now()}_${resumeFile.name}`);
@@ -52,12 +52,12 @@ export const jobSeekerService = {
           resumeUrl = await getDownloadURL(snapshot.ref);
           console.log('File upload successful:', resumeUrl);
         } catch (storageError) {
-          console.warn('⚠️ 파일 업로드 실패 (Storage 미설정):', storageError);
-          resumeUrl = `파일명: ${resumeFile.name} (업로드 대기중)`;
+          console.warn('⚠️ File upload failed (Storage not configured):', storageError);
+          resumeUrl = `Filename: ${resumeFile.name} (Upload pending)`;
         }
       }
       
-      // Firestore에 데이터 저장
+      // Save data to Firestore
       const docRef = await addDoc(collection(db, 'jobSeekers'), {
         ...data,
         resumeUrl,
@@ -67,15 +67,15 @@ export const jobSeekerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 구직 신청 제출 성공:', docRef.id);
+      console.log('✅ Job application submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 구직 신청 오류:', error);
+      console.error('❌ Job application error:', error);
       throw error;
     }
   },
 
-  // 모든 구직자 목록 조회 (승인된 것만)
+  // Get all job seekers (approved only)
   async getApprovedJobSeekers() {
     if (!isFirebaseAvailable()) {
       console.warn('Firebase not available - returning empty job seekers list');
@@ -83,7 +83,7 @@ export const jobSeekerService = {
     }
     
     try {
-      // 복합 인덱스 오류 방지를 위해 where와 orderBy 분리
+      // Separate where and orderBy to prevent composite index error
       const q = query(
         collection(db, 'jobSeekers'), 
         where('approved', '==', true)
@@ -94,25 +94,25 @@ export const jobSeekerService = {
         ...doc.data()
       }));
       
-      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      // Sort on client side (descending by createdAt)
       jobSeekers.sort((a: any, b: any) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log('✅ 구직자 목록 조회 성공:', jobSeekers.length, '명');
+      console.log('✅ Job seekers list retrieved successfully:', jobSeekers.length, 'applicants');
       return jobSeekers;
     } catch (error) {
-      console.error('❌ 구직자 목록 조회 오류:', error);
+      console.error('❌ Job seekers list retrieval error:', error);
       throw error;
     }
   },
 
-  // 승인 대기 중인 구직자 목록 조회 (관리자용)
+  // Get pending applicants list (for admin)
   async getPendingApplications() {
     try {
-      // 복합 인덱스 오류 방지를 위해 where와 orderBy 분리
+      // Separate where and orderBy to prevent composite index error
       const q = query(
         collection(db, 'jobSeekers'), 
         where('approved', '==', false)
@@ -123,25 +123,25 @@ export const jobSeekerService = {
         ...doc.data()
       }));
       
-      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      // Sort on client side (descending by createdAt)
       pendingApplications.sort((a: any, b: any) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log('✅ 승인 대기 구직자 목록 조회 성공:', pendingApplications.length, '명');
+      console.log('✅ Pending applicants list retrieved successfully:', pendingApplications.length, 'applicants');
       return pendingApplications;
     } catch (error) {
-      console.error('❌ 승인 대기 구직자 목록 조회 오류:', error);
+      console.error('❌ Pending applicants list retrieval error:', error);
       throw error;
     }
   },
 
-  // 구직 신청 승인 (관리자용)
+  // Approve job application (for admin)
   async approveApplication(applicationId: string) {
     try {
-      console.log('✅ 구직 신청 승인 시작:', applicationId);
+      console.log('✅ Starting job application approval:', applicationId);
       
       const docRef = doc(db, 'jobSeekers', applicationId);
       await updateDoc(docRef, {
@@ -150,32 +150,32 @@ export const jobSeekerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 구직 신청 승인 완료:', applicationId);
+      console.log('✅ Job application approved successfully:', applicationId);
       return { success: true, id: applicationId };
     } catch (error) {
-      console.error('❌ 구직 신청 승인 오류:', error);
+      console.error('❌ Job application approval error:', error);
       throw error;
     }
   },
 
-  // 구직 신청 거절 (관리자용)
+  // Reject job application (for admin)
   async rejectApplication(applicationId: string, reason?: string) {
     try {
-      console.log('❌ 구직 신청 거절 시작:', applicationId, '사유:', reason);
+      console.log('❌ Starting job application rejection:', applicationId, 'Reason:', reason);
       
       const docRef = doc(db, 'jobSeekers', applicationId);
       await updateDoc(docRef, {
         approved: false,
         rejected: true,
         rejectedAt: serverTimestamp(),
-        rejectionReason: reason || '사유 없음',
+        rejectionReason: reason || 'No reason provided',
         updatedAt: serverTimestamp()
       });
       
-      console.log('❌ 구직 신청 거절 완료:', applicationId);
+      console.log('❌ Job application rejected successfully:', applicationId);
       return { success: true, id: applicationId };
     } catch (error) {
-      console.error('❌ 구직 신청 거절 오류:', error);
+      console.error('❌ Job application rejection error:', error);
       throw error;
     }
   },
@@ -183,14 +183,14 @@ export const jobSeekerService = {
 
 };
 
-// 💼 구인공고 지원 관련
+// 💼 Job Posting Application Services
 export const jobApplicationService = {
-  // 구인공고에 지원하기
+  // Apply to job posting
   async submitApplication(jobPostingId: string, applicationData: any) {
     try {
-      console.log('📝 구인공고 지원 제출 시작:', jobPostingId);
+      console.log('📝 Starting job posting application:', jobPostingId);
       
-      // 지원 데이터 저장
+      // Save application data
       const docRef = await addDoc(collection(db, 'jobApplications'), {
         jobPostingId,
         ...applicationData,
@@ -199,7 +199,7 @@ export const jobApplicationService = {
         updatedAt: serverTimestamp()
       });
 
-      // 구인공고의 지원자 수 증가
+      // Increase job posting applicant count
       const jobPostingRef = doc(db, 'jobPostings', jobPostingId);
       const jobPostingSnapshot = await getDocs(query(collection(db, 'jobPostings'), where('__name__', '==', jobPostingId)));
       
@@ -211,15 +211,15 @@ export const jobApplicationService = {
         });
       }
       
-      console.log('✅ 구인공고 지원 제출 성공:', docRef.id);
+      console.log('✅ Job posting application submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 구인공고 지원 제출 오류:', error);
+      console.error('❌ Job posting application submission error:', error);
       throw error;
     }
   },
 
-  // 특정 구인공고의 지원자 목록 조회 (기업용)
+  // Get applicants list for specific job posting (for employers)
   async getApplicationsByJobPosting(jobPostingId: string) {
     try {
       const q = query(
@@ -233,18 +233,18 @@ export const jobApplicationService = {
         ...doc.data()
       }));
       
-      console.log('✅ 구인공고 지원자 목록 조회 성공:', applications.length, '명');
+      console.log('✅ Job posting applicants list retrieved successfully:', applications.length, 'applicants');
       return applications;
     } catch (error) {
-      console.error('❌ 구인공고 지원자 목록 조회 오류:', error);
+      console.error('❌ Job posting applicants list retrieval error:', error);
       throw error;
     }
   },
 
-  // 지원 상태 업데이트 (기업용)
+  // Update application status (for employers)
   async updateApplicationStatus(applicationId: string, status: string, notes?: string) {
     try {
-      console.log('📝 지원 상태 업데이트:', applicationId, '→', status);
+      console.log('📝 Updating application status:', applicationId, '→', status);
       
       const docRef = doc(db, 'jobApplications', applicationId);
       await updateDoc(docRef, {
@@ -254,15 +254,15 @@ export const jobApplicationService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 지원 상태 업데이트 완료:', applicationId);
+      console.log('✅ Application status updated successfully:', applicationId);
       return { success: true, id: applicationId };
     } catch (error) {
-      console.error('❌ 지원 상태 업데이트 오류:', error);
+      console.error('❌ Application status update error:', error);
       throw error;
     }
   },
 
-  // 사용자별 지원 내역 조회
+  // Get user's application history
   async getApplicationsByUser(userEmail: string) {
     try {
       const q = query(
@@ -276,18 +276,18 @@ export const jobApplicationService = {
         ...doc.data()
       }));
       
-      console.log('✅ 사용자 지원 내역 조회 성공:', applications.length, '개');
+      console.log('✅ User application history retrieved successfully:', applications.length, 'applications');
       return applications;
     } catch (error) {
-      console.error('❌ 사용자 지원 내역 조회 오류:', error);
+      console.error('❌ User application history retrieval error:', error);
       throw error;
     }
   }
 };
 
-// 🏢 기업 채용 공고 관련
+// 🏢 Company Job Posting Services
 export const jobPostingService = {
-  // 채용 공고 등록
+  // Submit job posting
   async submitJobPosting(data: any) {
     try {
       const docRef = await addDoc(collection(db, 'jobPostings'), {
@@ -299,15 +299,15 @@ export const jobPostingService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 채용 공고 등록 성공:', docRef.id);
+      console.log('✅ Job posting submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 채용 공고 등록 오류:', error);
+      console.error('❌ Job posting submission error:', error);
       throw error;
     }
   },
 
-  // 승인된 채용 공고 목록 조회
+  // Get approved job postings list
   async getApprovedJobPostings() {
     if (!isFirebaseAvailable()) {
       console.warn('Firebase not available - returning empty job postings list');
@@ -315,29 +315,29 @@ export const jobPostingService = {
     }
     
     try {
-      // 인덱스 오류 방지를 위해 단순 쿼리 사용
+      // Use simple query to prevent index error
       const querySnapshot = await getDocs(collection(db, 'jobPostings'));
       const jobPostings = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      // 클라이언트 측에서 정렬
+      // Sort on client side
       jobPostings.sort((a, b) => {
         const timeA = (a as any)?.createdAt?.toDate?.() || new Date(0);
         const timeB = (b as any)?.createdAt?.toDate?.() || new Date(0);
         return timeB.getTime() - timeA.getTime();
       });
       
-      console.log('✅ 채용 공고 목록 조회 성공:', jobPostings.length, '개 (인덱스 오류 방지 모드)');
+      console.log('✅ Job postings list retrieved successfully:', jobPostings.length, 'postings (index error prevention mode)');
       return jobPostings;
     } catch (error) {
-      console.error('❌ 채용 공고 목록 조회 오류:', error);
+      console.error('❌ Job postings list retrieval error:', error);
       throw error;
     }
   },
 
-  // 구인공고 조회수 증가
+  // Increase job posting views
   async incrementViews(jobPostingId: string) {
     try {
       const jobPostingRef = doc(db, 'jobPostings', jobPostingId);
@@ -349,33 +349,33 @@ export const jobPostingService = {
           views: (currentData.views || 0) + 1,
           updatedAt: serverTimestamp()
         });
-        console.log('👁️ 구인공고 조회수 증가:', jobPostingId);
+        console.log('👁️ Job posting views increased:', jobPostingId);
       }
     } catch (error) {
-      console.error('❌ 조회수 증가 오류:', error);
+      console.error('❌ Views increment error:', error);
     }
   },
 
 
 };
 
-// 📄 추천서 관련
+// 📄 Reference Services
 export const referenceService = {
-  // 추천서 제출
+  // Submit reference
   async submitReference(data: any, referenceFile?: File) {
     try {
       let referenceFileUrl = '';
       
-      // 추천서 파일 업로드 (Storage가 활성화된 경우에만)
+      // Upload reference file (only when Storage is activated)
       if (referenceFile) {
         try {
           const refRef = ref(storage, `references/${Date.now()}_${referenceFile.name}`);
           const snapshot = await uploadBytes(refRef, referenceFile);
           referenceFileUrl = await getDownloadURL(snapshot.ref);
-          console.log('✅ 파일 업로드 성공:', referenceFileUrl);
+          console.log('✅ File upload successful:', referenceFileUrl);
         } catch (storageError) {
-          console.warn('⚠️ 파일 업로드 실패 (Storage 미설정):', storageError);
-          referenceFileUrl = `파일명: ${referenceFile.name} (업로드 대기중)`;
+          console.warn('⚠️ File upload failed (Storage not configured):', storageError);
+          referenceFileUrl = `Filename: ${referenceFile.name} (Upload pending)`;
         }
       }
       
@@ -388,18 +388,18 @@ export const referenceService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 추천서 제출 성공:', docRef.id);
+      console.log('✅ Reference submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 추천서 제출 오류:', error);
+      console.error('❌ Reference submission error:', error);
       throw error;
     }
   }
 };
 
-// 🎉 이벤트 관련
+// 🎉 Event Services
 export const eventService = {
-  // 관리자 이벤트 등록
+  // Create admin event
   async createEvent(data: any, adminEmail: string) {
     try {
       // Admin permission check (simple check - more sophisticated permission system needed in practice)
@@ -415,18 +415,18 @@ export const eventService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 관리자 이벤트 등록 성공:', docRef.id);
+      console.log('✅ Admin event created successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 이벤트 등록 오류:', error);
+      console.error('❌ Event creation error:', error);
       throw error;
     }
   },
 
-  // 이벤트 참가 신청
+  // Register for event
   async registerForEvent(eventId: string, participantData: any) {
     try {
-      // 이미 등록했는지 확인
+      // Check if already registered
       const existingQuery = query(
         collection(db, 'eventRegistrations'),
         where('eventId', '==', eventId),
@@ -435,7 +435,7 @@ export const eventService = {
       const existingDocs = await getDocs(existingQuery);
       
       if (!existingDocs.empty) {
-        throw new Error('이미 이 이벤트에 등록하셨습니다.');
+        throw new Error('You have already registered for this event.');
       }
 
       const docRef = await addDoc(collection(db, 'eventRegistrations'), {
@@ -444,15 +444,15 @@ export const eventService = {
         registeredAt: serverTimestamp()
       });
       
-      console.log('✅ 이벤트 참가 신청 성공:', docRef.id);
+      console.log('✅ Event registration successful:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 이벤트 참가 신청 오류:', error);
+      console.error('❌ Event registration error:', error);
       throw error;
     }
   },
 
-  // 실시간 이벤트 목록 조회 (참가자 수 포함)
+  // Get real-time events list (with participant count)
   async getAllEventsWithParticipants() {
     if (!isFirebaseAvailable()) {
       console.warn('Firebase not available - returning empty events list');
@@ -460,7 +460,7 @@ export const eventService = {
     }
     
     try {
-      // 이벤트 목록 조회 (인덱스 오류 방지를 위해 createdAt으로 정렬)
+      // Get events list (sorted by createdAt to prevent index error)
       const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
       const eventsSnapshot = await getDocs(eventsQuery);
       const events = eventsSnapshot.docs.map(doc => ({
@@ -468,7 +468,7 @@ export const eventService = {
         ...doc.data()
       }));
 
-      // 각 이벤트의 참가자 수 계산
+      // Calculate participant count for each event
       const eventsWithParticipants = await Promise.all(
         events.map(async (event) => {
           const participantsQuery = query(
@@ -486,15 +486,15 @@ export const eventService = {
         })
       );
       
-      console.log('✅ 실시간 이벤트 목록 조회 성공:', eventsWithParticipants.length, '개');
+      console.log('✅ Real-time events list retrieved successfully:', eventsWithParticipants.length, 'events');
       return eventsWithParticipants;
     } catch (error) {
-      console.error('❌ 이벤트 목록 조회 오류:', error);
+      console.error('❌ Events list retrieval error:', error);
       throw error;
     }
   },
 
-  // 실시간 이벤트 구독 (참가자 수 실시간 업데이트)
+  // Subscribe to real-time events (with real-time participant count update)
   subscribeToEvents(callback: (events: any[]) => void) {
     try {
       const eventsQuery = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
@@ -507,7 +507,7 @@ export const eventService = {
             ...doc.data()
           }));
 
-          // 각 이벤트의 실시간 참가자 수 계산
+          // Calculate real-time participant count for each event
           const eventsWithParticipants = await Promise.all(
             events.map(async (event) => {
               const participantsQuery = query(
@@ -537,7 +537,7 @@ export const eventService = {
     }
   },
 
-  // 특정 이벤트의 참가자 수 실시간 조회
+  // Subscribe to real-time participant count for specific event
   subscribeToEventParticipants(eventId: string, callback: (count: number) => void) {
     try {
       const participantsQuery = query(
@@ -560,10 +560,10 @@ export const eventService = {
     }
   },
 
-  // 관리자 권한 확인
+  // Check admin permissions
   isAdmin(email: string): boolean {
     if (!isFirebaseAvailable()) {
-      // Firebase 없을 때는 histudentjobs@gmail.com만 관리자로 인정
+      // When Firebase is unavailable, only histudentjobs@gmail.com is recognized as admin
       return email === 'histudentjobs@gmail.com';
     }
     const adminEmails = ['admin@example.com', 'manager@jobsprout.ca', 'admin@jobsprout.ca', 'histudentjobs@gmail.com'];
@@ -573,9 +573,9 @@ export const eventService = {
 
 };
 
-// 💬 자유게시판 관련
+// 💬 Community Board Services
 export const communityService = {
-  // 게시물 작성
+  // Create post
   async createPost(data: any) {
     try {
       const docRef = await addDoc(collection(db, 'communityPosts'), {
@@ -587,15 +587,15 @@ export const communityService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 게시물 작성 성공:', docRef.id);
+      console.log('✅ Post created successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 게시물 작성 오류:', error);
+      console.error('❌ Post creation error:', error);
       throw error;
     }
   },
 
-  // 모든 게시물 조회
+  // Get all posts
   async getAllPosts() {
     try {
       const q = query(collection(db, 'communityPosts'), orderBy('createdAt', 'desc'));
@@ -605,15 +605,15 @@ export const communityService = {
         ...doc.data()
       }));
       
-      console.log('✅ 게시물 목록 조회 성공:', posts.length, '개');
+      console.log('✅ Posts list retrieved successfully:', posts.length, 'posts');
       return posts;
     } catch (error) {
-      console.error('❌ 게시물 목록 조회 오류:', error);
+      console.error('❌ Posts list retrieval error:', error);
       throw error;
     }
   },
 
-  // 실시간 게시물 구독
+  // Subscribe to real-time posts
   subscribeToposts(callback: (posts: any[]) => void) {
     try {
       const q = query(collection(db, 'communityPosts'), orderBy('createdAt', 'desc'));
@@ -637,9 +637,9 @@ export const communityService = {
   }
 };
 
-// 📞 문의사항 관련
+// 📞 Contact/Inquiry Services
 export const contactService = {
-  // 문의사항 제출
+  // Submit contact inquiry
   async submitContact(data: any) {
     try {
       const docRef = await addDoc(collection(db, 'contacts'), {
@@ -649,15 +649,15 @@ export const contactService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 문의사항 제출 성공:', docRef.id);
+      console.log('✅ Contact inquiry submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 문의사항 제출 오류:', error);
+      console.error('❌ Contact inquiry submission error:', error);
       throw error;
     }
   },
 
-  // 관리자용: 모든 문의사항 조회
+  // For admin: Get all contact inquiries
   async getAllContacts() {
     if (!isFirebaseAvailable()) {
       console.warn('Firebase not available - returning empty contacts list');
@@ -675,15 +675,15 @@ export const contactService = {
         ...doc.data()
       }));
       
-      console.log('✅ 모든 문의사항 조회 성공:', contacts.length, '개');
+      console.log('✅ All contact inquiries retrieved successfully:', contacts.length, 'inquiries');
       return contacts;
     } catch (error) {
-      console.error('❌ 문의사항 조회 오류:', error);
+      console.error('❌ Contact inquiries retrieval error:', error);
       throw error;
     }
   },
 
-  // 문의사항 해결 상태 업데이트
+  // Update contact inquiry resolved status
   async updateContactStatus(contactId: string, resolved: boolean) {
     try {
       await updateDoc(doc(db, 'contacts', contactId), {
@@ -691,31 +691,31 @@ export const contactService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 문의사항 상태 업데이트 성공:', contactId);
+      console.log('✅ Contact inquiry status updated successfully:', contactId);
       return { success: true };
     } catch (error) {
-      console.error('❌ 문의사항 상태 업데이트 오류:', error);
+      console.error('❌ Contact inquiry status update error:', error);
       throw error;
     }
   },
 
-  // 문의사항 삭제
+  // Delete contact inquiry
   async deleteContact(contactId: string) {
     try {
       await deleteDoc(doc(db, 'contacts', contactId));
       
-      console.log('✅ 문의사항 삭제 성공:', contactId);
+      console.log('✅ Contact inquiry deleted successfully:', contactId);
       return { success: true };
     } catch (error) {
-      console.error('❌ 문의사항 삭제 오류:', error);
+      console.error('❌ Contact inquiry deletion error:', error);
       throw error;
     }
   }
 };
 
-// 📊 관리자용 통계
+// 📊 Admin Statistics Services
 export const adminService = {
-  // 전체 통계 조회
+  // Get overall statistics
   async getStats() {
     try {
       const [jobSeekers, jobPostings, references, contacts, posts] = await Promise.all([
@@ -735,10 +735,10 @@ export const adminService = {
         lastUpdated: new Date()
       };
 
-      console.log('✅ 통계 조회 성공:', stats);
+      console.log('✅ Statistics retrieved successfully:', stats);
       return stats;
     } catch (error) {
-      console.error('❌ 통계 조회 오류:', error);
+      console.error('❌ Statistics retrieval error:', error);
       throw error;
     }
   }
@@ -749,21 +749,21 @@ export const myPageService = {
   // Get all user activities by email
   async getUserActivities(userEmail: string) {
     try {
-      console.log('👤 사용자 활동 내역 조회 시작:', userEmail);
+      console.log('👤 Starting user activity history retrieval:', userEmail);
 
-      // 복합 인덱스 오류 방지를 위해 where와 orderBy 분리
+      // Separate where and orderBy to prevent composite index error
       const [jobSeekers, jobPostings, references, contacts, posts, eventRegistrations] = await Promise.all([
-        // 구직 신청 내역
+        // Job application history
         getDocs(query(collection(db, 'jobSeekers'), where('email', '==', userEmail))),
-        // 채용 공고 등록 내역
+        // Job posting submission history
         getDocs(query(collection(db, 'jobPostings'), where('contactEmail', '==', userEmail))),
-        // 추천서 제출 내역
+        // Reference submission history
         getDocs(query(collection(db, 'references'), where('teacherEmail', '==', userEmail))),
-        // 문의사항 내역
+        // Contact inquiry history
         getDocs(query(collection(db, 'contacts'), where('email', '==', userEmail))),
-        // 자유게시판 작성글 (authorEmail 필드로 조회)
+        // Community board posts (query by authorEmail field)
         getDocs(query(collection(db, 'communityPosts'), where('authorEmail', '==', userEmail))),
-        // 이벤트 참가 내역
+        // Event registration history
         getDocs(query(collection(db, 'eventRegistrations'), where('email', '==', userEmail)))
       ]);
 
@@ -776,7 +776,7 @@ export const myPageService = {
         eventRegistrations: eventRegistrations.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       };
 
-      // 클라이언트 사이드에서 각 활동별로 정렬
+      // Sort each activity on client side
       const sortByDate = (array: any[], dateField: string = 'createdAt') => {
         return array.sort((a: any, b: any) => {
           const dateA = a[dateField]?.toDate?.() || new Date(a[dateField] || 0);
@@ -792,7 +792,7 @@ export const myPageService = {
       activities.posts = sortByDate(activities.posts);
       activities.eventRegistrations = sortByDate(activities.eventRegistrations, 'registeredAt');
 
-      console.log('✅ 사용자 활동 내역 조회 성공:', {
+      console.log('✅ User activity history retrieved successfully:', {
         jobApplications: activities.jobApplications.length,
         jobPostings: activities.jobPostings.length,
         references: activities.references.length,
@@ -803,12 +803,12 @@ export const myPageService = {
 
       return activities;
     } catch (error) {
-      console.error('❌ 사용자 활동 내역 조회 오류:', error);
+      console.error('❌ User activity history retrieval error:', error);
       throw error;
     }
   },
 
-  // 사용자 요약 통계
+  // Get user summary statistics
   async getUserStats(userEmail: string) {
     try {
       const activities = await this.getUserActivities(userEmail);
@@ -828,15 +828,15 @@ export const myPageService = {
                         activities.eventRegistrations.length
       };
     } catch (error) {
-      console.error('❌ 사용자 통계 조회 오류:', error);
+      console.error('❌ User statistics retrieval error:', error);
       throw error;
     }
   }
 };
 
-// 📝 사이트 콘텐츠 관리 서비스
+// 📝 Site Content Management Services
 export const contentService = {
-  // 기본 콘텐츠 초기화
+  // Initialize default content
   async initializeDefaultContent() {
     try {
       const defaultContent = {
@@ -910,7 +910,7 @@ export const contentService = {
     }
   },
 
-  // 영어 기본 콘텐츠로 재설정
+  // Reset to English default content
   async resetToEnglishContent(adminEmail: string) {
     try {
       const englishContent = {
@@ -984,7 +984,7 @@ export const contentService = {
     }
   },
 
-  // 현재 콘텐츠 가져오기
+  // Get current content
   async getCurrentContent(): Promise<any> {
     try {
       const q = query(collection(db, 'siteContent'), orderBy('updatedAt', 'desc'));
@@ -1052,18 +1052,18 @@ export const contentService = {
     }
   },
 
-  // 콘텐츠 업데이트
+  // Update content
   async updateContent(updates: any, adminEmail: string) {
     try {
-      // Firebase 연결 상태 확인
+      // Check Firebase connection status
       if (!db) {
         throw new Error('Firebase database is not initialized');
       }
       
-      // 현재 콘텐츠 가져오기 (변경 내역 로그용)
+      // Get current content (for change history log)
       const currentContent = await this.getCurrentContent();
       
-      // 새 콘텐츠 생성 (버전 관리를 위해)
+      // Create new content (for version control)
       const newContent = {
         ...currentContent,
         ...updates,
@@ -1071,12 +1071,12 @@ export const contentService = {
         updatedBy: adminEmail
       };
       
-      // ID 제거 (새 문서 생성용)
+      // Remove ID (for creating new document)
       delete newContent.id;
 
       const docRef = await addDoc(collection(db, 'siteContent'), newContent);
       
-      // 변경 내역 로그 생성
+      // Create change history log
       await logService.createContentChangeLog({
         contentId: docRef.id,
         changes: updates,
@@ -1086,16 +1086,16 @@ export const contentService = {
       });
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 콘텐츠 업데이트 오류 (상세):', {
+      console.error('❌ Content update error (detailed):', {
         error,
-        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }
   },
 
-  // 실시간 콘텐츠 구독
+  // Subscribe to real-time content
   subscribeToContent(callback: (content: any) => void) {
     try {
       const q = query(collection(db, 'siteContent'), orderBy('updatedAt', 'desc'));
@@ -1111,23 +1111,23 @@ export const contentService = {
           }
         },
         (error) => {
-          // 권한 에러 또는 네트워크 에러 처리
+          // Handle permission or network errors
           console.warn('⚠️ Content subscription error (permission denied or network issue):', error);
-          // 에러 발생 시에도 기본 콘텐츠 반환하여 앱이 정상 작동하도록
-          // 구독 실패 시 아무것도 하지 않음 (이미 getCurrentContent()에서 기본값 제공)
+          // Return default content even on error to ensure app works normally
+          // Do nothing on subscription failure (default values already provided by getCurrentContent())
         }
       );
     } catch (error) {
       console.warn('⚠️ Failed to setup content subscription:', error);
-      // 구독 설정 실패 시 빈 unsubscribe 함수 반환
+      // Return empty unsubscribe function on subscription setup failure
       return () => {};
     }
   }
 };
 
-// 📊 활동 로그 서비스
+// 📊 Activity Log Services
 export const logService = {
-  // 일반 활동 로그 생성
+  // Create general activity log
   async createLog(logData: any) {
     try {
       const docRef = await addDoc(collection(db, 'logs'), {
@@ -1144,7 +1144,7 @@ export const logService = {
     }
   },
 
-  // 콘텐츠 변경 로그 생성
+  // Create content change log
   async createContentChangeLog(changeData: any) {
     try {
       const logData = {
@@ -1166,12 +1166,12 @@ export const logService = {
     }
   },
 
-  // 사용자 승인/거절 로그 생성
+  // Create user approval/rejection log
   async createUserActionLog(actionData: any) {
     try {
       const logData = {
         type: 'user_action',
-        action: actionData.action, // 'approve' 또는 'reject'
+        action: actionData.action, // 'approve' or 'reject'
         adminEmail: actionData.adminEmail,
         targetUserId: actionData.targetUserId,
         targetUserEmail: actionData.targetUserEmail,
@@ -1188,13 +1188,13 @@ export const logService = {
     }
   },
 
-  // 모든 로그 조회 (관리자용)
+  // Get all logs (for admin)
   async getAllLogs(limit = 50) {
     try {
       const q = query(
         collection(db, 'logs'), 
         orderBy('timestamp', 'desc'),
-        // limit를 50으로 제한하여 성능 최적화
+        // Limit to 50 for performance optimization
       );
       
       const querySnapshot = await getDocs(q);
@@ -1203,15 +1203,15 @@ export const logService = {
         ...doc.data()
       }));
       
-      console.log('✅ 활동 로그 조회 성공:', logs.length, '개');
+      console.log('✅ Activity logs retrieved successfully:', logs.length, 'logs');
       return logs;
     } catch (error) {
-      console.error('❌ 활동 로그 조회 오류:', error);
+      console.error('❌ Activity logs retrieval error:', error);
       throw error;
     }
   },
 
-  // 특정 타입 로그 조회
+  // Get logs by specific type
   async getLogsByType(type: string, limit = 30) {
     try {
       const q = query(
@@ -1226,15 +1226,15 @@ export const logService = {
         ...doc.data()
       }));
       
-      console.log(`✅ ${type} 로그 조회 성공:`, logs.length, '개');
+      console.log(`✅ ${type} logs retrieved successfully:`, logs.length, 'logs');
       return logs;
     } catch (error) {
-      console.error(`❌ ${type} 로그 조회 오류:`, error);
+      console.error(`❌ ${type} logs retrieval error:`, error);
       throw error;
     }
   },
 
-  // 실시간 로그 구독
+  // Subscribe to real-time logs
   subscribeToLogs(callback: (logs: any[]) => void, limit = 30) {
     try {
       const q = query(
@@ -1262,12 +1262,12 @@ export const logService = {
   }
 }; 
 
-// 🤝 봉사자 서비스
+// 🤝 Volunteer Services
 export const volunteerService = {
-  // 봉사자 모집 등록
+  // Submit volunteer posting
   async submitVolunteerPosting(data: any) {
     try {
-      console.log('🤝 봉사자 모집 등록 시작:', data);
+      console.log('🤝 Starting volunteer posting submission:', data);
       
       const docRef = await addDoc(collection(db, 'volunteerPostings'), {
         ...data,
@@ -1278,15 +1278,15 @@ export const volunteerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 봉사자 모집 등록 성공:', docRef.id);
+      console.log('✅ Volunteer posting submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 봉사자 모집 등록 오류:', error);
+      console.error('❌ Volunteer posting submission error:', error);
       throw error;
     }
   },
 
-  // 승인된 봉사 기회 목록 조회
+  // Get approved volunteer opportunities list
   async getApprovedVolunteerPostings() {
     try {
       const q = query(
@@ -1299,22 +1299,22 @@ export const volunteerService = {
         ...doc.data()
       }));
       
-      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      // Sort on client side (descending by createdAt)
       volunteerPostings.sort((a: any, b: any) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log('✅ 승인된 봉사 기회 목록 조회 성공:', volunteerPostings.length, '개');
+      console.log('✅ Approved volunteer opportunities list retrieved successfully:', volunteerPostings.length, 'opportunities');
       return volunteerPostings;
     } catch (error) {
-      console.error('❌ 봉사 기회 목록 조회 오류:', error);
+      console.error('❌ Volunteer opportunities list retrieval error:', error);
       throw error;
     }
   },
 
-  // 승인 대기 중인 봉사자 모집 목록 조회 (관리자용)
+  // Get pending volunteer postings list (for admin)
   async getPendingVolunteerPostings() {
     try {
       const q = query(
@@ -1327,25 +1327,25 @@ export const volunteerService = {
         ...doc.data()
       }));
       
-      // 클라이언트 사이드에서 정렬 (createdAt 기준 내림차순)
+      // Sort on client side (descending by createdAt)
       pendingPostings.sort((a: any, b: any) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log('✅ 승인 대기 봉사자 모집 목록 조회 성공:', pendingPostings.length, '개');
+      console.log('✅ Pending volunteer postings list retrieved successfully:', pendingPostings.length, 'postings');
       return pendingPostings;
     } catch (error) {
-      console.error('❌ 승인 대기 봉사자 모집 목록 조회 오류:', error);
+      console.error('❌ Pending volunteer postings list retrieval error:', error);
       throw error;
     }
   },
 
-  // 봉사자 모집 승인 (관리자용)
+  // Approve volunteer posting (for admin)
   async approveVolunteerPosting(postingId: string) {
     try {
-      console.log('✅ 봉사자 모집 승인 시작:', postingId);
+      console.log('✅ Starting volunteer posting approval:', postingId);
       
       const docRef = doc(db, 'volunteerPostings', postingId);
       await updateDoc(docRef, {
@@ -1354,37 +1354,37 @@ export const volunteerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 봉사자 모집 승인 완료:', postingId);
+      console.log('✅ Volunteer posting approved successfully:', postingId);
       return { success: true, id: postingId };
     } catch (error) {
-      console.error('❌ 봉사자 모집 승인 오류:', error);
+      console.error('❌ Volunteer posting approval error:', error);
       throw error;
     }
   },
 
-  // 봉사자 모집 거절 (관리자용)
+  // Reject volunteer posting (for admin)
   async rejectVolunteerPosting(postingId: string, reason?: string) {
     try {
-      console.log('❌ 봉사자 모집 거절 시작:', postingId, '사유:', reason);
+      console.log('❌ Starting volunteer posting rejection:', postingId, 'Reason:', reason);
       
       const docRef = doc(db, 'volunteerPostings', postingId);
       await updateDoc(docRef, {
         approved: false,
         rejected: true,
         rejectedAt: serverTimestamp(),
-        rejectionReason: reason || '사유 없음',
+        rejectionReason: reason || 'No reason provided',
         updatedAt: serverTimestamp()
       });
       
-      console.log('❌ 봉사자 모집 거절 완료:', postingId);
+      console.log('❌ Volunteer posting rejected successfully:', postingId);
       return { success: true, id: postingId };
     } catch (error) {
-      console.error('❌ 봉사자 모집 거절 오류:', error);
+      console.error('❌ Volunteer posting rejection error:', error);
       throw error;
     }
   },
 
-  // 봉사 기회 조회수 증가
+  // Increase volunteer opportunity views
   async incrementVolunteerViews(postingId: string) {
     try {
       const docRef = doc(db, 'volunteerPostings', postingId);
@@ -1393,17 +1393,17 @@ export const volunteerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('👁️ 봉사 기회 조회수 증가:', postingId);
+      console.log('👁️ Volunteer opportunity views increased:', postingId);
     } catch (error) {
-      console.error('❌ 조회수 증가 오류:', error);
-      // 조회수는 중요하지 않으므로 에러를 throw하지 않음
+      console.error('❌ Views increment error:', error);
+      // Views are not critical, so don't throw error
     }
   },
 
-  // 봉사 지원하기
+  // Apply for volunteer opportunity
   async submitVolunteerApplication(postingId: string, applicationData: any) {
     try {
-      console.log('🤝 봉사 지원 시작:', postingId, applicationData);
+      console.log('🤝 Starting volunteer application:', postingId, applicationData);
       
       const docRef = await addDoc(collection(db, 'volunteerApplications'), {
         postingId,
@@ -1414,7 +1414,7 @@ export const volunteerService = {
         updatedAt: serverTimestamp()
       });
       
-      // 봉사 기회의 지원자 수 증가
+      // Increase volunteer opportunity applicant count
       const postingRef = doc(db, 'volunteerPostings', postingId);
       const postingSnapshot = await getDocs(query(collection(db, 'volunteerPostings'), where('__name__', '==', postingId)));
       const currentCount = postingSnapshot.docs[0]?.data()?.applicantCount || 0;
@@ -1424,15 +1424,15 @@ export const volunteerService = {
         updatedAt: serverTimestamp()
       });
       
-      console.log('✅ 봉사 지원 성공:', docRef.id);
+      console.log('✅ Volunteer application submitted successfully:', docRef.id);
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('❌ 봉사 지원 오류:', error);
+      console.error('❌ Volunteer application error:', error);
       throw error;
     }
   },
 
-  // 특정 봉사 기회의 지원자 목록 조회 (관리자용)
+  // Get applicants list for specific volunteer opportunity (for admin)
   async getApplicationsByVolunteerPosting(postingId: string) {
     try {
       const q = query(
@@ -1447,15 +1447,15 @@ export const volunteerService = {
         ...doc.data()
       }));
       
-      console.log('✅ 봉사 지원자 목록 조회 성공:', applications.length, '명');
+      console.log('✅ Volunteer applicants list retrieved successfully:', applications.length, 'applicants');
       return applications;
     } catch (error) {
-      console.error('❌ 봉사 지원자 목록 조회 오류:', error);
+      console.error('❌ Volunteer applicants list retrieval error:', error);
       throw error;
     }
   },
 
-  // 사용자별 봉사 지원 내역 조회
+  // Get user's volunteer application history
   async getApplicationsByUser(userEmail: string) {
     try {
       const q = query(
@@ -1470,10 +1470,10 @@ export const volunteerService = {
         ...doc.data()
       }));
       
-      console.log('✅ 사용자 봉사 지원 내역 조회 성공:', applications.length, '개');
+      console.log('✅ User volunteer application history retrieved successfully:', applications.length, 'applications');
       return applications;
     } catch (error) {
-      console.error('❌ 사용자 봉사 지원 내역 조회 오류:', error);
+      console.error('❌ User volunteer application history retrieval error:', error);
       throw error;
     }
   },
@@ -1481,24 +1481,24 @@ export const volunteerService = {
 
 };
 
-// 🎨 디자인 편집 관련
+// 🎨 Design Editing Services
 export const designService = {
-  // 이미지 업로드 (Firebase Storage)
+  // Upload image (Firebase Storage)
   async uploadImage(file: File, category: string, imageName: string) {
     try {
-      console.log('📸 이미지 업로드 시작:', imageName, '카테고리:', category);
+      console.log('📸 Starting image upload:', imageName, 'Category:', category);
       
-      // 파일 이름 생성 (중복 방지)
+      // Generate file name (prevent duplication)
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop();
       const fileName = `${category}/${imageName}_${timestamp}.${fileExtension}`;
       
-      // Firebase Storage에 업로드
+      // Upload to Firebase Storage
       const imageRef = ref(storage, `design-assets/${fileName}`);
       const snapshot = await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
-      // Firestore에 이미지 정보 저장
+      // Save image information to Firestore
       await addDoc(collection(db, 'designAssets'), {
         category,
         imageName,
@@ -1510,33 +1510,33 @@ export const designService = {
         isActive: true
       });
       
-      console.log('✅ 이미지 업로드 성공:', downloadURL);
+      console.log('✅ Image uploaded successfully:', downloadURL);
       return { success: true, url: downloadURL, fileName };
     } catch (error) {
-      console.error('❌ 이미지 업로드 오류:', error);
+      console.error('❌ Image upload error:', error);
       throw error;
     }
   },
 
-  // 현재 활성 이미지 URL 업데이트
+  // Update current active image URL
   async updateActiveImage(category: string, imageName: string, newUrl: string) {
     try {
-      console.log('🔄 활성 이미지 업데이트 시작:', { category, imageName, newUrl });
+      console.log('🔄 Starting active image update:', { category, imageName, newUrl });
       
-      // 기존 설정 조회
-      console.log('📖 기존 설정 조회 중...');
+      // Get existing settings
+      console.log('📖 Retrieving existing settings...');
       const settingsRef = doc(db, 'siteSettings', 'design');
       const settingsSnap = await getDoc(settingsRef);
       
       let currentSettings: any = {};
       if (settingsSnap.exists()) {
         currentSettings = settingsSnap.data();
-        console.log('📖 기존 설정 찾음:', currentSettings);
+        console.log('📖 Existing settings found:', currentSettings);
       } else {
-        console.log('📖 기존 설정이 없음, 새로 생성');
+        console.log('📖 No existing settings found, creating new');
       }
       
-      // 이미지 URL 업데이트
+      // Update image URL
       const updatedSettings = {
         ...currentSettings,
         images: {
@@ -1549,18 +1549,18 @@ export const designService = {
         updatedAt: new Date().toISOString()
       };
       
-      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
-      console.log('💾 Firestore에 저장 중...', updatedSettings);
+      // Save to Firestore (setDoc creates if doesn't exist, updates if exists)
+      console.log('💾 Saving to Firestore...', updatedSettings);
       await setDoc(settingsRef, updatedSettings, { merge: true });
-      console.log('💾 Firestore 저장 완료');
+      console.log('💾 Firestore save completed');
       
-      console.log('✅ 활성 이미지 업데이트 완료');
+      console.log('✅ Active image update completed');
       console.log('📄 Updated settings:', updatedSettings);
       return { success: true };
     } catch (error) {
-      console.error('❌ 활성 이미지 업데이트 오류 (상세):', {
+      console.error('❌ Active image update error (detailed):', {
         error,
-        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
         category,
         imageName,
@@ -1570,10 +1570,10 @@ export const designService = {
     }
   },
 
-  // 색상 테마 저장
+  // Save color theme
   async saveColorTheme(colors: any) {
     try {
-      console.log('🎨 색상 테마 저장:', colors);
+      console.log('🎨 Saving color theme:', colors);
       
       const settingsRef = doc(db, 'siteSettings', 'design');
       const settingsSnap = await getDoc(settingsRef);
@@ -1595,21 +1595,21 @@ export const designService = {
         updatedAt: new Date().toISOString()
       };
       
-      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
+      // Save to Firestore (setDoc creates if doesn't exist, updates if exists)
       await setDoc(settingsRef, updatedSettings, { merge: true });
       
-      console.log('✅ 색상 테마 저장 완료');
+      console.log('✅ Color theme saved successfully');
       return { success: true };
     } catch (error) {
-      console.error('❌ 색상 테마 저장 오류:', error);
+      console.error('❌ Color theme save error:', error);
       throw error;
     }
   },
 
-  // 폰트 설정 저장
+  // Save font settings
   async saveFontSettings(fonts: any) {
     try {
-      console.log('✍️ 폰트 설정 저장:', fonts);
+      console.log('✍️ Saving font settings:', fonts);
       
       const settingsRef = doc(db, 'siteSettings', 'design');
       const settingsSnap = await getDoc(settingsRef);
@@ -1632,20 +1632,20 @@ export const designService = {
         updatedAt: new Date().toISOString()
       };
       
-      // Firestore에 저장 (setDoc으로 문서가 없으면 생성, 있으면 업데이트)
+      // Save to Firestore (setDoc creates if doesn't exist, updates if exists)
       await setDoc(settingsRef, updatedSettings, { merge: true });
       
-      console.log('✅ 폰트 설정 저장 완료');
+      console.log('✅ Font settings saved successfully');
       return { success: true };
     } catch (error) {
-      console.error('❌ 폰트 설정 저장 오류:', error);
+      console.error('❌ Font settings save error:', error);
       throw error;
     }
   },
 
-  // 현재 디자인 설정 조회
+  // Get current design settings
   async getCurrentDesignSettings() {
-    // 기본 설정 정의
+    // Define default settings
     const defaultSettings = {
       colors: {
         primary: '#0ea5e9',
@@ -1694,7 +1694,7 @@ export const designService = {
     }
   },
 
-  // 디자인 설정 실시간 구독
+  // Subscribe to real-time design settings
   subscribeToDesignSettings(callback: (settings: any) => void) {
     try {
       const settingsRef = doc(db, 'siteSettings', 'design');
@@ -1703,7 +1703,7 @@ export const designService = {
         settingsRef, 
         (snapshot) => {
           if (!snapshot.exists()) {
-            // 기본 설정 반환
+            // Return default settings
             callback({
               colors: {
                 primary: '#0ea5e9',
@@ -1737,20 +1737,20 @@ export const designService = {
           }
         },
         (error) => {
-          // 권한 에러 또는 네트워크 에러 처리
+          // Handle permission or network errors
           console.warn('⚠️ Design settings subscription error (permission denied or network issue):', error);
-          // 에러 발생 시에도 기본 설정 반환하여 앱이 정상 작동하도록
-          // 구독 실패 시 아무것도 하지 않음 (이미 getCurrentDesignSettings()에서 기본값 제공)
+          // Return default settings even on error to ensure app works normally
+          // Do nothing on subscription failure (default values already provided by getCurrentDesignSettings())
         }
       );
     } catch (error) {
       console.warn('⚠️ Failed to setup design settings subscription:', error);
-      // 구독 설정 실패 시 빈 unsubscribe 함수 반환
+      // Return empty unsubscribe function on subscription setup failure
       return () => {};
     }
   },
 
-  // 프리셋 테마 적용
+  // Apply preset theme
   async applyPresetTheme(themeName: string) {
     try {
       const presetThemes = {
@@ -1795,9 +1795,9 @@ export const designService = {
   }
 };
 
-// 📞 연락처 설정 서비스
+// 📞 Contact Settings Services
 export const contactSettingsService = {
-  // 현재 연락처 설정 조회
+  // Get current contact settings
   async getCurrentContactSettings() {
     const defaultSettings = {
       email: 'histudentjobs@gmail.com',
@@ -1827,7 +1827,7 @@ export const contactSettingsService = {
     }
   },
 
-  // 연락처 설정 저장
+  // Save contact settings
   async saveContactSettings(settings: any) {
     try {
       console.log('💾 Saving contact settings:', settings);
@@ -1848,7 +1848,7 @@ export const contactSettingsService = {
     }
   },
 
-  // 연락처 설정 실시간 구독
+  // Subscribe to real-time contact settings
   subscribeToContactSettings(callback: (settings: any) => void) {
     try {
       const settingsRef = doc(db, 'siteSettings', 'contact');

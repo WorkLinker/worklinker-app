@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 한국어 폰트 최적화 */
+/* Korean font optimization */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css');
 
-/* Google Fonts - 관리자에서 선택 가능한 폰트들 */
-/* 🇰🇷 한국어 최적화 폰트들 */
+/* Google Fonts - Selectable fonts in admin panel */
+/* 🇰🇷 Korean optimized fonts */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400;500;600;700;900&display=swap');
 @import url('https://fonts.googleapis.com/earlyaccess/nanumgothic.css');
 
-/* 📝 깔끔한 Sans-serif 폰트들 */
+/* 📝 Clean Sans-serif fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -23,7 +23,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
-/* 💪 임팩트 있는 Display 폰트들 */
+/* 💪 Impactful Display fonts */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
@@ -31,7 +31,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
-/* 🎨 우아한 Serif 폰트들 */
+/* 🎨 Elegant Serif fonts */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
@@ -39,21 +39,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@200;300;400;600;700;900&display=swap');
 
-/* ✨ 독특한 스타일 폰트들 */
+/* ✨ Unique style fonts */
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 
-/* 🎨 동적 디자인 변수 시스템 */
+/* 🎨 Dynamic design variable system */
 :root {
-  /* 색상 테마 변수 */
+  /* Color theme variables */
   --color-primary: #0ea5e9;
   --color-secondary: #7dd3fc;
   --color-accent: #0369a1;
   --color-background: #dbeafe;
   
-  /* 폰트 설정 변수 */
+  /* Font setting variables */
   --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-heading: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-size-body: 16px;
@@ -61,7 +61,7 @@
   --line-height: 1.5;
 }
 
-/* 동적 폰트 클래스 */
+/* Dynamic font classes */
 .dynamic-font-body {
   font-family: var(--font-body);
   font-size: var(--font-size-body);
@@ -73,7 +73,7 @@
   font-size: var(--font-size-heading);
 }
 
-/* 동적 색상 클래스 */
+/* Dynamic color classes */
 .dynamic-bg-primary {
   background-color: var(--color-primary);
 }
@@ -102,7 +102,7 @@
   color: var(--color-accent);
 }
 
-/* 동적 그라데이션 클래스 */
+/* Dynamic gradient classes */
 .dynamic-gradient-primary {
   background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
 }
@@ -127,7 +127,7 @@
   }
 }
 
-/* 커스텀 애니메이션 */
+/* Custom animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -143,7 +143,7 @@
   animation: fadeIn 0.6s ease-out forwards;
 }
 
-/* Ripple 효과 애니메이션 */
+/* Ripple effect animation */
 @keyframes ripple-animation {
   from {
     transform: scale(0);
@@ -155,7 +155,7 @@
   }
 }
 
-/* 스크롤 기반 애니메이션 */
+/* Scroll-based animations */
 @keyframes slideInUp {
   from {
     opacity: 0;
@@ -189,7 +189,7 @@
   }
 }
 
-/* 부드러운 전환 효과 */
+/* Smooth transition effects */
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -198,7 +198,7 @@
   transition: all 0.2s ease-in-out;
 }
 
-/* 클릭 효과 */
+/* Click effects */
 .click-effect {
   position: relative;
   overflow: hidden;
@@ -223,7 +223,7 @@
   height: 300px;
 }
 
-/* 플로팅 애니메이션 - 광범위하고 랜덤한 움직임 */
+/* Floating animation - Wide and random movements */
 @keyframes float-x {
   0%, 100% { transform: translateX(0px); }
   25% { transform: translateX(80px); }
@@ -330,7 +330,7 @@
 .animate-float-random1 { animation: float-random1 13s ease-in-out infinite; }
 .animate-float-random2 { animation: float-random2 11s ease-in-out infinite; }
 
-/* 파일 업로드 스타일 */
+/* File upload styles */
 .file-upload {
   @apply border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer;
 }
@@ -339,17 +339,17 @@
   @apply border-blue-500 bg-blue-50;
 }
 
-/* 카드 스타일 */
+/* Card styles */
 .card {
   @apply bg-white rounded-lg shadow-md border p-6 hover:shadow-lg transition-shadow;
 }
 
-/* 커스텀 배경색 */
+/* Custom background color */
 .bg-custom-blue {
   background-color: #2c5ced;
 }
 
-/* 버튼 스타일 */
+/* Button styles */
 .btn-primary {
   @apply bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium;
 }
@@ -362,13 +362,13 @@
   @apply border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium;
 }
 
-/* 히어로 텍스트 고급 스타일 */
+/* Hero text premium styles */
 .hero-text-premium {
   color: rgba(255, 255, 255, 0.88) !important;
   text-shadow: 0px 1px 3px rgba(0,0,0,0.35) !important;
 }
 
-/* 반응형 히어로 타이틀 */
+/* Responsive hero title */
 .hero-title {
   font-size: clamp(24px, 5vw, 42px);
   font-weight: 700;
@@ -377,19 +377,19 @@
   line-height: 1.4;
 }
 
-/* 히어로 타이틀 - 홈/학생프로필용 (기본 흰색) */
+/* Hero title - For Home/Student Profile (default white) */
 .hero-title-default {
   color: white;
   text-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
-/* 히어로 타이틀 - 프리미엄용 (5개 페이지) */
+/* Hero title - Premium version (5 pages) */
 .hero-title-premium {
   color: rgba(255, 255, 255, 0.88);
   text-shadow: 0px 1px 3px rgba(0,0,0,0.35);
 }
 
-/* 🎬 부드러운 슬라이드 애니메이션 */
+/* 🎬 Smooth slide animations */
 @keyframes slideIn {
   0% {
     opacity: 0;
@@ -424,7 +424,7 @@
   }
 }
 
-/* 부드러운 이미지 전환 효과 */
+/* Smooth image transition effects */
 .slide-transition {
   transition: all 2000ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: opacity, transform, filter;

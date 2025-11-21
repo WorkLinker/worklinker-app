@@ -23,7 +23,7 @@ export default function Home() {
   const [designSettings, setDesignSettings] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const observerRef = useRef<IntersectionObserver | null>(null);
   
-  // CSS 변수 업데이트 함수
+  // Update CSS variables function
   const updateCSSVariables = (settings: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!settings) return;
     
@@ -142,19 +142,19 @@ export default function Home() {
 
     return () => {
       if (unsubscribe) {
-        console.log('🔕 실시간 구독 해제');
+        console.log('🔕 Real-time subscription cancelled');
         unsubscribe();
       }
     };
   }, []);
 
-  // 디자인 설정 실시간 구독
+  // Real-time design settings subscription
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
 
     const initializeDesignSettings = async () => {
       try {
-        // 초기 디자인 설정 로드
+        // Load initial design settings
         const settings = await designService.getCurrentDesignSettings();
         setDesignSettings(settings);
         updateCSSVariables(settings);
@@ -186,7 +186,7 @@ export default function Home() {
     : defaultSlides
   ).map((slide: { title: string; subtitle: string; image: string; alt?: string }, index: number) => {
     const designImage = designSettings?.images?.heroSlides?.[`slide${index + 1}`];
-    // Only use design image if it's not a Korean filename
+    // Only use design image if it's not a Korean filename (filtering out old Korean filenames)
     const useDesignImage = designImage && !designImage.includes('메인홈') && !designImage.includes('%');
     
     // Use Firebase content data if available, otherwise use default data
@@ -216,7 +216,7 @@ export default function Home() {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  // 스크롤 애니메이션을 위한 Intersection Observer
+  // Intersection Observer for scroll animation
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
@@ -246,26 +246,26 @@ export default function Home() {
     };
   }, []);
 
-  // 클릭 효과 핸들러
+  // Click effect handler
   const handleClick = (elementId: string, href?: string) => {
     setClickedElements(prev => ({ ...prev, [elementId]: true }));
     
     if (href) {
       setIsLoading(prev => ({ ...prev, [elementId]: true }));
       
-      // 실제 네비게이션 전에 약간의 지연으로 효과 보여주기
+      // Show effect with a slight delay before actual navigation
       setTimeout(() => {
         window.location.href = href;
       }, 300);
     }
     
-    // 클릭 효과 제거
+    // Remove click effect
     setTimeout(() => {
       setClickedElements(prev => ({ ...prev, [elementId]: false }));
     }, 200);
   };
 
-  // Ripple 효과 생성 함수
+  // Ripple effect creation function
   const createRipple = (event: React.MouseEvent<HTMLElement>) => {
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();

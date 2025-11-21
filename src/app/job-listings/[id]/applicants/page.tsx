@@ -46,7 +46,7 @@ export default function JobApplicantsPage() {
     try {
       setLoading(true);
       
-      // 구인공고 정보 로드
+      // Load job posting information
       const jobs = await jobPostingService.getApprovedJobPostings();
       const job = jobs.find(j => j.id === jobId);
       
@@ -57,13 +57,13 @@ export default function JobApplicantsPage() {
       
       setJobPosting(job);
       
-      // 지원자 목록 로드
+      // Load applicant list
       const applicantList = await jobApplicationService.getApplicationsByJobPosting(jobId);
       setApplications(applicantList);
       
-      console.log('✅ 구인공고 및 지원자 정보 로드 완료');
+      console.log('✅ Job posting and applicant information loaded successfully');
     } catch (error) {
-      console.error('❌ 데이터 로드 오류:', error);
+      console.error('❌ Data loading error:', error);
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export default function JobApplicantsPage() {
     try {
       await jobApplicationService.updateApplicationStatus(applicationId, newStatus, notes);
       
-      // 로컬 상태 업데이트
+      // Update local state
       setApplications(prev => 
         prev.map(app => 
           app.id === applicationId 
@@ -84,10 +84,10 @@ export default function JobApplicantsPage() {
         )
       );
       
-      console.log('✅ 지원 상태 업데이트 완료');
+      console.log('✅ Application status updated successfully');
     } catch (error) {
-      console.error('❌ 상태 업데이트 오류:', error);
-      alert('상태 업데이트 중 오류가 발생했습니다.');
+      console.error('❌ Status update error:', error);
+      alert('An error occurred while updating the status.');
     } finally {
       setUpdating(null);
     }
@@ -114,7 +114,7 @@ export default function JobApplicantsPage() {
   };
 
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return '날짜 정보 없음';
+    if (!timestamp) return 'No date information';
     
     let date;
     if (timestamp.toDate) {
@@ -125,7 +125,7 @@ export default function JobApplicantsPage() {
       date = new Date(timestamp);
     }
     
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'long', 
       day: 'numeric',
@@ -134,7 +134,7 @@ export default function JobApplicantsPage() {
     });
   };
 
-  // 필터링된 지원자
+  // Filtered applicants
   const filteredApplications = applications.filter(app => {
     if (statusFilter === 'all') return true;
     return app.status === statusFilter;
@@ -148,16 +148,16 @@ export default function JobApplicantsPage() {
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                로그인이 필요합니다
+                Login Required
               </h2>
               <p className="text-gray-600 mb-6">
-                지원자 목록을 확인하려면 로그인해주세요.
+                Please log in to view the applicant list.
               </p>
               <button
                 onClick={() => router.push('/job-listings')}
                 className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
               >
-                구인공고 목록으로 돌아가기
+                Back to Job Listings
               </button>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function JobApplicantsPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-600">지원자 목록을 불러오는 중...</p>
+            <p className="text-lg text-gray-600">Loading applicant list...</p>
           </div>
         </div>
       </div>
@@ -187,21 +187,21 @@ export default function JobApplicantsPage() {
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 헤더 */}
+          {/* Header */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <button
               onClick={() => router.back()}
               className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
             >
               <ArrowLeft size={18} className="mr-2" />
-              이전으로
+              Go Back
             </button>
             
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              📋 지원자 목록 관리
+              📋 Manage Applicants
             </h1>
             
-            {/* 구인공고 정보 */}
+            {/* Job posting information */}
             {jobPosting && (
               <div className="bg-purple-50 rounded-lg p-4">
                 <h2 className="text-lg font-semibold text-purple-900 mb-2">
@@ -224,23 +224,23 @@ export default function JobApplicantsPage() {
                   )}
                   <div className="flex items-center">
                     <Eye size={14} className="mr-1" />
-                    <span>조회 {jobPosting.views || 0}</span>
+                    <span>Views {jobPosting.views || 0}</span>
                   </div>
                   <div className="flex items-center text-purple-800 font-medium">
                     <Users size={14} className="mr-1" />
-                    <span>지원자 {applications.length}명</span>
+                    <span>{applications.length} Applicant{applications.length !== 1 ? 's' : ''}</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* 필터 */}
+          {/* Filter */}
           <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Filter size={20} className="text-gray-600" />
-                <span className="font-medium text-gray-700">상태별 필터:</span>
+                <span className="font-medium text-gray-700">Filter by Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -255,12 +255,12 @@ export default function JobApplicantsPage() {
               </div>
               
               <div className="text-sm text-gray-600">
-                총 {filteredApplications.length}명의 지원자
+                Total {filteredApplications.length} Applicant{filteredApplications.length !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
 
-          {/* 지원자 목록 */}
+          {/* Applicant list */}
           {filteredApplications.length > 0 ? (
             <div className="space-y-4">
               {filteredApplications.map((application, index) => (
@@ -288,44 +288,44 @@ export default function JobApplicantsPage() {
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Building size={14} className="mr-2" />
-                          <span className="text-sm">{application.school} ({application.grade}학년)</span>
+                          <span className="text-sm">{application.school} (Grade {application.grade})</span>
                         </div>
                       </div>
 
                       <div className="text-sm text-gray-500 mb-4">
                         <Calendar size={12} className="inline mr-1" />
-                        지원일: {formatDate(application.createdAt)}
+                        Applied: {formatDate(application.createdAt)}
                       </div>
                     </div>
                   </div>
 
-                  {/* 상세 정보 */}
+                  {/* Details */}
                   <div className="border-t border-gray-100 pt-4 space-y-4">
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">경험 및 기술</h4>
+                      <h4 className="font-medium text-gray-900 mb-2">Experience and Skills</h4>
                       <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded">{application.experience}</p>
                     </div>
                     
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">지원동기</h4>
+                      <h4 className="font-medium text-gray-900 mb-2">Motivation</h4>
                       <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded">{application.motivation}</p>
                     </div>
                     
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">근무 가능 시간</h4>
+                      <h4 className="font-medium text-gray-900 mb-2">Availability</h4>
                       <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded">{application.availability}</p>
                     </div>
 
                     {application.questions && (
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">궁금한 점/추가 메시지</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">Questions/Additional Message</h4>
                         <p className="text-gray-700 text-sm bg-blue-50 p-3 rounded">{application.questions}</p>
                       </div>
                     )}
 
                     {application.resumeFileName && (
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">첨부 파일</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">Attached File</h4>
                         <div className="flex items-center bg-gray-50 p-3 rounded">
                           <FileText size={16} className="text-gray-600 mr-2" />
                           <span className="text-sm text-gray-700">{application.resumeFileName}</span>
@@ -339,7 +339,7 @@ export default function JobApplicantsPage() {
                     )}
                   </div>
 
-                  {/* 액션 버튼 */}
+                  {/* Action buttons */}
                   <div className="border-t border-gray-100 pt-4 mt-4">
                     <div className="flex flex-wrap gap-2">
                       {application.status === 'pending' && (
@@ -364,7 +364,7 @@ export default function JobApplicantsPage() {
                             className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors disabled:opacity-50"
                           >
                             <CheckCircle size={12} className="inline mr-1" />
-                            합격
+                            Accept
                           </button>
                           <button
                             onClick={() => handleStatusUpdate(application.id, 'rejected')}
@@ -372,7 +372,7 @@ export default function JobApplicantsPage() {
                             className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
                           >
                             <XCircle size={12} className="inline mr-1" />
-                            불합격
+                            Reject
                           </button>
                         </>
                       )}
@@ -385,7 +385,7 @@ export default function JobApplicantsPage() {
                             className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors disabled:opacity-50"
                           >
                             <CheckCircle size={12} className="inline mr-1" />
-                            합격
+                            Accept
                           </button>
                           <button
                             onClick={() => handleStatusUpdate(application.id, 'rejected')}
@@ -393,20 +393,20 @@ export default function JobApplicantsPage() {
                             className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
                           >
                             <XCircle size={12} className="inline mr-1" />
-                            불합격
+                            Reject
                           </button>
                         </>
                       )}
 
                       <button
                         onClick={() => {
-                          const mailtoLink = `mailto:${application.email}?subject=${encodeURIComponent(`[${jobPosting?.title}] 지원 관련 연락`)}&body=${encodeURIComponent(`안녕하세요 ${application.name}님,\n\n"${jobPosting?.title}" 지원과 관련하여 연락드립니다.\n\n감사합니다.`)}`;
+                          const mailtoLink = `mailto:${application.email}?subject=${encodeURIComponent(`[${jobPosting?.title}] Application Contact`)}&body=${encodeURIComponent(`Hello ${application.name},\n\nWe are contacting you regarding your application for "${jobPosting?.title}".\n\nThank you.`)}`;
                           window.open(mailtoLink);
                         }}
                         className="px-3 py-1 border border-purple-500 text-purple-600 rounded text-sm hover:bg-purple-50 transition-colors"
                       >
                         <Mail size={12} className="inline mr-1" />
-                        이메일 보내기
+                        Send Email
                       </button>
                     </div>
                   </div>
@@ -417,12 +417,12 @@ export default function JobApplicantsPage() {
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
               <Users size={64} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {statusFilter === 'all' ? '지원자가 없습니다' : '해당 상태의 지원자가 없습니다'}
+                {statusFilter === 'all' ? 'No Applicants' : 'No Applicants with This Status'}
               </h3>
               <p className="text-gray-600">
                 {statusFilter === 'all' 
-                  ? '아직 이 구인공고에 지원한 사람이 없습니다.' 
-                  : '다른 상태 필터를 선택해보세요.'
+                  ? 'No one has applied for this job posting yet.' 
+                  : 'Try selecting a different status filter.'
                 }
               </p>
             </div>

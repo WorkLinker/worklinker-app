@@ -47,7 +47,7 @@ export default function AdminFileUpload({
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   
-  // 파일 업로드 확인 관련 상태
+  // File upload confirmation related state
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -179,7 +179,7 @@ export default function AdminFileUpload({
     setDragActive(false);
   };
 
-  // 파일 업로드 확인
+  // Confirm file upload
   const confirmUpload = async () => {
     if (pendingFiles.length === 0) return;
     
@@ -188,7 +188,7 @@ export default function AdminFileUpload({
     setPendingFiles([]);
   };
 
-  // 파일 업로드 취소
+  // Cancel file upload
   const cancelUpload = () => {
     setPendingFiles([]);
     setShowConfirmModal(false);
@@ -198,14 +198,14 @@ export default function AdminFileUpload({
     try {
       console.log(`📥 Downloading ${file.originalName}...`);
       
-      // Firebase Storage URL을 직접 사용하여 다운로드
+      // Download directly using Firebase Storage URL
       const link = document.createElement('a');
       link.href = file.downloadURL;
       link.download = file.originalName;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       
-      // 임시로 DOM에 추가하고 클릭
+      // Temporarily add to DOM and click
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -279,7 +279,7 @@ export default function AdminFileUpload({
     });
   };
 
-  // 관리자가 아닌 경우 표시하지 않음
+  // Don't display if not an administrator
   if (!user || !eventService.isAdmin(user.email || '')) {
     return null;
   }

@@ -247,7 +247,7 @@ Thank you.`;
       // Set filename (with fallback)
       const fileName = student.resumeFileName || `${student.name}_resume.pdf`;
       
-      // Firebase Storage URL을 직접 사용하여 다운로드
+      // Download directly using Firebase Storage URL
       const link = document.createElement('a');
       link.href = student.resumeUrl;
       link.download = fileName;

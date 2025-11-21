@@ -44,26 +44,26 @@ export default function VolunteerDetailPage() {
     availability: ''
   });
 
-  const grades = ['9학년', '10학년', '11학년', '12학년'];
+  const grades = ['Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
 
   const loadPostingDetails = useCallback(async (postingId: string) => {
     try {
       setLoading(true);
-      // 실제로는 단일 게시물을 가져오는 API가 필요하지만, 
-      // 지금은 전체 목록에서 찾는 방식을 사용
+      // Ideally, we need an API to fetch a single posting,
+      // but for now we're using a method to find it from the full list
       const allPostings = await volunteerService.getApprovedVolunteerPostings();
       const foundPosting = allPostings.find(p => p.id === postingId);
       
       if (foundPosting) {
         setPosting(foundPosting);
-        // 조회수 증가
+        // Increment view count
         await volunteerService.incrementVolunteerViews(postingId);
       } else {
-        // 게시물을 찾을 수 없음
+        // Posting not found
         router.push('/volunteer-listings');
       }
     } catch (error) {
-      console.error('❌ 봉사 기회 상세 정보 로드 오류:', error);
+      console.error('❌ Error loading volunteer opportunity details:', error);
       router.push('/volunteer-listings');
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export default function VolunteerDetailPage() {
     e.preventDefault();
     
     if (!user) {
-      alert('봉사 지원을 위해서는 로그인이 필요합니다.');
+      alert('Login is required to apply for volunteer opportunities.');
       return;
     }
 
@@ -110,8 +110,8 @@ export default function VolunteerDetailPage() {
         setShowApplicationForm(false);
       }
     } catch (error) {
-      console.error('❌ 봉사 지원 오류:', error);
-      alert('지원 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('❌ Volunteer application error:', error);
+      alert('An error occurred during application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,6 +135,18 @@ export default function VolunteerDetailPage() {
 
   const getOrganizationTypeColor = (type: string) => {
     const colors = {
+      'Library': 'bg-blue-100 text-blue-800',
+      'Nursing Home': 'bg-pink-100 text-pink-800',
+      'Senior Center': 'bg-purple-100 text-purple-800',
+      'Pharmacy/Medical': 'bg-red-100 text-red-800',
+      'Government/Public': 'bg-gray-100 text-gray-800',
+      'School/Education': 'bg-green-100 text-green-800',
+      'Religious': 'bg-yellow-100 text-yellow-800',
+      'Environmental': 'bg-emerald-100 text-emerald-800',
+      'Animal Shelter': 'bg-orange-100 text-orange-800',
+      'Food Bank': 'bg-indigo-100 text-indigo-800',
+      'Other': 'bg-gray-100 text-gray-800',
+      // Legacy Korean keys for backward compatibility
       '도서관': 'bg-blue-100 text-blue-800',
       '요양원/요양소': 'bg-pink-100 text-pink-800',
       '노인정/복지관': 'bg-purple-100 text-purple-800',
@@ -157,7 +169,7 @@ export default function VolunteerDetailPage() {
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">봉사 기회 정보를 불러오는 중...</p>
+            <p className="text-gray-600">Loading volunteer opportunity information...</p>
           </div>
         </div>
         <Footer />
@@ -173,13 +185,13 @@ export default function VolunteerDetailPage() {
           <div className="text-center">
             <Heart size={64} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              봉사 기회를 찾을 수 없습니다
+              Volunteer Opportunity Not Found
             </h3>
             <Link
               href="/volunteer-listings"
               className="text-green-600 hover:underline"
             >
-              봉사 기회 목록으로 돌아가기
+              Return to Volunteer Opportunities List
             </Link>
           </div>
         </div>
@@ -197,11 +209,11 @@ export default function VolunteerDetailPage() {
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <CheckCircle size={64} className="mx-auto text-green-500 mb-6" />
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                🎉 봉사 지원이 완료되었습니다!
+                🎉 Volunteer Application Completed!
               </h1>
               <p className="text-gray-600 mb-6">
-                <strong>{posting.organizationName}</strong>에서<br/>
-                <strong>{posting.title}</strong> 봉사에 지원해주셔서 감사합니다.
+                Thank you for applying to volunteer for<br/>
+                <strong>{posting.title}</strong> at <strong>{posting.organizationName}</strong>.
               </p>
               
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -219,13 +231,13 @@ export default function VolunteerDetailPage() {
                   href="/volunteer-listings"
                   className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  다른 봉사 기회 보기
+                  View Other Opportunities
                 </Link>
                 <Link
                   href="/my-page"
                   className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  내 지원 현황 보기
+                  View My Applications
                 </Link>
               </div>
             </div>
@@ -244,9 +256,9 @@ export default function VolunteerDetailPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center text-sm text-gray-600">
-            <Link href="/" className="hover:text-green-600">홈</Link>
+            <Link href="/" className="hover:text-green-600">Home</Link>
             <span className="mx-2">•</span>
-            <Link href="/volunteer-listings" className="hover:text-green-600">봉사 기회</Link>
+            <Link href="/volunteer-listings" className="hover:text-green-600">Volunteer Opportunities</Link>
             <span className="mx-2">•</span>
             <span className="text-green-600">{posting.title}</span>
           </div>
@@ -262,7 +274,7 @@ export default function VolunteerDetailPage() {
             className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors mb-6"
           >
             <ArrowLeft size={20} className="mr-2" />
-            봉사 기회 목록으로 돌아가기
+            Return to Volunteer Opportunities List
           </Link>
 
           {/* Main Content */}
@@ -278,7 +290,7 @@ export default function VolunteerDetailPage() {
                     </span>
                     <div className="flex items-center text-sm text-gray-500">
                       <Users size={16} className="mr-1" />
-                      {posting.applicantCount || 0}명 지원
+                      {posting.applicantCount || 0} applicants
                     </div>
                   </div>
                   
@@ -303,12 +315,12 @@ export default function VolunteerDetailPage() {
                     {posting.startDate && (
                       <div className="flex items-center text-gray-600">
                         <Calendar size={16} className="mr-2 text-green-600" />
-                        <span>{posting.startDate} ~ {posting.endDate || '진행중'}</span>
+                        <span>{posting.startDate} ~ {posting.endDate || 'Ongoing'}</span>
                       </div>
                     )}
                     <div className="flex items-center text-gray-600">
                       <FileText size={16} className="mr-2 text-green-600" />
-                      <span>등록일: {formatDate(posting.createdAt)}</span>
+                      <span>Posted: {formatDate(posting.createdAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -320,13 +332,13 @@ export default function VolunteerDetailPage() {
                       className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium inline-flex items-center"
                     >
                       <Heart size={20} className="mr-2" />
-                      봉사 지원하기
+                      Apply for Volunteer
                     </button>
                   ) : (
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-2">봉사 지원을 위해 로그인하세요</p>
+                      <p className="text-sm text-gray-600 mb-2">Please log in to apply</p>
                       <button className="px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed">
-                        로그인 필요
+                        Login Required
                       </button>
                     </div>
                   )}
@@ -343,7 +355,7 @@ export default function VolunteerDetailPage() {
                   
                   {/* Description */}
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">활동 내용</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Activity Description</h2>
                     <div className="prose prose-gray max-w-none">
                       <p className="text-gray-700 whitespace-pre-line">{posting.description}</p>
                     </div>
@@ -352,7 +364,7 @@ export default function VolunteerDetailPage() {
                   {/* Required Skills */}
                   {posting.requiredSkills && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">필요한 기술/경험</h2>
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Required Skills/Experience</h2>
                       <p className="text-gray-700">{posting.requiredSkills}</p>
                     </div>
                   )}
@@ -360,7 +372,7 @@ export default function VolunteerDetailPage() {
                   {/* Benefits */}
                   {posting.benefits && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">봉사자 혜택</h2>
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Volunteer Benefits</h2>
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <p className="text-green-800">{posting.benefits}</p>
                       </div>
@@ -370,7 +382,7 @@ export default function VolunteerDetailPage() {
                   {/* Additional Info */}
                   {posting.additionalInfo && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">추가 정보</h2>
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Additional Information</h2>
                       <p className="text-gray-700">{posting.additionalInfo}</p>
                     </div>
                   )}
@@ -381,7 +393,7 @@ export default function VolunteerDetailPage() {
                   
                   {/* Contact Info */}
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">연락처 정보</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h3>
                     <div className="space-y-3">
                       <div className="flex items-center text-gray-700">
                         <User size={16} className="mr-3 text-green-600" />
@@ -404,25 +416,25 @@ export default function VolunteerDetailPage() {
 
                   {/* Quick Info */}
                   <div className="bg-blue-50 rounded-lg p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">봉사 정보</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Volunteer Information</h3>
                     <div className="space-y-3 text-sm">
                       <div>
-                        <span className="font-medium text-gray-700">기관 유형:</span>
+                        <span className="font-medium text-gray-700">Organization Type:</span>
                         <span className="ml-2 text-gray-600">{posting.organizationType}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">활동 장소:</span>
+                        <span className="font-medium text-gray-700">Activity Location:</span>
                         <span className="ml-2 text-gray-600">{posting.location}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">시간 약속:</span>
+                        <span className="font-medium text-gray-700">Time Commitment:</span>
                         <span className="ml-2 text-gray-600">{posting.timeCommitment}</span>
                       </div>
                       {posting.startDate && (
                         <div>
-                          <span className="font-medium text-gray-700">기간:</span>
+                          <span className="font-medium text-gray-700">Period:</span>
                           <span className="ml-2 text-gray-600">
-                            {posting.startDate} ~ {posting.endDate || '진행중'}
+                            {posting.startDate} ~ {posting.endDate || 'Ongoing'}
                           </span>
                         </div>
                       )}
@@ -443,7 +455,7 @@ export default function VolunteerDetailPage() {
             {/* Modal Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">봉사 지원하기</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Apply for Volunteer</h2>
                 <button
                   onClick={() => setShowApplicationForm(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -462,7 +474,7 @@ export default function VolunteerDetailPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이름 *
+                    Name *
                   </label>
                   <input
                     type="text"
@@ -475,7 +487,7 @@ export default function VolunteerDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이메일 *
+                    Email *
                   </label>
                   <input
                     type="email"
@@ -489,7 +501,7 @@ export default function VolunteerDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    전화번호 *
+                    Phone *
                   </label>
                   <input
                     type="tel"
@@ -503,7 +515,7 @@ export default function VolunteerDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    학년 *
+                    Grade *
                   </label>
                   <select
                     name="grade"
@@ -512,7 +524,7 @@ export default function VolunteerDetailPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     required
                   >
-                    <option value="">학년을 선택하세요</option>
+                    <option value="">Select your grade</option>
                     {grades.map((grade) => (
                       <option key={grade} value={grade}>{grade}</option>
                     ))}
@@ -522,7 +534,7 @@ export default function VolunteerDetailPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  학교명 *
+                  School Name *
                 </label>
                 <input
                   type="text"
@@ -530,14 +542,14 @@ export default function VolunteerDetailPage() {
                   value={applicationData.school}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="프레더릭턴 고등학교"
+                  placeholder="Fredericton High School"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  지원 동기 *
+                  Motivation *
                 </label>
                 <textarea
                   name="motivation"
@@ -545,14 +557,14 @@ export default function VolunteerDetailPage() {
                   onChange={handleInputChange}
                   rows={4}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="이 봉사 활동에 지원하는 이유를 자세히 설명해주세요."
+                  placeholder="Please explain in detail why you are applying for this volunteer opportunity."
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  관련 경험
+                  Related Experience
                 </label>
                 <textarea
                   name="experience"
@@ -560,13 +572,13 @@ export default function VolunteerDetailPage() {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="관련된 봉사 경험이나 활동 경험이 있다면 설명해주세요."
+                  placeholder="Please describe any relevant volunteer or activity experience."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  가능한 시간 *
+                  Availability *
                 </label>
                 <input
                   type="text"
@@ -574,7 +586,7 @@ export default function VolunteerDetailPage() {
                   value={applicationData.availability}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="예: 평일 오후 3시-6시, 주말 자유"
+                  placeholder="e.g. Weekdays 3pm-6pm, Weekends flexible"
                   required
                 />
               </div>
@@ -586,7 +598,7 @@ export default function VolunteerDetailPage() {
                   onClick={() => setShowApplicationForm(false)}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  취소
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -600,10 +612,10 @@ export default function VolunteerDetailPage() {
                   {isSubmitting ? (
                     <span className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      지원 중...
+                      Submitting...
                     </span>
                   ) : (
-                    '봉사 지원하기'
+                    'Apply for Volunteer'
                   )}
                 </button>
               </div>

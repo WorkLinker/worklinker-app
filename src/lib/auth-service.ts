@@ -18,7 +18,7 @@ import {
   updatePassword
 } from 'firebase/auth';
 
-// 로그인 상태 영구 유지 설정
+// Persistent login state settings
 const initializePersistence = async () => {
   if (!auth) {
     console.log('Firebase not configured, using Supabase auth');
@@ -26,7 +26,7 @@ const initializePersistence = async () => {
   }
   
   try {
-    // Firebase가 정상적으로 초기화되었는지 확인
+    // Check if Firebase is properly initialized
     if (typeof window !== 'undefined' && auth.app) {
       await setPersistence(auth, browserLocalPersistence);
       console.log('Firebase Auth persistence setup complete - login state maintained');
@@ -34,23 +34,23 @@ const initializePersistence = async () => {
     }
   } catch (error) {
     console.warn('Firebase Auth persistence setup error:', error);
-    // 에러가 발생해도 앱이 정상 작동하도록 함
+    // Allow app to work normally even if error occurs
   }
   return false;
 };
 
-// 앱 시작 시 persistence 설정 (클라이언트 사이드에서만)
-// let persistenceInitialized = false; // 사용하지 않음
+// Set persistence on app start (client side only)
+// let persistenceInitialized = false; // Not used
 if (typeof window !== 'undefined') {
   initializePersistence().then((success) => {
-    // persistenceInitialized = success; // 사용하지 않음
+    // persistenceInitialized = success; // Not used
     console.log('Firebase persistence initialized:', success);
   });
 }
 
-// 🔐 인증 서비스
+// 🔐 Authentication Services
 export const authService = {
-  // 이메일/비밀번호 회원가입
+  // Email/Password signup
   async signUpWithEmail(email: string, password: string, displayName: string) {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
@@ -101,7 +101,7 @@ export const authService = {
     }
   },
 
-  // 이메일/비밀번호 로그인
+  // Email/Password login
   async signInWithEmail(email: string, password: string) {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
@@ -153,7 +153,7 @@ export const authService = {
     }
   },
 
-  // 구글 로그인
+  // Google login
   async signInWithGoogle() {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured. Please check your environment variables.');
@@ -192,7 +192,7 @@ export const authService = {
     }
   },
 
-  // 로그아웃
+  // Logout
   async signOut() {
     if (!auth) {
       console.log('Firebase not configured, using Supabase auth');
@@ -209,7 +209,7 @@ export const authService = {
     }
   },
 
-  // 현재 사용자 정보 가져오기
+  // Get current user information
   getCurrentUser() {
     if (!auth) {
       console.log('Firebase not configured');
@@ -218,18 +218,18 @@ export const authService = {
     return auth.currentUser;
   },
 
-  // 인증 상태 변화 감지
+  // Detect authentication state changes
   onAuthStateChange(callback: (user: User | null) => void) {
     if (!auth) {
       console.log('Firebase not configured, calling callback with null');
       callback(null);
-      return () => {}; // 빈 unsubscribe 함수 반환
+      return () => {}; // Return empty unsubscribe function
     }
     
     return onAuthStateChanged(auth, callback);
   },
 
-  // 로그인 상태 확인 (페이지 로드 시 사용)
+  // Check auth state (used on page load)
   async checkAuthState(): Promise<User | null> {
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -244,7 +244,7 @@ export const authService = {
     });
   },
 
-  // 로그인 상태 지속성 확인
+  // Check login state persistence
   isLoggedIn(): boolean {
     const user = auth.currentUser;
     if (user) {
@@ -254,7 +254,7 @@ export const authService = {
     return false;
   },
 
-  // 이메일 인증 발송
+  // Send email verification
   async sendEmailVerification() {
     try {
       const user = auth.currentUser;
@@ -275,7 +275,7 @@ export const authService = {
     }
   },
 
-  // 비밀번호 재설정 이메일 발송
+  // Send password reset email
   async sendPasswordResetEmail(email: string) {
     try {
       console.log('📧 Sending password reset email...', email);
@@ -314,43 +314,43 @@ export const authService = {
     }
   },
 
-  // 비밀번호 변경
+  // Change password
   async changePassword(currentPassword: string, newPassword: string) {
     try {
       const user = auth.currentUser;
       if (!user || !user.email) {
-        throw new Error('로그인이 필요합니다.');
+        throw new Error('Login is required.');
       }
 
-      console.log('🔒 비밀번호 변경 시작...');
+      console.log('🔒 Starting password change...');
       
-      // 현재 비밀번호로 재인증
+      // Re-authenticate with current password
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       
-      // 새 비밀번호로 업데이트
+      // Update to new password
       await updatePassword(user, newPassword);
 
-      console.log('✅ 비밀번호 변경 성공');
+      console.log('✅ Password changed successfully');
       return { 
         success: true, 
-        message: '비밀번호가 성공적으로 변경되었습니다.' 
+        message: 'Password has been changed successfully.' 
       };
     } catch (error: unknown) {
-      console.error('❌ 비밀번호 변경 오류:', error);
+      console.error('❌ Password change error:', error);
       
-      let errorMessage = '비밀번호 변경 중 오류가 발생했습니다.';
+      let errorMessage = 'An error occurred while changing password.';
       
       const firebaseError = error as { code?: string };
       switch (firebaseError.code) {
         case 'auth/wrong-password':
-          errorMessage = '현재 비밀번호가 올바르지 않습니다.';
+          errorMessage = 'Current password is incorrect.';
           break;
         case 'auth/weak-password':
-          errorMessage = '새 비밀번호가 너무 약합니다. (최소 6자)';
+          errorMessage = 'New password is too weak. (minimum 6 characters)';
           break;
         case 'auth/requires-recent-login':
-          errorMessage = '보안을 위해 다시 로그인 후 시도해주세요.';
+          errorMessage = 'For security, please login again and try.';
           break;
       }
       
@@ -358,29 +358,29 @@ export const authService = {
     }
   },
 
-  // 이메일 인증 상태 확인
+  // Check email verification status
   isEmailVerified(): boolean {
     const user = auth.currentUser;
     return user ? user.emailVerified : false;
   },
 
-  // 현재 사용자의 이메일 인증 상태 새로고침
+  // Refresh current user's email verification status
   async reloadUser() {
     try {
       const user = auth.currentUser;
       if (user) {
         await user.reload();
-        console.log('✅ 사용자 정보 새로고침 완료');
+        console.log('✅ User information refresh completed');
         return { success: true, emailVerified: user.emailVerified };
       }
       return { success: false, emailVerified: false };
     } catch (error: unknown) {
-      console.error('❌ 사용자 정보 새로고침 오류:', error);
-      throw new Error('사용자 정보를 새로고침하는 중 오류가 발생했습니다.');
+      console.error('❌ User information refresh error:', error);
+      throw new Error('An error occurred while refreshing user information.');
     }
   },
 
-  // 🔒 보안상 관리자 계정 생성 기능을 제거
+  // 🔒 Admin account creation feature removed for security
   async createAdminAccounts() {
     console.log('⚠️ Admin accounts should be created manually in Firebase Console for security');
     console.log('📧 Recommended admin emails: admin@example.com, manager@jobsprout.ca, admin@jobsprout.ca');

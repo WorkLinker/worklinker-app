@@ -62,7 +62,7 @@ export default function JobApplicationPage() {
   useEffect(() => {
     loadJobPosting();
     if (user) {
-      // 로그인한 사용자 정보로 기본값 설정
+      // Set default values with logged-in user information
       setValue('email', user.email || '');
       setValue('name', user.displayName || '');
     }
@@ -76,13 +76,13 @@ export default function JobApplicationPage() {
       
       if (job) {
         setJobPosting(job);
-        // 조회수 증가
+        // Increment view count
         await jobPostingService.incrementViews(jobId);
       } else {
         router.push('/job-listings');
       }
     } catch (error) {
-      console.error('❌ 구인공고 로드 오류:', error);
+      console.error('❌ Failed to load job posting:', error);
       router.push('/job-listings');
     } finally {
       setLoading(false);
@@ -92,20 +92,20 @@ export default function JobApplicationPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 파일 크기 제한 (5MB)
+      // File size limit (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('파일 크기는 5MB 이하여야 합니다.');
+        alert('File size must be 5MB or less.');
         return;
       }
       
-      // 파일 형식 제한
+      // File format restriction
       const allowedTypes = [
         'application/pdf', 
         'application/msword', 
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ];
       if (!allowedTypes.includes(file.type)) {
-        alert('PDF, DOC, DOCX 파일만 업로드 가능합니다.');
+        alert('Only PDF, DOC, DOCX files can be uploaded.');
         return;
       }
       
@@ -115,14 +115,14 @@ export default function JobApplicationPage() {
 
   const onSubmit = async (data: ApplicationForm) => {
     if (!user) {
-      alert('로그인이 필요합니다.');
+      alert('Login is required.');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      console.log('📝 지원서 제출 시작...');
+      console.log('📝 Starting application submission...');
       
       const applicationData = {
         ...data,
@@ -136,14 +136,14 @@ export default function JobApplicationPage() {
       const result = await jobApplicationService.submitApplication(jobId, applicationData);
       
       if (result.success) {
-        console.log('🎉 지원서가 성공적으로 제출되었습니다!');
+        console.log('🎉 Application submitted successfully!');
         setSubmitted(true);
         reset();
         setResumeFile(null);
       }
     } catch (error) {
-      console.error('❌ 지원서 제출 오류:', error);
-      alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('❌ Application submission error:', error);
+      alert('An error occurred during submission. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -158,16 +158,16 @@ export default function JobApplicationPage() {
             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
               <AlertCircle size={64} className="text-orange-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                로그인이 필요합니다
+                Login Required
               </h2>
               <p className="text-gray-600 mb-6">
-                구인공고에 지원하려면 먼저 로그인해주세요.
+                Please log in first to apply for job postings.
               </p>
               <button
                 onClick={() => router.push('/job-listings')}
                 className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
               >
-                구인공고 목록으로 돌아가기
+                Back to Job Listings
               </button>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function JobApplicationPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-600">구인공고를 불러오는 중...</p>
+            <p className="text-lg text-gray-600">Loading job posting...</p>
           </div>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function JobApplicationPage() {
             <div className="text-center">
               <CheckCircle size={80} className="text-green-500 mx-auto mb-6" />
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                지원이 완료되었습니다!
+                Application Completed!
               </h1>
               <p className="text-lg text-gray-600 mb-4">
                 You have successfully applied for <strong>&ldquo;{jobPosting.title}&rdquo;</strong>.
@@ -246,21 +246,21 @@ export default function JobApplicationPage() {
       
       <div className="pt-20 pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 헤더 */}
+          {/* Header */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <button
               onClick={() => router.back()}
               className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
             >
               <ArrowLeft size={18} className="mr-2" />
-              이전으로
+              Go Back
             </button>
             
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              🏢 구인공고 지원하기
+              🏢 Apply for Job Posting
             </h1>
             
-            {/* 구인공고 정보 */}
+            {/* Job posting information */}
             <div className="bg-purple-50 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-purple-900 mb-2">
                 {jobPosting.title}
@@ -284,23 +284,23 @@ export default function JobApplicationPage() {
             </div>
           </div>
 
-          {/* 지원 폼 */}
+          {/* Application form */}
           <div className="bg-white rounded-xl shadow-sm p-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* 기본 정보 */}
+              {/* Basic information */}
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">기본 정보</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Basic Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이름 *
+                      Name *
                     </label>
                     <input
                       type="text"
                       {...register('name')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="홍길동"
+                      placeholder="John Doe"
                     />
                     {errors.name && (
                       <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -309,7 +309,7 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      이메일 *
+                      Email *
                     </label>
                     <input
                       type="email"
@@ -324,7 +324,7 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      전화번호 *
+                      Phone Number *
                     </label>
                     <input
                       type="tel"
@@ -339,17 +339,17 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      학년 *
+                      Grade *
                     </label>
                     <select
                       {...register('grade')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
-                      <option value="">학년을 선택하세요</option>
-                      <option value="9">9학년</option>
-                      <option value="10">10학년</option>
-                      <option value="11">11학년</option>
-                      <option value="12">12학년</option>
+                      <option value="">Select your grade</option>
+                      <option value="9">Grade 9</option>
+                      <option value="10">Grade 10</option>
+                      <option value="11">Grade 11</option>
+                      <option value="12">Grade 12</option>
                     </select>
                     {errors.grade && (
                       <p className="mt-1 text-sm text-red-600">{errors.grade.message}</p>
@@ -359,13 +359,13 @@ export default function JobApplicationPage() {
 
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    학교명 *
+                    School Name *
                   </label>
                   <input
                     type="text"
                     {...register('school')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="예: Fredericton High School"
+                    placeholder="e.g., Fredericton High School"
                   />
                   {errors.school && (
                     <p className="mt-1 text-sm text-red-600">{errors.school.message}</p>
@@ -373,20 +373,20 @@ export default function JobApplicationPage() {
                 </div>
               </div>
 
-              {/* 지원 내용 */}
+              {/* Application details */}
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">지원 내용</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Application Details</h3>
                 
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      경험 및 기술 * <span className="text-gray-500">(10글자 이상)</span>
+                      Experience and Skills * <span className="text-gray-500">(at least 10 characters)</span>
                     </label>
                     <textarea
                       {...register('experience')}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                      placeholder="관련 경험, 기술, 자격증 등을 상세히 작성해주세요..."
+                      placeholder="Please describe your relevant experience, skills, certifications, etc. in detail..."
                     />
                     {errors.experience && (
                       <p className="mt-1 text-sm text-red-600">{errors.experience.message}</p>
@@ -395,13 +395,13 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      지원동기 * <span className="text-gray-500">(50글자 이상)</span>
+                      Motivation * <span className="text-gray-500">(at least 50 characters)</span>
                     </label>
                     <textarea
                       {...register('motivation')}
                       rows={6}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                      placeholder="왜 이 직무에 지원하게 되었는지, 어떤 기여를 할 수 있는지 작성해주세요..."
+                      placeholder="Please explain why you are applying for this position and what contributions you can make..."
                     />
                     {errors.motivation && (
                       <p className="mt-1 text-sm text-red-600">{errors.motivation.message}</p>
@@ -410,13 +410,13 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      근무 가능 시간 *
+                      Availability *
                     </label>
                     <textarea
                       {...register('availability')}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                      placeholder="예: 평일 오후 4시-8시, 주말 오전 10시-오후 6시 가능"
+                      placeholder="e.g., Weekdays 4pm-8pm, Weekends 10am-6pm available"
                     />
                     {errors.availability && (
                       <p className="mt-1 text-sm text-red-600">{errors.availability.message}</p>
@@ -425,21 +425,21 @@ export default function JobApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      궁금한 점이나 추가 메시지 <span className="text-gray-500">(선택)</span>
+                      Questions or Additional Message <span className="text-gray-500">(optional)</span>
                     </label>
                     <textarea
                       {...register('questions')}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                      placeholder="궁금한 점이나 하고 싶은 말씀이 있으시면 작성해주세요..."
+                      placeholder="If you have any questions or would like to add anything, please write here..."
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 파일 업로드 */}
+              {/* File upload */}
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">이력서 첨부</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Attach Resume</h3>
                 
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
                   <input
@@ -455,13 +455,13 @@ export default function JobApplicationPage() {
                   >
                     <Upload size={48} className="text-gray-400 mb-4" />
                     <div className="text-lg font-medium text-gray-900 mb-2">
-                      이력서 파일 선택
+                      Select Resume File
                     </div>
                     <div className="text-sm text-gray-500 mb-4">
-                      PDF, DOC, DOCX 파일 (최대 5MB)
+                      PDF, DOC, DOCX files (Max 5MB)
                     </div>
                     <div className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-                      파일 선택하기
+                      Choose File
                     </div>
                   </label>
                   
@@ -481,7 +481,7 @@ export default function JobApplicationPage() {
                 </div>
               </div>
 
-              {/* 제출 버튼 */}
+              {/* Submit button */}
               <div className="pt-6 border-t border-gray-200">
                 <button
                   type="submit"
@@ -491,12 +491,12 @@ export default function JobApplicationPage() {
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      지원서 제출 중...
+                      Submitting Application...
                     </>
                   ) : (
                     <>
                       <Send size={20} className="mr-2" />
-                      지원서 제출하기
+                      Submit Application
                     </>
                   )}
                 </button>
