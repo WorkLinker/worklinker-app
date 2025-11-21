@@ -77,16 +77,17 @@ export default function ReferencesPage() {
         console.error('❌ Submission failed but no error thrown');
         alert('Submission failed. Please try again.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Reference letter submission error:', error);
+      const err = error as { message?: string; code?: string; stack?: string };
       console.error('Error details:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack
+        message: err?.message,
+        code: err?.code,
+        stack: err?.stack
       });
       
       // Show more detailed error message
-      const errorMessage = error?.message || 'Unknown error occurred';
+      const errorMessage = err?.message || 'Unknown error occurred';
       alert(`An error occurred during submission:\n\n${errorMessage}\n\nPlease check the browser console for more details.`);
     } finally {
       setIsSubmitting(false);

@@ -356,6 +356,69 @@ export const jobPostingService = {
     }
   },
 
+  // Get all job postings (for admin)
+  async getAllJobPostings() {
+    try {
+      const q = query(collection(db, 'jobPostings'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const postings = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('✅ All job postings retrieved:', postings.length);
+      return postings;
+    } catch (error) {
+      console.error('❌ Get all job postings error:', error);
+      throw error;
+    }
+  },
+
+  // Update job posting status (approve/reject)
+  async updateJobPostingStatus(postingId: string, status: 'approved' | 'rejected', adminNote?: string) {
+    try {
+      const postingRef = doc(db, 'jobPostings', postingId);
+      await updateDoc(postingRef, {
+        status,
+        approved: status === 'approved',
+        adminNote: adminNote || '',
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      console.log(`✅ Job posting ${status}:`, postingId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Update job posting status error:', error);
+      throw error;
+    }
+  },
+
+  // Update job posting (edit)
+  async updateJobPosting(postingId: string, updates: any) {
+    try {
+      const postingRef = doc(db, 'jobPostings', postingId);
+      await updateDoc(postingRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+      console.log('✅ Job posting updated:', postingId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Update job posting error:', error);
+      throw error;
+    }
+  },
+
+  // Delete job posting
+  async deleteJobPosting(postingId: string) {
+    try {
+      await deleteDoc(doc(db, 'jobPostings', postingId));
+      console.log('✅ Job posting deleted:', postingId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Delete job posting error:', error);
+      throw error;
+    }
+  }
 
 };
 

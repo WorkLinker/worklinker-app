@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Briefcase,
@@ -24,20 +24,34 @@ import { myPageService, jobApplicationService } from '@/lib/firebase-services';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
+interface JobPosting {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  jobType?: string;
+  salary?: string;
+  description?: string;
+  approved?: boolean;
+  views?: number;
+  createdAt?: unknown;
+  posterEmail?: string;
+  requirements?: string;
+  benefits?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  applicationDeadline?: string;
+  updatedAt?: unknown;
+}
+
 export default function MyJobsPage() {
   const router = useRouter();
   const [user] = useAuthState(auth);
-  const [jobPostings, setJobPostings] = useState<any[]>([]);
+  const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
   const [applicantCounts, setApplicantCounts] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadMyJobPostings();
-    }
-  }, [user]);
-
-  const loadMyJobPostings = async () => {
+  const loadMyJobPostings = useCallback(async () => {
     if (!user?.email) return;
 
     try {
@@ -46,12 +60,12 @@ export default function MyJobsPage() {
 
       // Get all user activities (includes job postings)
       const activities = await myPageService.getUserActivities(user.email);
-      const myJobs = activities.jobPostings || [];
+      const myJobs = (activities.jobPostings || []) as JobPosting[];
 
       // Get applicant counts for each job posting
       const counts: { [key: string]: number } = {};
       await Promise.all(
-        myJobs.map(async (job: any) => {
+        myJobs.map(async (job) => {
           try {
             const applications = await jobApplicationService.getApplicationsByJobPosting(job.id);
             counts[job.id] = applications.length;
@@ -71,7 +85,14 @@ export default function MyJobsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (user) {
+      loadMyJobPostings();
+    }
+  }, [user, loadMyJobPostings]);
+
 
   const getStatusBadge = (approved: boolean) => {
     if (approved === true) {
@@ -98,16 +119,18 @@ export default function MyJobsPage() {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: unknown) => {
     if (!timestamp) return 'N/A';
     
-    let date;
-    if (timestamp.toDate) {
-      date = timestamp.toDate();
-    } else if (timestamp instanceof Date) {
-      date = timestamp;
+    let date: Date;
+    const ts = timestamp as { toDate?: () => Date } | Date | string | number;
+    
+    if (ts && typeof ts === 'object' && 'toDate' in ts && typeof ts.toDate === 'function') {
+      date = ts.toDate();
+    } else if (ts instanceof Date) {
+      date = ts;
     } else {
-      date = new Date(timestamp);
+      date = new Date(ts as string | number);
     }
     
     return date.toLocaleDateString('en-CA', {

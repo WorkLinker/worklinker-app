@@ -44,7 +44,7 @@ import Footer from '@/components/Footer';
 
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService, referenceService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService, referenceService, jobPostingService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // Removed
 // import { User as SupabaseUser } from '@supabase/supabase-js';
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
@@ -55,7 +55,7 @@ import { storage } from '@/lib/firebase';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'reference-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
+type TabType = 'user-approval' | 'job-posting-management' | 'volunteer-management' | 'reference-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
 
 // Password change modal component
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -1026,6 +1026,8 @@ export default function AdminPage() {
   const [pendingApplications, setPendingApplications] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [references, setReferences] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [jobPostings, setJobPostings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1253,6 +1255,7 @@ export default function AdminPage() {
       setUser(currentUser);
       await Promise.all([
         loadPendingApplications(),
+        loadJobPostings(),
         loadReferences(),
         loadSiteContent(),
         loadPendingVolunteerPostings(),
@@ -1519,6 +1522,20 @@ const loadSiteContent = async () => {
       console.log('✅ References loaded:', allReferences.length, 'items');
     } catch (error) {
       console.error('❌ References loading error:', error);
+    }
+  };
+
+  const loadJobPostings = async () => {
+    try {
+      console.log('💼 Loading job postings...');
+      
+      // Get all job postings
+      const allPostings = await jobPostingService.getAllJobPostings();
+      setJobPostings(allPostings);
+      
+      console.log('✅ Job postings loaded:', allPostings.length, 'items');
+    } catch (error) {
+      console.error('❌ Job postings loading error:', error);
     }
   };
 

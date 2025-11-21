@@ -1,1 +1,38 @@
-body > div.min-h-screen.bg-gradient-to-br.from-indigo-600.to-blue-500 > div > div > div.bg-white.rounded-b-xl.shadow-xl.p-6 > div > div:nth-child(3) > div.divide-y.divide-gray-200 > div > div > div.flex-1
+14:57:03.882 Running build in Washington, D.C., USA (East) – iad1
+14:57:03.883 Build machine configuration: 2 cores, 8 GB
+14:57:04.011 Cloning github.com/WorkLinker/worklinker-app (Branch: main, Commit: cdd5c89)
+14:57:07.374 Cloning completed: 3.363s
+14:57:07.603 Restored build cache from previous deployment (82B8cR7SCpkF2QFitxJacN17BLnz)
+14:57:08.374 Running "vercel build"
+14:57:08.767 Vercel CLI 48.10.3
+14:57:09.114 Installing dependencies...
+14:57:13.426 
+14:57:13.427 added 11 packages in 4s
+14:57:13.428 
+14:57:13.428 186 packages are looking for funding
+14:57:13.428   run `npm fund` for details
+14:57:13.470 Detected Next.js version: 15.3.5
+14:57:13.472 Running "npm run build"
+14:57:13.579 
+14:57:13.579 > canada-student-job-platform@0.1.0 build
+14:57:13.580 > next build
+14:57:13.580 
+14:57:14.506    ▲ Next.js 15.3.5
+14:57:14.507 
+14:57:14.533    Creating an optimized production build ...
+14:57:32.994  ✓ Compiled successfully in 15.0s
+14:57:32.999    Linting and checking validity of types ...
+14:57:42.009 
+14:57:42.009 Failed to compile.
+14:57:42.009 
+14:57:42.010 ./src/app/my-jobs/page.tsx
+14:57:42.010 30:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+14:57:42.010 38:6  Warning: React Hook useEffect has a missing dependency: 'loadMyJobPostings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+14:57:42.011 54:32  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+14:57:42.012 101:34  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+14:57:42.012 
+14:57:42.012 ./src/app/references/page.tsx
+14:57:42.012 80:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+14:57:42.012 
+14:57:42.012 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+14:57:42.057 Error: Command "npm run build" exited with 1
