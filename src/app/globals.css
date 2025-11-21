@@ -17,16 +17,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;300;400;600;700;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
 /* 💪 Impactful Display fonts */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
@@ -34,15 +31,14 @@
 /* 🎨 Elegant Serif fonts */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@200;300;400;600;700;900&display=swap');
 
 /* ✨ Unique style fonts */
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 
 /* 🎨 Dynamic design variable system */
@@ -57,8 +53,8 @@
   --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-heading: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-size-body: 16px;
-  --font-size-heading: 32px;
-  --line-height: 1.5;
+  --font-size-heading: 24px;
+  --line-height: 1.6;
 }
 
 /* Dynamic font classes */
@@ -102,6 +98,18 @@
   color: var(--color-accent);
 }
 
+.dynamic-border-primary {
+  border-color: var(--color-primary);
+}
+
+.dynamic-border-secondary {
+  border-color: var(--color-secondary);
+}
+
+.dynamic-border-accent {
+  border-color: var(--color-accent);
+}
+
 /* Dynamic gradient classes */
 .dynamic-gradient-primary {
   background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
@@ -111,20 +119,8 @@
   background: linear-gradient(to right, var(--color-accent), var(--color-primary));
 }
 
-.dynamic-border-primary {
-  border-color: var(--color-primary);
-}
-
-.dynamic-border-secondary {
-  border-color: var(--color-secondary);
-}
-
-@layer base {
-  body {
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
-  }
+.dynamic-gradient-bg {
+  background: linear-gradient(to bottom right, var(--color-background), white);
 }
 
 /* Custom animations */
@@ -139,19 +135,24 @@
   }
 }
 
-.fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 /* Ripple effect animation */
 @keyframes ripple-animation {
   from {
-    transform: scale(0);
     opacity: 1;
+    transform: scale(0);
   }
   to {
-    transform: scale(2);
     opacity: 0;
+    transform: scale(10);
   }
 }
 
@@ -194,18 +195,17 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.smooth-hover {
-  transition: all 0.2s ease-in-out;
+.hover-scale:hover {
+  transform: scale(1.05);
 }
 
 /* Click effects */
 .click-effect {
   position: relative;
   overflow: hidden;
-  transform: translateZ(0);
 }
 
-.click-effect::before {
+.click-effect::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -218,7 +218,7 @@
   transition: width 0.6s, height 0.6s;
 }
 
-.click-effect:active::before {
+.click-effect:active::after {
   width: 300px;
   height: 300px;
 }
@@ -226,108 +226,56 @@
 /* Floating animation - Wide and random movements */
 @keyframes float-x {
   0%, 100% { transform: translateX(0px); }
-  25% { transform: translateX(80px); }
-  50% { transform: translateX(-60px); }
-  75% { transform: translateX(40px); }
+  25% { transform: translateX(20px); }
+  50% { transform: translateX(-15px); }
+  75% { transform: translateX(10px); }
 }
 
 @keyframes float-y {
   0%, 100% { transform: translateY(0px); }
-  33% { transform: translateY(-80px); }
-  66% { transform: translateY(60px); }
-}
-
-@keyframes float-diagonal {
-  0%, 100% { transform: translate(0px, 0px); }
-  20% { transform: translate(100px, -80px); }
-  40% { transform: translate(-80px, -60px); }
-  60% { transform: translate(120px, 40px); }
-  80% { transform: translate(-60px, 80px); }
-}
-
-@keyframes drift {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-  16% { transform: translate(80px, -60px) rotate(15deg); }
-  33% { transform: translate(-100px, -40px) rotate(-10deg); }
-  50% { transform: translate(60px, 80px) rotate(25deg); }
-  66% { transform: translate(-80px, 60px) rotate(-15deg); }
-  83% { transform: translate(120px, -20px) rotate(10deg); }
-}
-
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes float-wide {
-  0%, 100% { transform: translate(0px, 0px); }
-  20% { transform: translate(150px, -100px); }
-  40% { transform: translate(-120px, -80px); }
-  60% { transform: translate(100px, 120px); }
-  80% { transform: translate(-80px, 100px); }
-}
-
-@keyframes float-chaos {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-  14% { transform: translate(200px, -150px) rotate(45deg) scale(1.1); }
-  28% { transform: translate(-180px, -100px) rotate(-30deg) scale(0.9); }
-  42% { transform: translate(160px, 180px) rotate(90deg) scale(1.2); }
-  56% { transform: translate(-200px, 120px) rotate(-60deg) scale(0.8); }
-  70% { transform: translate(140px, -200px) rotate(120deg) scale(1.1); }
-  84% { transform: translate(-160px, -140px) rotate(-90deg) scale(0.95); }
-}
-
-@keyframes float-spiral {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-  25% { transform: translate(100px, -100px) rotate(90deg); }
-  50% { transform: translate(0px, -200px) rotate(180deg); }
-  75% { transform: translate(-100px, -100px) rotate(270deg); }
-}
-
-@keyframes float-zigzag {
-  0%, 100% { transform: translate(0px, 0px); }
-  12.5% { transform: translate(80px, -60px); }
-  25% { transform: translate(160px, 0px); }
-  37.5% { transform: translate(80px, 60px); }
-  50% { transform: translate(0px, 120px); }
-  62.5% { transform: translate(-80px, 60px); }
-  75% { transform: translate(-160px, 0px); }
-  87.5% { transform: translate(-80px, -60px); }
+  33% { transform: translateY(-25px); }
+  66% { transform: translateY(15px); }
 }
 
 @keyframes float-random1 {
   0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-  11% { transform: translate(90px, -110px) rotate(20deg); }
-  22% { transform: translate(-130px, -80px) rotate(-35deg); }
-  33% { transform: translate(170px, 60px) rotate(45deg); }
-  44% { transform: translate(-90px, 140px) rotate(-25deg); }
-  55% { transform: translate(200px, -40px) rotate(60deg); }
-  66% { transform: translate(-170px, -120px) rotate(-45deg); }
-  77% { transform: translate(50px, 180px) rotate(30deg); }
-  88% { transform: translate(-200px, 20px) rotate(-50deg); }
+  20% { transform: translate(15px, -20px) rotate(5deg); }
+  40% { transform: translate(-10px, 15px) rotate(-3deg); }
+  60% { transform: translate(20px, 10px) rotate(4deg); }
+  80% { transform: translate(-15px, -15px) rotate(-2deg); }
 }
 
 @keyframes float-random2 {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-  13% { transform: translate(-110px, 90px) rotate(-30deg); }
-  26% { transform: translate(140px, -160px) rotate(40deg); }
-  39% { transform: translate(-80px, -90px) rotate(-20deg); }
-  52% { transform: translate(180px, 120px) rotate(50deg); }
-  65% { transform: translate(-150px, 40px) rotate(-40deg); }
-  78% { transform: translate(70px, -180px) rotate(25deg); }
-  91% { transform: translate(-200px, -60px) rotate(-35deg); }
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  25% { transform: translate(-20px, 15px) scale(1.05); }
+  50% { transform: translate(15px, -10px) scale(0.95); }
+  75% { transform: translate(-10px, -20px) scale(1.02); }
 }
 
-.animate-float-x { animation: float-x 5s ease-in-out infinite; }
-.animate-float-y { animation: float-y 4s ease-in-out infinite; }
-.animate-float-diagonal { animation: float-diagonal 8s ease-in-out infinite; }
-.animate-drift { animation: drift 12s ease-in-out infinite; }
-.animate-rotate-slow { animation: rotate-slow 25s linear infinite; }
-.animate-float-wide { animation: float-wide 9s ease-in-out infinite; }
-.animate-float-chaos { animation: float-chaos 15s ease-in-out infinite; }
-.animate-float-spiral { animation: float-spiral 10s ease-in-out infinite; }
-.animate-float-zigzag { animation: float-zigzag 7s ease-in-out infinite; }
-.animate-float-random1 { animation: float-random1 13s ease-in-out infinite; }
+@keyframes float-random3 {
+  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+  30% { transform: translate(25px, 20px) rotate(6deg); }
+  60% { transform: translate(-15px, -25px) rotate(-4deg); }
+}
+
+@keyframes float-random4 {
+  0%, 100% { transform: translate(0px, 0px); }
+  20% { transform: translate(-15px, 25px); }
+  40% { transform: translate(20px, -15px); }
+  60% { transform: translate(-25px, 10px); }
+  80% { transform: translate(15px, -20px); }
+}
+
+@keyframes float-random5 {
+  0%, 100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+  25% { transform: translate(20px, -25px) rotate(-5deg) scale(1.05); }
+  50% { transform: translate(-25px, 20px) rotate(5deg) scale(0.95); }
+  75% { transform: translate(15px, 15px) rotate(-3deg) scale(1.03); }
+}
+
+.animate-float-x { animation: float-x 8s ease-in-out infinite; }
+.animate-float-y { animation: float-y 7s ease-in-out infinite; }
+.animate-float-random1 { animation: float-random1 12s ease-in-out infinite; }
 .animate-float-random2 { animation: float-random2 11s ease-in-out infinite; }
 
 /* File upload styles */
@@ -336,7 +284,7 @@
 }
 
 .file-upload:hover {
-  @apply border-blue-500 bg-blue-50;
+  background-color: rgba(59, 130, 246, 0.05);
 }
 
 /* Card styles */
@@ -355,38 +303,38 @@
 }
 
 .btn-secondary {
-  @apply bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium;
+  @apply bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium;
 }
 
-.btn-outline {
-  @apply border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium;
+.btn-success {
+  @apply bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium;
 }
 
 /* Hero text premium styles */
 .hero-text-premium {
   color: rgba(255, 255, 255, 0.88) !important;
-  text-shadow: 0px 1px 3px rgba(0,0,0,0.35) !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive hero title */
 .hero-title {
   font-size: clamp(24px, 5vw, 42px);
+  line-height: 1.2;
   font-weight: 700;
-  text-align: center;
-  white-space: normal;
-  line-height: 1.4;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
 }
 
 /* Hero title - For Home/Student Profile (default white) */
 .hero-title-default {
   color: white;
-  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Hero title - Premium version (5 pages) */
 .hero-title-premium {
   color: rgba(255, 255, 255, 0.88);
-  text-shadow: 0px 1px 3px rgba(0,0,0,0.35);
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* 🎬 Smooth slide animations */
@@ -395,10 +343,6 @@
     opacity: 0;
     transform: scale(1.05) translateX(30px);
     filter: blur(4px);
-  }
-  50% {
-    opacity: 0.7;
-    filter: blur(1px);
   }
   100% {
     opacity: 1;
@@ -412,10 +356,6 @@
     opacity: 1;
     transform: scale(1) translateX(0);
     filter: blur(0);
-  }
-  50% {
-    opacity: 0.3;
-    filter: blur(2px);
   }
   100% {
     opacity: 0;
@@ -471,6 +411,3 @@
 .react-datepicker__day:hover {
   background-color: #bae6fd;
 }
-
- 
- 
