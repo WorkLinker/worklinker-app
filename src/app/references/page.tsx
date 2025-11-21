@@ -61,18 +61,33 @@ export default function ReferencesPage() {
     
     try {
       console.log('📝 Starting reference letter submission...');
+      console.log('📋 Form data:', data);
+      console.log('📎 File:', selectedFile?.name || 'No file');
       
       const result = await referenceService.submitReference(data, selectedFile || undefined);
+      
+      console.log('✅ Submit result:', result);
       
       if (result.success) {
         console.log('🎉 Reference letter submission successful!');
         setSubmitted(true);
         reset();
         setSelectedFile(null);
+      } else {
+        console.error('❌ Submission failed but no error thrown');
+        alert('Submission failed. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Reference letter submission error:', error);
-      alert('An error occurred during submission. Please check your network connection and try again.');
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack
+      });
+      
+      // Show more detailed error message
+      const errorMessage = error?.message || 'Unknown error occurred';
+      alert(`An error occurred during submission:\n\n${errorMessage}\n\nPlease check the browser console for more details.`);
     } finally {
       setIsSubmitting(false);
     }
