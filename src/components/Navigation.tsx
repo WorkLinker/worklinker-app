@@ -196,7 +196,10 @@ export default function Navigation() {
               height={40}
               className="rounded-lg"
             />
-            <span className="text-xl font-bold text-white hidden sm:block">
+            <span 
+              className="text-xl font-bold text-white hidden sm:block"
+              style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)' }}
+            >
               High School Students Jobs
             </span>
           </Link>
@@ -211,9 +214,10 @@ export default function Navigation() {
                   href={item.href}
                   className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-white/20 text-white shadow-lg'
                       : 'text-white hover:bg-white/10'
                   }`}
+                  style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)' }}
                 >
                   <IconComponent size={16} />
                   <span>{item.label}</span>
@@ -232,6 +236,7 @@ export default function Navigation() {
                     setShowUserDropdown(!showUserDropdown);
                   }}
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors"
+                  style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)' }}
                 >
                   {profileImage ? (
                     <Image
@@ -311,6 +316,7 @@ export default function Navigation() {
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors border border-white/30"
+                style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)' }}
               >
                 <LogIn size={16} />
                 <span>Sign In</span>

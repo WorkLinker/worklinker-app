@@ -175,12 +175,15 @@ export default function MyJobsPage() {
     return (
       <div className="min-h-screen bg-blue-50">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-600">Loading your job postings...</p>
+        <div className="pt-32 pb-12">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-6"></div>
+              <p className="text-lg text-gray-600">Loading your job postings...</p>
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
