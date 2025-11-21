@@ -64,7 +64,7 @@ export default function JobApplicationPage() {
     if (user) {
       // Set default values with logged-in user information
       setValue('email', user.email || '');
-      setValue('name', user.displayName || '');
+      setValue('name', user.displayName === '시스템 관리자' ? 'System Administrator' : (user.displayName || ''));
     }
   }, [user, setValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
