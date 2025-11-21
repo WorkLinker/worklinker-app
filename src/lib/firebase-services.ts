@@ -383,6 +383,7 @@ export const referenceService = {
         ...data,
         referenceFileUrl,
         referenceFileName: referenceFile?.name || '',
+        status: 'pending',
         approved: false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -392,6 +393,54 @@ export const referenceService = {
       return { success: true, id: docRef.id };
     } catch (error) {
       console.error('❌ Reference submission error:', error);
+      throw error;
+    }
+  },
+
+  // Get all references (for admin)
+  async getAllReferences() {
+    try {
+      const q = query(collection(db, 'references'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const references = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('✅ References retrieved:', references.length);
+      return references;
+    } catch (error) {
+      console.error('❌ Get references error:', error);
+      throw error;
+    }
+  },
+
+  // Update reference status (approve/reject)
+  async updateReferenceStatus(referenceId: string, status: 'approved' | 'rejected', adminNote?: string) {
+    try {
+      const refDoc = doc(db, 'references', referenceId);
+      await updateDoc(refDoc, {
+        status,
+        approved: status === 'approved',
+        adminNote: adminNote || '',
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      console.log(`✅ Reference ${status}:`, referenceId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Update reference status error:', error);
+      throw error;
+    }
+  },
+
+  // Delete reference
+  async deleteReference(referenceId: string) {
+    try {
+      await deleteDoc(doc(db, 'references', referenceId));
+      console.log('✅ Reference deleted:', referenceId);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Delete reference error:', error);
       throw error;
     }
   }

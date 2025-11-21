@@ -44,7 +44,7 @@ import Footer from '@/components/Footer';
 
 import FileManager from '@/components/FileManager';
 import { authService } from '@/lib/auth-service';
-import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService } from '@/lib/firebase-services';
+import { jobSeekerService, eventService, contentService, logService, volunteerService, designService, contactService, contactSettingsService, referenceService } from '@/lib/firebase-services';
 // import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email-service'; // Removed
 // import { User as SupabaseUser } from '@supabase/supabase-js';
 // import { supabaseAuthService } from '@/lib/supabase-auth-service';
@@ -55,7 +55,7 @@ import { storage } from '@/lib/firebase';
 import jsPDF from 'jspdf';
 import Papa from 'papaparse';
 
-type TabType = 'user-approval' | 'volunteer-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
+type TabType = 'user-approval' | 'volunteer-management' | 'reference-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
 
 // Password change modal component
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
@@ -1024,6 +1024,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>('user-approval');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pendingApplications, setPendingApplications] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [references, setReferences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1251,6 +1253,7 @@ export default function AdminPage() {
       setUser(currentUser);
       await Promise.all([
         loadPendingApplications(),
+        loadReferences(),
         loadSiteContent(),
         loadPendingVolunteerPostings(),
         loadDesignSettings(),
@@ -1505,6 +1508,20 @@ const loadSiteContent = async () => {
     }
   };
 
+  const loadReferences = async () => {
+    try {
+      console.log('📚 Loading references...');
+      
+      // Get all references
+      const allReferences = await referenceService.getAllReferences();
+      setReferences(allReferences);
+      
+      console.log('✅ References loaded:', allReferences.length, 'items');
+    } catch (error) {
+      console.error('❌ References loading error:', error);
+    }
+  };
+
   const handleApprove = async (applicationId: string) => {
     if (!confirm('Do you want to approve this job application?')) return;
 
@@ -1602,6 +1619,103 @@ const loadSiteContent = async () => {
     }
   };
 
+  // Reference approval handler
+  const handleApproveReference = async (referenceId: string) => {
+    if (!confirm('Do you want to approve this reference letter?')) return;
+
+    try {
+      setUpdating(referenceId);
+      
+      const result = await referenceService.updateReferenceStatus(referenceId, 'approved');
+      if (result.success) {
+        // Create activity log
+        const reference = references.find(ref => ref.id === referenceId);
+        if (user?.email && reference) {
+          await logService.createLog({
+            action: 'approve_reference',
+            adminEmail: user.email,
+            description: `Reference approved for ${reference.studentName} by ${reference.teacherName}`,
+            timestamp: new Date()
+          });
+        }
+        
+        alert('Reference letter has been approved!');
+        await loadReferences(); // Refresh list
+      }
+    } catch (error: unknown) {
+      console.error('❌ Reference approval error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while approving reference.';
+      alert(errorMessage);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // Reference rejection handler
+  const handleRejectReference = async (referenceId: string) => {
+    const reason = prompt('Please enter reason for rejection (optional):');
+    if (reason === null) return; // If cancelled
+
+    try {
+      setUpdating(referenceId);
+      
+      const result = await referenceService.updateReferenceStatus(referenceId, 'rejected', reason);
+      if (result.success) {
+        // Create activity log
+        const reference = references.find(ref => ref.id === referenceId);
+        if (user?.email && reference) {
+          await logService.createLog({
+            action: 'reject_reference',
+            adminEmail: user.email,
+            description: `Reference rejected for ${reference.studentName} by ${reference.teacherName}. Reason: ${reason || 'No reason provided'}`,
+            timestamp: new Date()
+          });
+        }
+        
+        alert('Reference letter has been rejected.');
+        await loadReferences(); // Refresh list
+      }
+    } catch (error: unknown) {
+      console.error('❌ Reference rejection error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while rejecting reference.';
+      alert(errorMessage);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // Delete reference handler
+  const handleDeleteReference = async (referenceId: string) => {
+    if (!confirm('Are you sure you want to delete this reference letter? This action cannot be undone.')) return;
+
+    try {
+      setUpdating(referenceId);
+      
+      const result = await referenceService.deleteReference(referenceId);
+      if (result.success) {
+        // Create activity log
+        const reference = references.find(ref => ref.id === referenceId);
+        if (user?.email && reference) {
+          await logService.createLog({
+            action: 'delete_reference',
+            adminEmail: user.email,
+            description: `Reference deleted for ${reference.studentName} by ${reference.teacherName}`,
+            timestamp: new Date()
+          });
+        }
+        
+        alert('Reference letter has been deleted.');
+        await loadReferences(); // Refresh list
+      }
+    } catch (error: unknown) {
+      console.error('❌ Reference deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while deleting reference.';
+      alert(errorMessage);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'No date information';
@@ -1643,6 +1757,12 @@ const loadSiteContent = async () => {
       name: 'Volunteer Management',
       icon: Heart,
       description: 'Approve/reject volunteer opportunity postings'
+    },
+    {
+      id: 'reference-management' as TabType,
+      name: 'Reference Management',
+      icon: FileText,
+      description: 'Review and approve/reject reference letters'
     },
     {
       id: 'content-edit' as TabType,
@@ -1983,6 +2103,195 @@ const loadSiteContent = async () => {
                   <p className="text-gray-600 text-lg font-medium">
                     {volunteerSearchTerm ? 'No search results found.' : 'All volunteer opportunities have been processed!'}
                   </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'reference-management':
+        return (
+          <div className="space-y-6">
+            {/* Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <FileText size={28} className="text-blue-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total References</p>
+                    <p className="text-3xl font-bold text-gray-900">{references.length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <Clock size={28} className="text-orange-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pending</p>
+                    <p className="text-3xl font-bold text-gray-900">{references.filter(r => r.status === 'pending').length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <CheckCircle size={28} className="text-green-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Approved</p>
+                    <p className="text-3xl font-bold text-gray-900">{references.filter(r => r.status === 'approved').length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <XCircle size={28} className="text-red-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Rejected</p>
+                    <p className="text-3xl font-bold text-gray-900">{references.filter(r => r.status === 'rejected').length}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by student name, teacher name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Reference list */}
+            <div className="bg-white rounded-xl shadow-xl">
+              <div className="p-6 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  📄 Reference Letters ({references.filter(ref => 
+                    ref.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    ref.teacherName?.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).length} items)
+                </h2>
+              </div>
+
+              {loading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading references...</p>
+                </div>
+              ) : references.filter(ref => 
+                ref.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                ref.teacherName?.toLowerCase().includes(searchTerm.toLowerCase())
+              ).length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                  {references.filter(ref => 
+                    ref.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    ref.teacherName?.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((reference) => (
+                    <div key={reference.id} className="p-6 bg-white hover:bg-gray-50 transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-3">
+                            <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                              {reference.studentName}
+                            </h3>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                              reference.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              reference.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                              'bg-orange-100 text-orange-800'
+                            }`}>
+                              {reference.status === 'approved' ? <CheckCircle size={12} className="mr-1" /> :
+                               reference.status === 'rejected' ? <XCircle size={12} className="mr-1" /> :
+                               <Clock size={12} className="mr-1" />}
+                              {reference.status === 'approved' ? 'Approved' :
+                               reference.status === 'rejected' ? 'Rejected' : 'Pending'}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center">
+                              <User size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">Teacher: {reference.teacherName}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Mail size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{reference.studentEmail}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <BookOpen size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">Subject: {reference.subject}</span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                            <p className="text-sm text-gray-700 mb-2">
+                              <strong>Relationship:</strong> {reference.relationship}
+                            </p>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
+                              <strong>Reference Letter:</strong><br />
+                              {reference.referenceText}
+                            </p>
+                            {reference.referenceFileName && (
+                              <div className="mt-3 flex items-center text-sm text-blue-600">
+                                <FileText size={16} className="mr-2" />
+                                <span>Attached file: {reference.referenceFileName}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Clock size={14} className="mr-1" />
+                            <span>Submitted: {formatDate(reference.createdAt)}</span>
+                          </div>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="ml-4 flex flex-col gap-2">
+                          {reference.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveReference(reference.id)}
+                                disabled={updating === reference.id}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-sm whitespace-nowrap"
+                              >
+                                <CheckCircle size={16} className="mr-1" />
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRejectReference(reference.id)}
+                                disabled={updating === reference.id}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-sm whitespace-nowrap"
+                              >
+                                <XCircle size={16} className="mr-1" />
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => handleDeleteReference(reference.id)}
+                            disabled={updating === reference.id}
+                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-sm whitespace-nowrap"
+                          >
+                            <XCircle size={16} className="mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <FileText size={64} className="mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-600 text-lg">No reference letters found</p>
                 </div>
               )}
             </div>
