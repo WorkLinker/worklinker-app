@@ -57,6 +57,10 @@ import Papa from 'papaparse';
 
 type TabType = 'user-approval' | 'job-posting-management' | 'volunteer-management' | 'reference-management' | 'content-edit' | 'activity-log' | 'admin-settings' | 'design-editor' | 'file-management' | 'contact-management' | 'contact-settings';
 
+interface FirebaseTimestamp {
+  toDate: () => Date;
+}
+
 // Password change modal component
 function PasswordChangeModal({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: FirebaseUser | null }) {
   const [passwords, setPasswords] = useState({
@@ -1019,6 +1023,21 @@ function ActivityLogComponent() {
   );
 }
 
+interface JobPosting {
+  id: string;
+  title?: string;
+  company?: string;
+  location?: string;
+  salary?: string;
+  description?: string;
+  approved?: boolean;
+  views?: number;
+  posterEmail?: string;
+  createdAt?: FirebaseTimestamp | Date | string | number;
+  updatedAt?: FirebaseTimestamp | Date | string | number;
+  [key: string]: unknown;
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('user-approval');
@@ -1026,8 +1045,7 @@ export default function AdminPage() {
   const [pendingApplications, setPendingApplications] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [references, setReferences] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [jobPostings, setJobPostings] = useState<any[]>([]);
+  const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1770,6 +1788,12 @@ const loadSiteContent = async () => {
       description: 'Review and approve/reject job applications'
     },
     {
+      id: 'job-posting-management' as TabType,
+      name: 'Job Posting Management',
+      icon: Building,
+      description: 'Manage and moderate job postings'
+    },
+    {
       id: 'volunteer-management' as TabType,
       name: 'Volunteer Management',
       icon: Heart,
@@ -1969,6 +1993,58 @@ const loadSiteContent = async () => {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        );
+
+      case 'job-posting-management':
+        return (
+          <div className="space-y-6">
+            {/* Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <Building size={28} className="text-purple-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Job Postings</p>
+                    <p className="text-3xl font-bold text-gray-900">{jobPostings.length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <CheckCircle size={28} className="text-green-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Approved</p>
+                    <p className="text-3xl font-bold text-gray-900">{jobPostings.filter(j => j.approved === true).length}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center">
+                  <Clock size={28} className="text-orange-500 mr-4" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                    <p className="text-3xl font-bold text-gray-900">{jobPostings.filter(j => j.approved !== true && j.approved !== false).length}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Coming Soon Message */}
+            <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+              <Building size={64} className="text-gray-300 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Job Posting Management
+              </h3>
+              <p className="text-gray-600 text-lg mb-2">
+                Full job posting management interface coming soon!
+              </p>
+              <p className="text-gray-500">
+                Currently tracking {jobPostings.length} job posting{jobPostings.length !== 1 ? 's' : ''} in the system.
+              </p>
             </div>
           </div>
         );
