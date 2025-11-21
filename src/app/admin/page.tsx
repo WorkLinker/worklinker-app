@@ -1998,6 +1998,12 @@ const loadSiteContent = async () => {
         );
 
       case 'job-posting-management':
+        const filteredJobPostings = jobPostings.filter(posting =>
+          posting.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          posting.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          posting.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
         return (
           <div className="space-y-6">
             {/* Statistics */}
@@ -2033,18 +2039,229 @@ const loadSiteContent = async () => {
               </div>
             </div>
 
-            {/* Coming Soon Message */}
-            <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-              <Building size={64} className="text-gray-300 mx-auto mb-6" />
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Job Posting Management
-              </h3>
-              <p className="text-gray-600 text-lg mb-2">
-                Full job posting management interface coming soon!
-              </p>
-              <p className="text-gray-500">
-                Currently tracking {jobPostings.length} job posting{jobPostings.length !== 1 ? 's' : ''} in the system.
-              </p>
+            {/* Search */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by job title, company name, location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-gray-900 placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Job Postings List */}
+            <div className="bg-white rounded-xl shadow-xl">
+              <div className="p-6 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  💼 Job Postings ({filteredJobPostings.length} items)
+                </h2>
+              </div>
+
+              {loading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading job postings...</p>
+                </div>
+              ) : filteredJobPostings.length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                  {filteredJobPostings.map((posting) => (
+                    <div key={posting.id} className="p-6 bg-white hover:bg-gray-50 transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                              {posting.title || 'Untitled Job'}
+                            </h3>
+                            {posting.approved === true ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle size={12} className="mr-1" />
+                                Approved
+                              </span>
+                            ) : posting.approved === false ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <XCircle size={12} className="mr-1" />
+                                Rejected
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                <Clock size={12} className="mr-1" />
+                                Pending Review
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center">
+                              <Building size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.company || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.location || 'N/A'}</span>
+                            </div>
+                            {posting.salary && (
+                              <div className="flex items-center">
+                                <span className="mr-2 text-gray-400">💰</span>
+                                <span className="font-medium text-gray-700">{posting.salary}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center">
+                              <Mail size={16} className="mr-2 text-gray-400" />
+                              <span className="font-medium text-gray-700">{posting.posterEmail || 'N/A'}</span>
+                            </div>
+                            {posting.views !== undefined && (
+                              <div className="flex items-center">
+                                <Eye size={16} className="mr-2 text-gray-400" />
+                                <span className="font-medium text-gray-700">{posting.views} views</span>
+                              </div>
+                            )}
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Clock size={14} className="mr-1 text-gray-400" />
+                              <span className="font-medium">Posted: {formatDate(posting.createdAt)}</span>
+                            </div>
+                            {posting.description && (
+                              <div className="col-span-full text-gray-600">
+                                <strong className="text-gray-800">Description:</strong> <span className="font-medium line-clamp-2">{posting.description}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col space-y-2 ml-4">
+                          {posting.approved !== true && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Do you want to approve this job posting?')) return;
+                                try {
+                                  setUpdating(posting.id);
+                                  const result = await jobPostingService.updateJobPostingStatus(posting.id, 'approved');
+                                  if (result.success) {
+                                    if (user?.email && posting) {
+                                      await logService.createLog({
+                                        action: 'approve_job_posting',
+                                        adminEmail: user.email,
+                                        description: `Job posting approved: ${posting.title} by ${posting.company}`,
+                                        timestamp: new Date()
+                                      });
+                                    }
+                                    alert('Job posting has been approved!');
+                                    await loadJobPostings();
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Job posting approval error:', error);
+                                  alert('An error occurred while approving job posting.');
+                                } finally {
+                                  setUpdating(null);
+                                }
+                              }}
+                              disabled={updating === posting.id}
+                              className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl text-sm font-semibold"
+                            >
+                              {updating === posting.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              ) : (
+                                <CheckCircle size={16} className="mr-2" />
+                              )}
+                              Approve
+                            </button>
+                          )}
+                          
+                          {posting.approved !== false && (
+                            <button
+                              onClick={async () => {
+                                const reason = prompt('Please enter reason for rejection (optional):');
+                                if (reason === null) return;
+                                try {
+                                  setUpdating(posting.id);
+                                  const result = await jobPostingService.updateJobPostingStatus(posting.id, 'rejected', reason);
+                                  if (result.success) {
+                                    if (user?.email && posting) {
+                                      await logService.createLog({
+                                        action: 'reject_job_posting',
+                                        adminEmail: user.email,
+                                        description: `Job posting rejected: ${posting.title} by ${posting.company}. Reason: ${reason || 'No reason provided'}`,
+                                        timestamp: new Date()
+                                      });
+                                    }
+                                    alert('Job posting has been rejected.');
+                                    await loadJobPostings();
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Job posting rejection error:', error);
+                                  alert('An error occurred while rejecting job posting.');
+                                } finally {
+                                  setUpdating(null);
+                                }
+                              }}
+                              disabled={updating === posting.id}
+                              className="flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl text-sm font-semibold"
+                            >
+                              {updating === posting.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              ) : (
+                                <XCircle size={16} className="mr-2" />
+                              )}
+                              Reject
+                            </button>
+                          )}
+                          
+                          <button
+                            onClick={async () => {
+                              if (!confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) return;
+                              try {
+                                setUpdating(posting.id);
+                                const result = await jobPostingService.deleteJobPosting(posting.id);
+                                if (result.success) {
+                                  if (user?.email && posting) {
+                                    await logService.createLog({
+                                      action: 'delete_job_posting',
+                                      adminEmail: user.email,
+                                      description: `Job posting deleted: ${posting.title} by ${posting.company}`,
+                                      timestamp: new Date()
+                                    });
+                                  }
+                                  alert('Job posting has been deleted.');
+                                  await loadJobPostings();
+                                }
+                              } catch (error) {
+                                console.error('❌ Job posting deletion error:', error);
+                                alert('An error occurred while deleting job posting.');
+                              } finally {
+                                setUpdating(null);
+                              }
+                            }}
+                            disabled={updating === posting.id}
+                            className="flex items-center px-4 py-2 border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+                          >
+                            {updating === posting.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                            ) : (
+                              <XCircle size={16} className="mr-2" />
+                            )}
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <Building size={64} className="text-gray-300 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    No Job Postings Found
+                  </h3>
+                  <p className="text-gray-600">
+                    {searchTerm ? 'No job postings match your search criteria.' : 'No job postings have been submitted yet.'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
